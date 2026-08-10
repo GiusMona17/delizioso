@@ -1,5 +1,6 @@
 package com.delizioso.app.data.ai
 
+import com.delizioso.app.data.Categories
 import com.delizioso.app.data.import.IngredientParser
 import com.delizioso.app.data.import.StructuredRecipe
 import com.google.mlkit.genai.prompt.Generation
@@ -37,8 +38,12 @@ class NanoStructurer(
         val prompt = buildString {
             appendLine("You extract recipes from messy text found in social media captions and web pages.")
             appendLine("Return ONLY valid JSON (no markdown, no commentary) with this exact shape:")
-            appendLine("""{"title":"","description":"","servings":0,"prepTimeMinutes":0,"cookTimeMinutes":0,"ingredients":["..."],"steps":["..."]}""")
+            appendLine("""{"title":"","description":"","servings":0,"prepTimeMinutes":0,"cookTimeMinutes":0,"ingredients":["..."],"steps":["..."],"categories":["..."]}""")
             appendLine("Rules: keep ingredient quantities exactly as written; split instructions into numbered steps; use 0 for unknown numbers and empty string for unknown text; if the text has no recipe, return an empty title.")
+            appendLine(
+                "For \"categories\" choose at most ${Categories.MAX_PER_RECIPE} values, copied EXACTLY from this list " +
+                    "and nothing else: ${Categories.ALL.joinToString(", ")}."
+            )
             appendLine("---")
             appendLine(text.take(3000))
         }
@@ -68,6 +73,12 @@ class NanoStructurer(
         val steps = (obj["steps"] as? JsonArray)
             ?.mapNotNull { (it as? JsonPrimitive)?.content?.trim()?.takeIf(String::isNotEmpty) }
             .orEmpty()
+        // The model is told to copy from the list; anything it invents is dropped here.
+        val categories = Categories.canonicalise(
+            (obj["categories"] as? JsonArray)
+                ?.mapNotNull { (it as? JsonPrimitive)?.content }
+                .orEmpty()
+        )
 
         return StructuredRecipe(
             title = title,
@@ -77,6 +88,7 @@ class NanoStructurer(
             cookTimeMinutes = int("cookTimeMinutes"),
             ingredients = ingredientsRaw.mapIndexed { i, line -> IngredientParser.split(line).copy(position = i) },
             steps = steps,
+            categories = categories,
         )
     }
 }

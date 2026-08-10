@@ -44,6 +44,7 @@ object Routes {
     const val PROFILE = "profile"
     const val CREATE = "create"
     const val RECIPE_DETAIL = "recipe/{recipeId}"
+    const val RECIPE_EDIT = "recipe/{recipeId}/edit"
     const val IMPORT_PREVIEW = "importPreview"
     const val GROCERY = "grocery"
     const val COOK = "cook/{recipeId}"
@@ -54,6 +55,8 @@ object Routes {
     fun cookComplete(recipeId: Long) = "cookComplete/$recipeId"
 
     fun recipeDetail(recipeId: Long) = "recipe/$recipeId"
+
+    fun recipeEdit(recipeId: Long) = "recipe/$recipeId/edit"
 
     /** Routes that show the floating dock. */
     val tabRoutes = listOf(LIBRARY, PLANNER, CREATE, IMPORT, PROFILE)

@@ -86,6 +86,42 @@ interface RecipeDao {
         updatedAt: Long = System.currentTimeMillis(),
     )
 
+    @Query("DELETE FROM ingredients WHERE recipeId = :recipeId")
+    suspend fun deleteIngredientsOf(recipeId: Long)
+
+    @Query("DELETE FROM steps WHERE recipeId = :recipeId")
+    suspend fun deleteStepsOf(recipeId: Long)
+
+    @Query("DELETE FROM recipe_tag_cross_ref WHERE recipeId = :recipeId")
+    suspend fun deleteTagLinksOf(recipeId: Long)
+
+    @Query("SELECT * FROM recipes WHERE id = :id")
+    suspend fun recipeById(id: Long): RecipeEntity?
+
+    /**
+     * Apply an edit: ingredients, steps and categories are positioned child rows,
+     * so they are replaced wholesale rather than diffed. Atomic — a half-applied
+     * edit would leave a recipe with the old steps and the new ingredients.
+     */
+    @Transaction
+    suspend fun updateWithDetails(
+        recipe: RecipeEntity,
+        ingredients: List<IngredientEntity>,
+        steps: List<StepEntity>,
+        tagNames: List<String>,
+    ) {
+        updateRecipe(recipe)
+        deleteIngredientsOf(recipe.id)
+        deleteStepsOf(recipe.id)
+        deleteTagLinksOf(recipe.id)
+        if (ingredients.isNotEmpty()) insertIngredients(ingredients.map { it.copy(id = 0, recipeId = recipe.id) })
+        if (steps.isNotEmpty()) insertSteps(steps.map { it.copy(id = 0, recipeId = recipe.id) })
+        if (tagNames.isNotEmpty()) {
+            insertTags(tagNames.map { TagEntity(name = it) })
+            insertCrossRefs(tagNames.map { RecipeTagCrossRef(recipeId = recipe.id, tagName = it) })
+        }
+    }
+
     @Query("UPDATE recipes SET imageUri = :imageUri, updatedAt = :updatedAt WHERE id = :id")
     suspend fun updateImage(id: Long, imageUri: String?, updatedAt: Long = System.currentTimeMillis())
 

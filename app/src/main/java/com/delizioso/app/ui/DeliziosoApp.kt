@@ -23,6 +23,7 @@ import com.delizioso.app.ui.screens.create.CreateScreen
 import com.delizioso.app.ui.screens.cook.CookCompleteScreen
 import com.delizioso.app.ui.screens.cook.CookModeScreen
 import com.delizioso.app.ui.screens.detail.RecipeDetailScreen
+import com.delizioso.app.ui.screens.edit.EditRecipeScreen
 import com.delizioso.app.ui.screens.grocery.GroceryScreen
 import com.delizioso.app.ui.screens.import.ImportPreviewScreen
 import com.delizioso.app.ui.screens.import.ImportScreen
@@ -143,6 +144,17 @@ fun DeliziosoApp(
                     },
                 )
             }
+            composable(
+                route = Routes.RECIPE_EDIT,
+                arguments = listOf(navArgument("recipeId") { type = NavType.LongType }),
+            ) { entry ->
+                val recipeId = entry.arguments?.getLong("recipeId") ?: return@composable
+                EditRecipeScreen(
+                    recipeId = recipeId,
+                    onBack = { navController.popBackStack() },
+                    onSaved = { navController.popBackStack() },
+                )
+            }
             composable(Routes.PROFILE) { ProfileScreen() }
             composable(Routes.CREATE) {
                 CreateScreen(
@@ -163,6 +175,7 @@ fun DeliziosoApp(
                     recipeId = recipeId,
                     onBack = { navController.popBackStack() },
                     onStartCooking = { navController.navigate(Routes.cook(recipeId)) },
+                    onEdit = { navController.navigate(Routes.recipeEdit(recipeId)) },
                 )
             }
         }

@@ -22,9 +22,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -64,9 +66,13 @@ import com.delizioso.app.DeliziosoApplication
 import com.delizioso.app.data.ImageStore
 import com.delizioso.app.data.Quantities
 import com.delizioso.app.data.RecipeRepository
+import com.delizioso.app.data.toStructuredRecipe
 import com.delizioso.app.data.ai.AiUnavailableException
 import com.delizioso.app.data.ai.NanoAdvisor
-import com.delizioso.app.data.ai.RecipeAdvice
+import com.delizioso.app.data.ai.ChatMessage
+import com.delizioso.app.data.ai.MacrosEstimate
+import com.delizioso.app.data.ai.NanoChat
+import com.delizioso.app.data.ai.NanoInference
 import com.delizioso.app.data.import.StructuredRecipe
 import com.delizioso.app.data.local.IngredientEntity
 import com.delizioso.app.data.local.PlannedMealEntity
@@ -93,19 +99,32 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-sealed interface AdviceState {
-    data object Hidden : AdviceState
-    data object Loading : AdviceState
-    data class Loaded(val advice: RecipeAdvice) : AdviceState
-    data object ConsentNeeded : AdviceState
-    data class Error(val message: String, val retryable: Boolean) : AdviceState
+sealed interface MacrosState {
+    data object Hidden : MacrosState
+    data object Loading : MacrosState
+    data class Loaded(val macros: MacrosEstimate) : MacrosState
+    data object ConsentNeeded : MacrosState
+    data class Error(val message: String, val retryable: Boolean) : MacrosState
+}
+
+/** A conversation about one recipe; [streaming] is the answer being typed out. */
+data class ChatState(
+    val messages: List<ChatMessage> = emptyList(),
+    val streaming: String? = null,
+    val error: String? = null,
+    /** AICore is fetching Gemini Nano — minutes on first run, not seconds. */
+    val preparingModel: Boolean = false,
+) {
+    val busy: Boolean get() = streaming != null
 }
 
 class RecipeDetailViewModel(
     private val repository: RecipeRepository,
     private val advisor: NanoAdvisor,
+    private val chatModel: NanoChat,
     private val preferences: UserPreferences,
     private val recipeId: Long,
 ) : ViewModel() {
@@ -113,8 +132,11 @@ class RecipeDetailViewModel(
     val details: StateFlow<RecipeWithDetails?> =
         repository.byId(recipeId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    private val _advice = MutableStateFlow<AdviceState>(AdviceState.Hidden)
-    val advice: StateFlow<AdviceState> = _advice.asStateFlow()
+    private val _macros = MutableStateFlow<MacrosState>(MacrosState.Hidden)
+    val macros: StateFlow<MacrosState> = _macros.asStateFlow()
+
+    private val _chat = MutableStateFlow(ChatState())
+    val chat: StateFlow<ChatState> = _chat.asStateFlow()
 
     fun toggleFavorite(current: Boolean) {
         viewModelScope.launch { repository.setFavorite(recipeId, !current) }
@@ -162,44 +184,78 @@ class RecipeDetailViewModel(
         }
     }
 
-    /** Generate AI macros + substitutions for this recipe (on-device, consent-gated). */
-    fun requestAdvice() {
+    /** Estimate macros per serving with the on-device model. */
+    fun estimateMacros() {
         val d = details.value ?: return
         viewModelScope.launch {
-            _advice.value = AdviceState.Loading
+            _macros.value = MacrosState.Loading
             try {
-                val recipe = StructuredRecipe(
-                    title = d.recipe.title,
-                    description = d.recipe.description,
-                    servings = d.recipe.servings,
-                    prepTimeMinutes = d.recipe.prepTimeMinutes,
-                    cookTimeMinutes = d.recipe.cookTimeMinutes,
-                    ingredients = d.ingredients,
-                    steps = d.steps.map { it.text },
-                )
-                val advice = advisor.advice(recipe)
-                _advice.value = AdviceState.Loaded(advice)
-                advice.macros?.let {
-                    repository.updateMacros(recipeId, it.kcal, it.proteinG, it.fatG, it.carbsG)
-                }
+                val estimate = advisor.macros(d.toStructuredRecipe())
+                _macros.value = MacrosState.Loaded(estimate)
+                repository.updateMacros(recipeId, estimate.kcal, estimate.proteinG, estimate.fatG, estimate.carbsG)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: AiUnavailableException) {
-                _advice.value = if (e.retryable) {
-                    AdviceState.Error(e.message ?: "On-device AI is busy", true)
+                _macros.value = if (e.retryable) {
+                    MacrosState.Error(e.message ?: "On-device AI is busy", true)
                 } else {
-                    AdviceState.ConsentNeeded
+                    MacrosState.ConsentNeeded
                 }
             } catch (e: Exception) {
-                _advice.value = AdviceState.Error(e.message ?: "AI advice failed", false)
+                _macros.value = MacrosState.Error(e.message ?: "Macro estimate failed", false)
             }
         }
     }
 
+    /** Ask a free-form question about this recipe; the answer streams in. */
+    fun ask(question: String) {
+        val d = details.value ?: return
+        val trimmed = question.trim()
+        if (trimmed.isEmpty() || _chat.value.busy) return
+        val history = _chat.value.messages
+        _chat.value = ChatState(
+            messages = history + ChatMessage(ChatMessage.Role.USER, trimmed),
+            streaming = "",
+        )
+        viewModelScope.launch {
+            try {
+                // First run downloads the model; say so rather than showing a
+                // "Thinking…" spinner for several minutes.
+                if (chatModel.availability() == NanoInference.Availability.DOWNLOADABLE) {
+                    _chat.update { it.copy(preparingModel = true) }
+                }
+                var answer = ""
+                chatModel.ask(d.toStructuredRecipe(), history, trimmed).collect { soFar ->
+                    answer = soFar
+                    _chat.update { it.copy(streaming = soFar, preparingModel = false) }
+                }
+                _chat.update {
+                    it.copy(
+                        messages = it.messages + ChatMessage(ChatMessage.Role.ASSISTANT, answer),
+                        streaming = null,
+                        preparingModel = false,
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _chat.update {
+                    it.copy(
+                        streaming = null,
+                        preparingModel = false,
+                        error = e.message ?: "The on-device AI could not answer",
+                    )
+                }
+            }
+        }
+    }
+
+    fun clearChatError() = _chat.update { it.copy(error = null) }
+
     fun grantConsentAndRetry() {
         viewModelScope.launch {
             preferences.setAiConsent(true)
-            requestAdvice()
+            estimateMacros()
         }
     }
 
@@ -210,6 +266,7 @@ class RecipeDetailViewModel(
                 RecipeDetailViewModel(
                     repository = app.container.recipeRepository,
                     advisor = app.container.nanoAdvisor,
+                    chatModel = app.container.nanoChat,
                     preferences = app.container.preferences,
                     recipeId = recipeId,
                 )
@@ -226,18 +283,21 @@ fun RecipeDetailScreen(
     recipeId: Long,
     onBack: () -> Unit,
     onStartCooking: () -> Unit,
+    onEdit: () -> Unit,
     viewModel: RecipeDetailViewModel = viewModel(
         key = "recipe-detail-$recipeId",
         factory = RecipeDetailViewModel.factory(recipeId),
     ),
 ) {
     val details by viewModel.details.collectAsStateWithLifecycle()
-    val advice by viewModel.advice.collectAsStateWithLifecycle()
+    val macrosState by viewModel.macros.collectAsStateWithLifecycle()
+    val chat by viewModel.chat.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableStateOf(TAB_INGREDIENTS) }
     var servings by rememberSaveable { mutableStateOf(0) }
     var showPlanner by remember { mutableStateOf(false) }
     var addedToList by remember { mutableStateOf(false) }
+    var showChat by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { viewModel.onPhotoPicked(context, it) }
@@ -347,8 +407,23 @@ fun RecipeDetailScreen(
                 } else {
                     StepList(d)
                 }
-                AiAdvicePanel(advice, onRequest = viewModel::requestAdvice, onGrant = viewModel::grantConsentAndRetry)
+                AiPanel(
+                    macros = macrosState,
+                    onEstimate = viewModel::estimateMacros,
+                    onGrant = viewModel::grantConsentAndRetry,
+                    onOpenChat = { showChat = true },
+                )
                 SourceSection(d)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ClayButton(
+                        text = "Edit recipe",
+                        icon = Icons.Filled.Edit,
+                        onClick = onEdit,
+                        container = MaterialTheme.colorScheme.surfaceContainerLow,
+                        contentColor = Primary,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
                 Text(
                     "Delete this recipe",
                     style = MaterialTheme.typography.labelLarge,
@@ -371,6 +446,21 @@ fun RecipeDetailScreen(
                 .align(Alignment.BottomEnd)
                 .padding(end = 20.dp, bottom = 20.dp),
         )
+    }
+
+    if (showChat) {
+        ModalBottomSheet(
+            onDismissRequest = { showChat = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            RecipeChatSheet(
+                recipeTitle = d.recipe.title,
+                state = chat,
+                onAsk = viewModel::ask,
+                onDismissError = viewModel::clearChatError,
+            )
+        }
     }
 
     if (showPlanner) {
@@ -555,33 +645,34 @@ private fun SourceSection(details: RecipeWithDetails) {
     )
 }
 
-/** On-device AI: per-serving macro estimates + ingredient substitutions. */
+/** On-device AI: per-serving macro estimates, plus the way into the chat. */
 @Composable
-private fun AiAdvicePanel(
-    advice: AdviceState,
-    onRequest: () -> Unit,
+private fun AiPanel(
+    macros: MacrosState,
+    onEstimate: () -> Unit,
     onGrant: () -> Unit,
+    onOpenChat: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         ClaySectionHeader(title = "AI Insights")
-        when (advice) {
-            is AdviceState.Hidden -> {
+        when (macros) {
+            is MacrosState.Hidden -> {
                 ClayButton(
-                    text = "Get macros & substitutions",
+                    text = "Estimate macros",
                     icon = Icons.Filled.LocalFireDepartment,
-                    onClick = onRequest,
+                    onClick = onEstimate,
                     container = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }
-            is AdviceState.Loading -> {
+            is MacrosState.Loading -> {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, strokeWidth = 3.dp)
-                    Text("Asking the on-device AI…", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text("Estimating macros…", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            is AdviceState.ConsentNeeded -> {
+            is MacrosState.ConsentNeeded -> {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -591,14 +682,14 @@ private fun AiAdvicePanel(
                 ) {
                     Text("On-device AI needs your consent", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     Text(
-                        "Macros and substitutions are generated by Gemini Nano on your phone — nothing leaves the device.",
+                        "Estimates are generated by Gemini Nano on your phone — nothing leaves the device.",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
                     ClayButton(text = "Enable on-device AI", onClick = onGrant, modifier = Modifier.fillMaxWidth())
                 }
             }
-            is AdviceState.Error -> {
+            is MacrosState.Error -> {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -606,13 +697,13 @@ private fun AiAdvicePanel(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(advice.message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
-                    if (advice.retryable) {
-                        ClayButton(text = "Retry", onClick = onRequest, container = MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxWidth())
+                    Text(macros.message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
+                    if (macros.retryable) {
+                        ClayButton(text = "Retry", onClick = onEstimate, container = MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxWidth())
                     }
                 }
             }
-            is AdviceState.Loaded -> {
+            is MacrosState.Loaded -> {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -625,48 +716,32 @@ private fun AiAdvicePanel(
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
-                    advice.advice.macros?.let { macros ->
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            MacroChip("${macros.kcal?.toInt() ?: "—"} kcal")
-                            MacroChip("${macros.proteinG?.toInt() ?: "—"}g protein")
-                            MacroChip("${macros.fatG?.toInt() ?: "—"}g fat")
-                            MacroChip("${macros.carbsG?.toInt() ?: "—"}g carbs")
-                        }
-                    }
-                    if (advice.advice.substitutions.isNotEmpty()) {
-                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text("Try these swaps", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onSurface)
-                            advice.advice.substitutions.forEach { sub ->
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
-                                    Text(
-                                        sub.ingredient,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.weight(0.35f),
-                                    )
-                                    Text(
-                                        sub.suggestion,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface,
-                                        modifier = Modifier.weight(0.65f),
-                                    )
-                                }
-                            }
-                        }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        MacroChip("${macros.macros.kcal?.toInt() ?: "—"} kcal")
+                        MacroChip("${macros.macros.proteinG?.toInt() ?: "—"}g protein")
+                        MacroChip("${macros.macros.fatG?.toInt() ?: "—"}g fat")
+                        MacroChip("${macros.macros.carbsG?.toInt() ?: "—"}g carbs")
                     }
                     Text(
-                        "Regenerate",
+                        "Re-estimate",
                         style = MaterialTheme.typography.labelLarge,
                         color = Primary,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(percent = 50))
-                            .clickable(onClick = onRequest)
+                            .clip(PillShape)
+                            .clickable(onClick = onEstimate)
                             .padding(horizontal = 12.dp, vertical = 6.dp),
                     )
                 }
             }
         }
+        ClayButton(
+            text = "Ask about this recipe",
+            icon = Icons.AutoMirrored.Filled.Chat,
+            onClick = onOpenChat,
+            container = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = Primary,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

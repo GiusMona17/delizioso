@@ -1,5 +1,6 @@
 package com.delizioso.app.data.import
 
+import com.delizioso.app.data.Categories
 import com.delizioso.app.data.local.IngredientEntity
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
@@ -75,6 +76,13 @@ object RecipeJsonLdParser {
             .map { IngredientParser.split(it) }
             .mapIndexed { i, ing -> ing.copy(position = i) },
         steps = parseInstructions(obj["recipeInstructions"]),
+        // The site already classified this recipe — map its own words onto our
+        // vocabulary rather than spending an inference on it.
+        categories = Categories.canonicalise(
+            firstStringList(obj, "recipeCategory") +
+                firstStringList(obj, "recipeCuisine") +
+                firstStringList(obj, "keywords").flatMap { it.split(',') }
+        ),
     )
 
     private fun firstString(obj: JsonObject, vararg keys: String): String? {

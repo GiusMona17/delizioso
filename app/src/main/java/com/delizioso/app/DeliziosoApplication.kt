@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.NanoAdvisor
+import com.delizioso.app.data.ai.NanoChat
 import com.delizioso.app.data.ai.NanoStructurer
 import com.delizioso.app.data.ai.OcrTextExtractor
 import com.delizioso.app.data.import.BlogImporter
@@ -27,6 +28,9 @@ class AppContainer(context: Context) {
         consentProvider = { preferences.aiConsentGiven.first() }
     )
     val nanoAdvisor: NanoAdvisor = NanoAdvisor(
+        consentProvider = { preferences.aiConsentGiven.first() }
+    )
+    val nanoChat: NanoChat = NanoChat(
         consentProvider = { preferences.aiConsentGiven.first() }
     )
     val ocrTextExtractor: OcrTextExtractor = OcrTextExtractor()

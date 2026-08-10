@@ -115,7 +115,7 @@ fun ImportPreviewScreen(
             enabled = form.isValid,
             onClick = {
                 scope.launch {
-                    val id = viewModel.save(form.toStructuredRecipe(), current.raw, form.tagList())
+                    val id = viewModel.save(form.toStructuredRecipe(), current.raw, form.categoryList())
                     onSaved(id)
                 }
             },

@@ -74,6 +74,8 @@ data class StructuredRecipe(
     val imageUrl: String? = null,
     val ingredients: List<IngredientEntity> = emptyList(),
     val steps: List<String> = emptyList(),
+    /** Already validated against [com.delizioso.app.data.Categories]. */
+    val categories: List<String> = emptyList(),
 ) {
     /** Plain-text rendering (used as fallback input for LLM structuring). */
     fun toPlainText(): String = buildString {

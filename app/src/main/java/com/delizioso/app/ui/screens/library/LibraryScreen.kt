@@ -32,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.delizioso.app.DeliziosoApplication
+import com.delizioso.app.data.Categories
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.local.RecipeWithDetails
 import com.delizioso.app.ui.components.ClayEmptyState
@@ -45,7 +46,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-/** "All" plus every tag in the library, plus the pinned Favourites filter. */
+/** "All" plus the pinned Favourites filter, plus every category in use. */
 private const val FILTER_ALL = "All"
 private const val FILTER_FAVOURITES = "Favourites"
 
@@ -83,7 +84,13 @@ fun LibraryScreen(
     val filters = buildList {
         add(FILTER_ALL)
         if (recipes.any { it.recipe.isFavorite }) add(FILTER_FAVOURITES)
-        addAll(recipes.flatMap { d -> d.tags.map { it.name } }.distinct().sorted())
+        // Ordered as the vocabulary declares them, not alphabetically, so the rail
+        // keeps a stable, meal-order-ish shape as the library grows.
+        addAll(
+            recipes.flatMap { d -> d.tags.map { it.name } }
+                .distinct()
+                .sortedBy { Categories.ALL.indexOf(it).takeIf { i -> i >= 0 } ?: Int.MAX_VALUE }
+        )
     }
     // A filter can disappear when its last recipe is deleted — fall back to "All".
     val activeFilter = if (filter in filters) filter else FILTER_ALL

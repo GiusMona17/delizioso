@@ -130,7 +130,7 @@ fun CreateScreen(
             enabled = form.isValid,
             onClick = {
                 scope.launch {
-                    val id = viewModel.save(form.toStructuredRecipe(), state.photoPath, form.tagList())
+                    val id = viewModel.save(form.toStructuredRecipe(), state.photoPath, form.categoryList())
                     onSaved(id)
                 }
             },

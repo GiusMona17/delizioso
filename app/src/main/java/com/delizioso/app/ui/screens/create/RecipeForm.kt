@@ -1,24 +1,39 @@
 package com.delizioso.app.ui.screens.create
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import com.delizioso.app.data.Categories
 import com.delizioso.app.data.import.IngredientParser
 import com.delizioso.app.data.import.StructuredRecipe
 import com.delizioso.app.ui.components.ClayLabelledField
 import com.delizioso.app.ui.components.EditableLineRow
 import com.delizioso.app.ui.components.FormSectionCard
 import com.delizioso.app.ui.components.StepNumberPod
+import com.delizioso.app.ui.theme.PillShape
+import com.delizioso.app.ui.theme.clayBevel
 
 /**
  * Editable recipe form shared by "Create Recipe" and the import preview.
@@ -32,7 +47,7 @@ class RecipeFormState(
     cook: String = "",
     ingredients: List<String> = listOf(""),
     steps: List<String> = listOf(""),
-    tags: String = "",
+    categories: List<String> = emptyList(),
 ) {
     var title by mutableStateOf(title)
     var description by mutableStateOf(description)
@@ -41,10 +56,19 @@ class RecipeFormState(
     var cook by mutableStateOf(cook)
     var ingredients by mutableStateOf(ingredients)
     var steps by mutableStateOf(steps)
-    var tags by mutableStateOf(tags)
+    var categories by mutableStateOf(categories)
 
     val isValid: Boolean
         get() = title.isNotBlank() && ingredients.any { it.isNotBlank() } && steps.any { it.isNotBlank() }
+
+    fun toggleCategory(name: String) {
+        categories = if (name in categories) {
+            categories - name
+        } else {
+            // Keep the cap the AI is held to, so chips stay readable.
+            (categories + name).takeLast(Categories.MAX_PER_RECIPE)
+        }
+    }
 
     fun applyDraft(draft: StructuredRecipe) {
         title = draft.title.orEmpty()
@@ -54,6 +78,7 @@ class RecipeFormState(
         cook = draft.cookTimeMinutes?.toString() ?: ""
         ingredients = draft.ingredients.map { it.rawText ?: it.name }.ifEmpty { listOf("") }
         steps = draft.steps.ifEmpty { listOf("") }
+        categories = Categories.canonicalise(draft.categories)
     }
 
     fun toStructuredRecipe(): StructuredRecipe = StructuredRecipe(
@@ -64,17 +89,17 @@ class RecipeFormState(
         cookTimeMinutes = cook.toIntOrNull(),
         ingredients = ingredients.map { IngredientParser.split(it) }.filter { it.name.isNotBlank() },
         steps = steps.filter { it.isNotBlank() },
+        categories = Categories.canonicalise(categories),
     )
 
-    fun tagList(): List<String> =
-        tags.split(',').map { it.trim() }.filter { it.isNotBlank() }.distinct()
+    fun categoryList(): List<String> = Categories.canonicalise(categories)
 }
 
 @Composable
 fun rememberRecipeFormState(): RecipeFormState = rememberSaveable(saver = RecipeFormSaver) { RecipeFormState() }
 
 private val RecipeFormSaver = androidx.compose.runtime.saveable.listSaver<RecipeFormState, Any>(
-    save = { listOf(it.title, it.description, it.servings, it.prep, it.cook, it.ingredients, it.steps, it.tags) },
+    save = { listOf(it.title, it.description, it.servings, it.prep, it.cook, it.ingredients, it.steps, it.categories) },
     restore = {
         @Suppress("UNCHECKED_CAST")
         RecipeFormState(
@@ -85,7 +110,7 @@ private val RecipeFormSaver = androidx.compose.runtime.saveable.listSaver<Recipe
             cook = it[4] as String,
             ingredients = it[5] as List<String>,
             steps = it[6] as List<String>,
-            tags = it[7] as String,
+            categories = it[7] as List<String>,
         )
     },
 )
@@ -156,7 +181,7 @@ fun InstructionsCard(state: RecipeFormState, modifier: Modifier = Modifier) {
     }
 }
 
-/** Prep time, cook time, servings and free-text tags. */
+/** Prep time, cook time, servings and the fixed category chips. */
 @Composable
 fun RecipeMetaFields(state: RecipeFormState, modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -186,11 +211,68 @@ fun RecipeMetaFields(state: RecipeFormState, modifier: Modifier = Modifier) {
                 modifier = Modifier.weight(1f),
             )
         }
-        ClayLabelledField(
-            label = "Tags",
-            value = state.tags,
-            onValueChange = { state.tags = it },
-            placeholder = "Vegetarian, Dinner, Quick",
+        CategoryPicker(
+            selected = state.categories,
+            onToggle = state::toggleCategory,
         )
+    }
+}
+
+/**
+ * Fixed-vocabulary category chips. Free text let "Vegetarian"/"veggie"/"Veg"
+ * each become their own filter chip in the library, so the list is closed and
+ * the AI's suggestion is validated against it.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun CategoryPicker(
+    selected: List<String>,
+    onToggle: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                "Categories",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                "${selected.size}/${Categories.MAX_PER_RECIPE}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Categories.ALL.forEach { category ->
+                val isSelected = category in selected
+                Box(
+                    modifier = Modifier
+                        .clip(PillShape)
+                        .background(
+                            if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                            else MaterialTheme.colorScheme.surfaceContainer
+                        )
+                        .clayBevel(
+                            PillShape,
+                            light = Color(0x99FFFFFF),
+                            dark = if (isSelected) Color(0x33006E20) else Color(0x14000000),
+                        )
+                        .clickable(role = Role.Checkbox) { onToggle(category) }
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                ) {
+                    Text(
+                        category,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
     }
 }
