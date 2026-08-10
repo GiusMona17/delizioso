@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClayCook - Meal Planner</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "secondary-fixed-dim": "#e3c0a0",
+                        "on-primary": "#ffffff",
+                        "background": "#fbf9f8",
+                        "on-surface-variant": "#3f4a3d",
+                        "on-tertiary-container": "#6a6946",
+                        "surface-container-low": "#f5f3f3",
+                        "error-container": "#ffdad6",
+                        "surface": "#fbf9f8",
+                        "on-primary-fixed-variant": "#005316",
+                        "inverse-primary": "#77dc7a",
+                        "secondary-fixed": "#ffdcbe",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-fixed": "#2a1704",
+                        "surface-dim": "#dbd9d9",
+                        "primary-fixed-dim": "#77dc7a",
+                        "inverse-on-surface": "#f2f0f0",
+                        "tertiary-container": "#eceabe",
+                        "outline-variant": "#becab9",
+                        "surface-container-high": "#eae8e7",
+                        "primary": "#006e20",
+                        "surface-bright": "#fbf9f8",
+                        "surface-container-highest": "#e4e2e2",
+                        "error": "#ba1a1a",
+                        "on-primary-fixed": "#002105",
+                        "on-background": "#1b1c1c",
+                        "on-tertiary-fixed-variant": "#484828",
+                        "tertiary-fixed-dim": "#cac99f",
+                        "primary-container": "#98ff98",
+                        "surface-container-lowest": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#303030",
+                        "on-error": "#ffffff",
+                        "tertiary": "#60603e",
+                        "surface-tint": "#006e20",
+                        "primary-fixed": "#93f993",
+                        "surface-variant": "#e4e2e2",
+                        "on-secondary-container": "#795d43",
+                        "on-secondary-fixed-variant": "#5a422a",
+                        "tertiary-fixed": "#e6e5b9",
+                        "outline": "#6f7a6c",
+                        "secondary-container": "#fed9b8",
+                        "secondary": "#74593f",
+                        "on-tertiary-fixed": "#1d1d03",
+                        "on-primary-container": "#007924",
+                        "on-error-container": "#93000a",
+                        "surface-container": "#efeded",
+                        "on-surface": "#1b1c1c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-padding": "20px",
+                        "touch-target": "48px",
+                        "base": "8px",
+                        "stack-gap": "16px",
+                        "card-gutter": "12px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Quicksand"],
+                        "label-md": ["Quicksand"],
+                        "headline-lg": ["Quicksand"],
+                        "body-md": ["Quicksand"],
+                        "headline-xl": ["Quicksand"],
+                        "label-sm": ["Quicksand"],
+                        "body-lg": ["Quicksand"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["22px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+                        "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "26px", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .clay-inset {
+            box-shadow: inset 4px 4px 8px rgba(0, 0, 0, 0.05), inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+        }
+        .clay-card {
+            box-shadow: 4px 4px 12px rgba(0, 0, 0, 0.05), -4px -4px 12px rgba(255, 255, 255, 0.8);
+        }
+        .clay-btn {
+            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1), -2px -2px 6px rgba(255, 255, 255, 0.9);
+            transition: all 0.2s ease-in-out;
+        }
+        .clay-btn:active {
+            box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.1), inset -2px -2px 6px rgba(255, 255, 255, 0.9);
+            transform: scale(0.98);
+        }
+        
+        /* Hide scrollbar for horizontal scroll */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col md:max-w-md md:mx-auto md:shadow-2xl md:border md:border-surface-dim relative overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="bg-background w-full top-0 sticky z-40 shadow-[inset_4px_4px_8px_rgba(255,255,255,0.6),inset_-4px_-4px_8px_rgba(0,110,32,0.1)] flex flex-col">
+<div class="flex items-center justify-between px-container-padding py-4 w-full">
+<button class="h-touch-target w-touch-target flex items-center justify-center rounded-full clay-btn active:scale-95 transition-transform duration-200 text-on-surface-variant hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary font-bold text-center flex-1">Meal Planner</h1>
+<div class="h-touch-target w-touch-target flex items-center justify-center rounded-full overflow-hidden clay-btn active:scale-95 transition-transform duration-200">
+<div class="w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container font-label-md">
+                    U
+                </div>
+</div>
+</div>
+<!-- Weekly Selector -->
+<div class="px-container-padding pb-4 overflow-x-auto no-scrollbar">
+<div class="flex gap-3 w-max">
+<!-- Day 1 (Past) -->
+<button class="flex flex-col items-center justify-center w-14 h-20 rounded-full bg-surface-container-low clay-inset text-on-surface-variant transition-transform active:scale-95">
+<span class="font-label-sm uppercase mb-1">Mon</span>
+<span class="font-headline-lg-mobile text-lg">12</span>
+</button>
+<!-- Day 2 (Active) -->
+<button class="flex flex-col items-center justify-center w-14 h-20 rounded-full bg-primary-container text-on-primary-container shadow-[inset_2px_2px_6px_rgba(0,0,0,0.1),inset_-2px_-2px_6px_rgba(255,255,255,0.7)] transition-transform active:scale-95 scale-105 transform origin-bottom">
+<span class="font-label-sm uppercase mb-1">Tue</span>
+<span class="font-headline-lg-mobile text-lg">13</span>
+<div class="w-1.5 h-1.5 bg-primary rounded-full mt-1"></div>
+</button>
+<!-- Day 3 -->
+<button class="flex flex-col items-center justify-center w-14 h-20 rounded-full bg-surface-container-low clay-inset text-on-surface-variant transition-transform active:scale-95">
+<span class="font-label-sm uppercase mb-1">Wed</span>
+<span class="font-headline-lg-mobile text-lg">14</span>
+</button>
+<!-- Day 4 -->
+<button class="flex flex-col items-center justify-center w-14 h-20 rounded-full bg-surface-container-low clay-inset text-on-surface-variant transition-transform active:scale-95">
+<span class="font-label-sm uppercase mb-1">Thu</span>
+<span class="font-headline-lg-mobile text-lg">15</span>
+</button>
+<!-- Day 5 -->
+<button class="flex flex-col items-center justify-center w-14 h-20 rounded-full bg-surface-container-low clay-inset text-on-surface-variant transition-transform active:scale-95">
+<span class="font-label-sm uppercase mb-1">Fri</span>
+<span class="font-headline-lg-mobile text-lg">16</span>
+</button>
+<!-- Day 6 -->
+<button class="flex flex-col items-center justify-center w-14 h-20 rounded-full bg-surface-container-low clay-inset text-on-surface-variant transition-transform active:scale-95">
+<span class="font-label-sm uppercase mb-1">Sat</span>
+<span class="font-headline-lg-mobile text-lg">17</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Main Content -->
+<main class="flex-1 px-container-padding py-stack-gap pb-32 flex flex-col gap-6">
+<!-- Breakfast Slot (Planned) -->
+<section class="flex flex-col gap-3">
+<h2 class="font-label-md text-on-surface-variant uppercase tracking-wider ml-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="lightbulb">lightbulb</span>
+                Breakfast
+            </h2>
+<div class="bg-surface rounded-[24px] p-3 flex gap-4 items-center clay-card active:scale-[0.98] transition-transform cursor-pointer">
+<div class="w-20 h-20 rounded-DEFAULT overflow-hidden shadow-inner flex-shrink-0 relative">
+<img class="w-full h-full object-cover" data-alt="A close-up, appetizing top-down view of a modern avocado toast on rustic sourdough bread, topped with a perfectly poached egg, chili flakes, and microgreens. The lighting is bright and natural, reflecting a fresh morning atmosphere. The color palette features vibrant greens, warm bread tones, and bright white highlights, aligning with a healthy, organic claymorphism aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHvj6-osZr8fWqQDMSHhJmv_cIg3G84s0sdWNGuJBCA1ACCF-y5Oqkh9fSf_Qjobxd1NujLtDDafQXeG2DPmYeaSac-OIFle5z49Jh1f51OWg2bYBpJO2Yf7Pmr3eIcpdHVovRQMlT2yS4J-KQF_N6g64uZ-TYBCmMHiyQ2XdH2W2hgXK0-fqTRzai-bbyINZRB3BOacKUP4jjh3WQ3kHQDM7fl8RFcqjKEvzvZcCOvNE6HrRu4VGd"/>
+<div class="absolute inset-0 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] rounded-DEFAULT"></div>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<h3 class="font-label-md text-on-background mb-1 line-clamp-1">Avocado Smash Toast</h3>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 bg-surface-container-highest px-2 py-0.5 rounded-full text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span> 15m
+                        </span>
+<span class="inline-flex items-center gap-1 bg-primary-container px-2 py-0.5 rounded-full text-label-sm text-on-primary-container">
+<span class="material-symbols-outlined text-[14px]" data-icon="eco">eco</span> Veg
+                        </span>
+</div>
+</div>
+<button class="h-10 w-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors mr-1">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</section>
+<!-- Lunch Slot (Empty) -->
+<section class="flex flex-col gap-3">
+<h2 class="font-label-md text-on-surface-variant uppercase tracking-wider ml-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="sunny">sunny</span>
+                Lunch
+            </h2>
+<div class="bg-surface-container-low rounded-[24px] p-4 flex flex-col items-center justify-center gap-3 clay-inset h-32 border border-surface-container-highest border-dashed">
+<button class="h-12 w-12 rounded-full bg-primary text-on-primary flex items-center justify-center clay-btn">
+<span class="material-symbols-outlined text-xl" data-icon="add">add</span>
+</button>
+<span class="font-label-md text-on-surface-variant text-center">Add lunch recipe</span>
+</div>
+</section>
+<!-- Dinner Slot (Planned) -->
+<section class="flex flex-col gap-3">
+<h2 class="font-label-md text-on-surface-variant uppercase tracking-wider ml-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="bedtime">bedtime</span>
+                Dinner
+            </h2>
+<div class="bg-surface rounded-[24px] p-3 flex gap-4 items-center clay-card active:scale-[0.98] transition-transform cursor-pointer">
+<div class="w-20 h-20 rounded-DEFAULT overflow-hidden shadow-inner flex-shrink-0 relative">
+<img class="w-full h-full object-cover" data-alt="A high-quality, eye-level shot of a steaming bowl of creamy tomato basil soup served in a soft, rounded ceramic bowl. Next to it is a gooey grilled cheese sandwich cut in half. Warm, cozy lighting creates a comforting evening mood. The color palette emphasizes rich, inviting reds, warm golden browns, and creamy whites, fitting perfectly into a friendly, tactile culinary design system." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTeofk8uAkjQdsiYIUJL5gRkt2HSMml0AGrqbafQ6onEbki9AoxBrnGJgouK6nWTJyc46UI7AjVO_kCZm62ZBZH6ZGLF7nQLjgKrxmrpuq4ndSBjJ80FJlI5GQ9PPTK22e-8AiacvldaC8p0lLzdd4_Y6mJsBn-6pVFnkQM8UnYXBgg2VZSko135Cu3AeIWLXRm-yx787wfWSwvTtfTx6LHYQ-tCa420iD_qTCSZ7VLFc3lLFh0qLR"/>
+<div class="absolute inset-0 shadow-[inset_0_0_10px_rgba(0,0,0,0.1)] rounded-DEFAULT"></div>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<h3 class="font-label-md text-on-background mb-1 line-clamp-1">Creamy Tomato Soup</h3>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 bg-surface-container-highest px-2 py-0.5 rounded-full text-label-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span> 45m
+                        </span>
+</div>
+</div>
+<button class="h-10 w-10 rounded-full flex items-center justify-center text-on-surface-variant hover:text-error transition-colors mr-1">
+<span class="material-symbols-outlined" data-icon="more_vert">more_vert</span>
+</button>
+</div>
+</section>
+<!-- Snacks Slot (Empty) -->
+<section class="flex flex-col gap-3">
+<h2 class="font-label-md text-on-surface-variant uppercase tracking-wider ml-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-sm" data-icon="icecream">icecream</span>
+                Snacks
+            </h2>
+<div class="bg-surface-container-low rounded-[24px] p-4 flex flex-col items-center justify-center gap-3 clay-inset h-24 border border-surface-container-highest border-dashed">
+<button class="h-10 w-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center clay-btn">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="bg-surface dark:bg-surface-container fixed bottom-0 w-full rounded-t-[2rem] bg-surface shadow-[0_-8px_20px_rgba(0,0,0,0.05)] shadow-[inset_4px_4px_10px_rgba(255,255,255,0.8),inset_-4px_-4px_10px_rgba(0,0,0,0.05)] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 md:max-w-md md:left-auto">
+<!-- Library (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:bg-surface-container-high transition-colors active:scale-90 transition-all duration-300 ease-out rounded-full min-w-[64px]">
+<span class="material-symbols-outlined mb-1" data-icon="local_library">local_library</span>
+<span class="font-label-sm text-label-sm">Library</span>
+</button>
+<!-- Planner (Active) -->
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 shadow-[inset_2px_2px_4px_rgba(255,255,255,0.4),inset_-2px_-2px_4px_rgba(0,121,36,0.2)] hover:bg-surface-container-high transition-colors active:scale-90 transition-all duration-300 ease-out min-w-[64px]">
+<span class="material-symbols-outlined mb-1" data-icon="calendar_month" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="font-label-sm text-label-sm">Planner</span>
+</button>
+<!-- Import (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:bg-surface-container-high transition-colors active:scale-90 transition-all duration-300 ease-out rounded-full min-w-[64px]">
+<span class="material-symbols-outlined mb-1" data-icon="download">download</span>
+<span class="font-label-sm text-label-sm">Import</span>
+</button>
+<!-- Profile (Inactive) -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:bg-surface-container-high transition-colors active:scale-90 transition-all duration-300 ease-out rounded-full min-w-[64px]">
+<span class="material-symbols-outlined mb-1" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</button>
+</nav>
+</body></html>

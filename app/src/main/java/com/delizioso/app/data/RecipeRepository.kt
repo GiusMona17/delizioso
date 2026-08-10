@@ -1,0 +1,43 @@
+package com.delizioso.app.data
+
+import com.delizioso.app.data.local.PlannedMealEntity
+import com.delizioso.app.data.local.PlannedMealWithRecipe
+import com.delizioso.app.data.local.RecipeDao
+import com.delizioso.app.data.local.RecipeEntity
+import com.delizioso.app.data.local.RecipeWithDetails
+import kotlinx.coroutines.flow.Flow
+
+/** Single entry point for recipe persistence. */
+class RecipeRepository(private val dao: RecipeDao) {
+
+    val allWithDetails: Flow<List<RecipeWithDetails>> = dao.observeAllWithDetails()
+
+    fun byId(id: Long): Flow<RecipeWithDetails?> = dao.observeWithDetails(id)
+
+    fun favorites(): Flow<List<RecipeEntity>> = dao.observeFavorites()
+
+    fun search(query: String): Flow<List<RecipeEntity>> = dao.search(query)
+
+    fun count(): Flow<Int> = dao.observeCount()
+
+    suspend fun save(details: RecipeWithDetails, tagNames: List<String> = emptyList()): Long =
+        dao.insertWithDetails(details, tagNames)
+
+    suspend fun setFavorite(id: Long, favorite: Boolean) = dao.setFavorite(id, favorite)
+
+    suspend fun updateMacros(id: Long, kcal: Float?, proteinG: Float?, fatG: Float?, carbsG: Float?) =
+        dao.updateMacros(id, kcal, proteinG, fatG, carbsG)
+
+    // ---- Meal planning ----
+
+    fun mealsBetween(fromEpochDay: Long, toEpochDay: Long): Flow<List<PlannedMealWithRecipe>> =
+        dao.observeMealsWithRecipe(fromEpochDay, toEpochDay)
+
+    suspend fun addMeal(meal: PlannedMealEntity): Long = dao.insertMeal(meal)
+
+    suspend fun removeMeal(id: Long) = dao.deleteMeal(id)
+
+    suspend fun markMealsCooked(recipeId: Long, dateEpochDay: Long) = dao.markMealsCooked(recipeId, dateEpochDay)
+
+    suspend fun delete(id: Long) = dao.deleteRecipe(id)
+}

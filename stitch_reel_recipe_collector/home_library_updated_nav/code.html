@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+<html class="h-full" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClayCook - Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                            "error": "#ba1a1a",
+                            "on-surface-variant": "#3f4a3d",
+                            "secondary-fixed-dim": "#e3c0a0",
+                            "surface-container": "#efeded",
+                            "on-background": "#1b1c1c",
+                            "outline": "#6f7a6c",
+                            "secondary": "#74593f",
+                            "on-primary-fixed-variant": "#005316",
+                            "on-secondary-fixed-variant": "#5a422a",
+                            "background": "#fbf9f8",
+                            "on-secondary-fixed": "#2a1704",
+                            "inverse-primary": "#77dc7a",
+                            "on-error": "#ffffff",
+                            "tertiary-container": "#eceabe",
+                            "on-tertiary-fixed-variant": "#484828",
+                            "tertiary-fixed": "#e6e5b9",
+                            "primary-container": "#98ff98",
+                            "surface-bright": "#fbf9f8",
+                            "surface-variant": "#e4e2e2",
+                            "outline-variant": "#becab9",
+                            "on-primary-container": "#007924",
+                            "on-primary": "#ffffff",
+                            "secondary-container": "#fed9b8",
+                            "surface": "#fbf9f8",
+                            "surface-dim": "#dbd9d9",
+                            "on-secondary-container": "#795d43",
+                            "on-tertiary-container": "#6a6946",
+                            "surface-container-lowest": "#ffffff",
+                            "on-tertiary-fixed": "#1d1d03",
+                            "surface-container-low": "#f5f3f3",
+                            "surface-container-highest": "#e4e2e2",
+                            "primary-fixed": "#93f993",
+                            "on-primary-fixed": "#002105",
+                            "inverse-on-surface": "#f2f0f0",
+                            "tertiary": "#60603e",
+                            "primary-fixed-dim": "#77dc7a",
+                            "surface-tint": "#006e20",
+                            "tertiary-fixed-dim": "#cac99f",
+                            "on-secondary": "#ffffff",
+                            "on-tertiary": "#ffffff",
+                            "primary": "#006e20",
+                            "error-container": "#ffdad6",
+                            "on-error-container": "#93000a",
+                            "inverse-surface": "#303030",
+                            "on-surface": "#1b1c1c",
+                            "surface-container-high": "#eae8e7",
+                            "secondary-fixed": "#ffdcbe"
+                    },
+                    "borderRadius": {
+                            "DEFAULT": "1rem",
+                            "lg": "2rem",
+                            "xl": "3rem",
+                            "full": "9999px"
+                    },
+                    "spacing": {
+                            "touch-target": "48px",
+                            "container-padding": "20px",
+                            "card-gutter": "12px",
+                            "base": "8px",
+                            "stack-gap": "16px"
+                    },
+                    "fontFamily": {
+                            "headline-lg": [
+                                    "Quicksand"
+                            ],
+                            "body-lg": [
+                                    "Quicksand"
+                            ],
+                            "headline-lg-mobile": [
+                                    "Quicksand"
+                            ],
+                            "label-sm": [
+                                    "Quicksand"
+                            ],
+                            "body-md": [
+                                    "Quicksand"
+                            ],
+                            "label-md": [
+                                    "Quicksand"
+                            ],
+                            "headline-xl": [
+                                    "Quicksand"
+                            ]
+                    },
+                    "fontSize": {
+                            "headline-lg": [
+                                    "24px",
+                                    {
+                                            "lineHeight": "32px",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "body-lg": [
+                                    "18px",
+                                    {
+                                            "lineHeight": "26px",
+                                            "fontWeight": "500"
+                                    }
+                            ],
+                            "headline-lg-mobile": [
+                                    "22px",
+                                    {
+                                            "lineHeight": "28px",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "label-sm": [
+                                    "12px",
+                                    {
+                                            "lineHeight": "16px",
+                                            "letterSpacing": "0.03em",
+                                            "fontWeight": "700"
+                                    }
+                            ],
+                            "body-md": [
+                                    "16px",
+                                    {
+                                            "lineHeight": "24px",
+                                            "fontWeight": "500"
+                                    }
+                            ],
+                            "label-md": [
+                                    "14px",
+                                    {
+                                            "lineHeight": "20px",
+                                            "letterSpacing": "0.01em",
+                                            "fontWeight": "600"
+                                    }
+                            ],
+                            "headline-xl": [
+                                    "32px",
+                                    {
+                                            "lineHeight": "40px",
+                                            "letterSpacing": "-0.02em",
+                                            "fontWeight": "700"
+                                    }
+                            ]
+                    }
+            },
+                },
+        }
+    </script>
+<style>
+        .clay-surface {
+            background-color: #fbf9f8; /* background */
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.05), 
+                -8px -8px 16px rgba(255, 255, 255, 0.8),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.4),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .clay-inset {
+            background-color: #f5f3f3; /* surface-container-low */
+            box-shadow: 
+                inset 4px 4px 8px rgba(0, 0, 0, 0.08),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+        }
+
+        .clay-button {
+            background-color: #98ff98; /* primary-container */
+            box-shadow: 
+                4px 4px 8px rgba(0, 0, 0, 0.1),
+                -4px -4px 8px rgba(255, 255, 255, 0.8),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.6),
+                inset -2px -2px 4px rgba(0, 110, 32, 0.2);
+            transition: all 0.2s ease-out;
+        }
+
+        .clay-button:active {
+            box-shadow: 
+                inset 4px 4px 8px rgba(0, 110, 32, 0.2),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.6);
+            transform: scale(0.95);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background h-full font-body-md flex flex-col antialiased">
+<!-- TopAppBar -->
+<header class="w-full top-0 bg-background dark:bg-background z-40 sticky shadow-[inset_4px_4px_8px_rgba(255,255,255,0.6),inset_-4px_-4px_8px_rgba(0,110,32,0.2)]">
+<div class="flex justify-between items-center px-container-padding py-4 w-full">
+<button class="text-primary hover:opacity-80 active:scale-95 transition-transform duration-200 p-2 rounded-full clay-surface flex items-center justify-center h-touch-target w-touch-target">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">menu</span>
+</button>
+<h1 class="font-headline-xl text-headline-xl text-primary dark:text-primary-fixed tracking-tight">ClayCook</h1>
+<div class="h-touch-target w-touch-target rounded-full clay-surface overflow-hidden flex items-center justify-center p-[2px]">
+<img alt="User profile photo" class="w-full h-full object-cover rounded-full" data-alt="A portrait of a happy home cook in a bright, modern kitchen with pastel green accents. The lighting is soft and natural, highlighting a friendly smile. The overall aesthetic is clean, warm, and inviting, matching a light-mode recipe app." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9Gc67nB10c_i5dh4EqMOpuLLDSmpxX8NE6jVNatONb0aqYi-9oaaaoaD7lzVBTJh4M2y_00UHfVKA8jnxyNAG88DW0WG0PbYXcnNWyOXm80OEw7SvcppfayqmIrBrlnZN4Z8Y7Pv2gVhwyDXB61Y1pcXF8aDjGswPc9RahS7w-C7Z3-7OAjFYpVbTcN307LHhmLr1ZdlkaqtEyI1N6BzNoraS84PKYr0THE3om_OdY9BK7RTEp_Ot"/>
+</div>
+</div>
+</header>
+<!-- Main Canvas -->
+<main class="flex-1 overflow-y-auto px-container-padding pb-32 pt-stack-gap">
+<!-- Search Bar -->
+<div class="mb-8">
+<div class="relative flex items-center w-full rounded-full clay-inset h-touch-target px-4 overflow-hidden">
+<span class="material-symbols-outlined text-outline mr-3">search</span>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-on-background placeholder:text-outline font-body-lg h-full px-0" placeholder="Search recipes, ingredients..." type="text"/>
+<button class="text-primary hover:opacity-80 transition-opacity ml-2">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+</div>
+<!-- Categories / Filters (Horizontal Scroll) -->
+<div class="flex gap-card-gutter overflow-x-auto pb-4 mb-4 -mx-container-padding px-container-padding hide-scrollbar">
+<button class="clay-button rounded-full px-6 py-2 font-label-md text-on-primary-container whitespace-nowrap flex-shrink-0">
+                All
+            </button>
+<button class="clay-surface rounded-full px-6 py-2 font-label-md text-on-surface-variant whitespace-nowrap flex-shrink-0 hover:bg-surface-variant/50 active:scale-95 transition-all">
+                Pasta
+            </button>
+<button class="clay-surface rounded-full px-6 py-2 font-label-md text-on-surface-variant whitespace-nowrap flex-shrink-0 hover:bg-surface-variant/50 active:scale-95 transition-all">
+                Healthy
+            </button>
+<button class="clay-surface rounded-full px-6 py-2 font-label-md text-on-surface-variant whitespace-nowrap flex-shrink-0 hover:bg-surface-variant/50 active:scale-95 transition-all">
+                Quick
+            </button>
+<button class="clay-surface rounded-full px-6 py-2 font-label-md text-on-surface-variant whitespace-nowrap flex-shrink-0 hover:bg-surface-variant/50 active:scale-95 transition-all">
+                Desserts
+            </button>
+</div>
+<!-- Recipe Grid (Bento style) -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Large Card (Featured) -->
+<div class="clay-surface rounded-xl p-4 flex flex-col md:col-span-2">
+<div class="relative w-full h-48 rounded-[1rem] overflow-hidden mb-4 clay-inset">
+<img class="w-full h-full object-cover" data-alt="A beautiful, overhead shot of creamy pesto pasta in a rustic white bowl. Fresh basil leaves and pine nuts are scattered on top. The scene is brightly lit with natural light, emphasizing the vibrant green of the pesto and the soft, inviting textures of the food. The background is a light, clean kitchen surface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDu-ZPqICI2OcAByCmm8_eapmnvZpwxxLBgeZWxp_Slsuc_MvVYKJ7qGMis_uWhJUPhO6QuHLEeE1duDc4uHjxspeARCSIRm0G88n113D4BBRRQOfKFPEltvHQnwcTB5ML0_tpFLsdqLV1FQ32tdFxvesvYn-UWoTZFo92kdvK0mrFjtq1KLL_32n4lvMvFHXNAaWrBFNswFDCTExbSrVCylY6Q5CcxzRiMwQVAayu-Yql21dn2OE9U"/>
+<div class="absolute top-3 right-3 bg-surface/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-primary text-[16px]">timer</span>
+<span class="font-label-md text-on-surface">25m</span>
+</div>
+<button class="absolute bottom-3 right-3 h-10 w-10 rounded-full bg-surface/90 backdrop-blur-sm flex items-center justify-center text-error hover:scale-110 transition-transform shadow-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">favorite</span>
+</button>
+</div>
+<div class="flex flex-col flex-1">
+<div class="flex gap-2 mb-2">
+<span class="px-2 py-1 rounded-full text-xs font-bold text-on-primary-container bg-primary-container/50 border border-primary/20">Vegetarian</span>
+<span class="px-2 py-1 rounded-full text-xs font-bold text-on-secondary-container bg-secondary-container/50 border border-secondary/20">Dinner</span>
+</div>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-1">Creamy Pesto Pasta</h2>
+<p class="font-body-md text-on-surface-variant line-clamp-2">A quick and easy weeknight dinner featuring a rich, homemade basil pesto sauce tossed with al dente fusilli.</p>
+</div>
+</div>
+<!-- Standard Card 1 -->
+<div class="clay-surface rounded-xl p-3 flex flex-col">
+<div class="relative w-full h-36 rounded-[1rem] overflow-hidden mb-3 clay-inset">
+<img class="w-full h-full object-cover" data-alt="A vibrant, colorful bowl of a healthy quinoa salad with cherry tomatoes, cucumber, feta cheese, and a light lemon dressing. The photo is taken at a slight angle, highlighting the fresh textures. Bright, soft lighting creates a cheerful, appetizing mood on a light wooden table." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-hOyqFX1MOBEDvY9DDNp5GZ3nZIa3uS4guKq__MGrFsubTWATQ_BfGXZdpkuQbFQaU2-5LWr9nBY_jPU-bo2Sdi9uSlg5aJcsdxPt-jyWvAf0Paua1Umc2Kl3gyrlqB4D8vCK5PANp4AdDfGk3s2iv1JwmrqjfTJGBQ-K8-5inh4W8YqV7Vubw7LuepVA1C_8X5dGt9HTPEXUr9BVkR_rzf4Vgr1gIBVySQ9gh35WkOe8OW8c2OTs"/>
+<div class="absolute top-2 right-2 bg-surface/90 backdrop-blur-sm rounded-full px-2 py-0.5 flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-primary text-[14px]">timer</span>
+<span class="font-label-sm text-on-surface">15m</span>
+</div>
+</div>
+<div class="flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface text-[18px] leading-tight mb-1">Summer Quinoa Salad</h3>
+<div class="flex gap-1 mt-auto pt-2">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-on-tertiary-container bg-tertiary-container/50 border border-tertiary/20">Healthy</span>
+</div>
+</div>
+</div>
+<!-- Standard Card 2 -->
+<div class="clay-surface rounded-xl p-3 flex flex-col">
+<div class="relative w-full h-36 rounded-[1rem] overflow-hidden mb-3 clay-inset">
+<img class="w-full h-full object-cover" data-alt="Close up of a fluffy, golden brown blueberry muffin sitting on a pastel green ceramic plate. A wisp of steam is rising from it, indicating it's freshly baked. The setting is a cozy, brightly lit kitchen with a soft, inviting atmosphere." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA2nW7QguRvgWo7j9OkV2hfheOlf2LhdQVDKDRQDJrQP_MA-hr82hgu8V1w2nzFofP_M2ueESWrWZKwLeCK-tDOppSKpzBz7JcceigmT359RwwlEfAYWBaroHRfEs7X4V89I5CMoKmBd_jx0xSIxOQPes50YHXvlsE8GaIAVJPDMXd_aDsntB7s3exzqfNdwOI4o781OJhzPjrK520eAD5ZnFAiKGrlNaW1JcwS9Lwgdm1B-ZjkUrL7"/>
+<div class="absolute top-2 right-2 bg-surface/90 backdrop-blur-sm rounded-full px-2 py-0.5 flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-primary text-[14px]">timer</span>
+<span class="font-label-sm text-on-surface">45m</span>
+</div>
+</div>
+<div class="flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface text-[18px] leading-tight mb-1">Morning Blueberry Muffins</h3>
+<div class="flex gap-1 mt-auto pt-2">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-on-secondary-container bg-secondary-container/50 border border-secondary/20">Baking</span>
+</div>
+</div>
+</div>
+<!-- Standard Card 3 -->
+<div class="clay-surface rounded-xl p-3 flex flex-col md:col-span-2 lg:col-span-1">
+<div class="relative w-full h-36 rounded-[1rem] overflow-hidden mb-3 clay-inset">
+<img class="w-full h-full object-cover" data-alt="A comforting bowl of rich, creamy tomato soup served with a gooey, perfectly toasted grilled cheese sandwich on the side. The scene is lit with warm, soft light, creating a cozy and inviting mood perfect for a chilly day. The background is slightly blurred to focus on the food." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxfa9RUBc0nBwoT1-gig0_bJYAwmMwjudqAawrrwLSC5JczQkTou8RyA3FacbKILq7lqTHaQsaCFeeAuQgh3DZT-2lg6yu8CBdYpXCu7lMterz0lZQCtFt3sg_ALRGF_ZfOty1mA-9ktAYn-SM3iqi0RqQtQBWFgk-g5uMo3iHa1YmmFIcK8UUHiD1L72pJWJv0mIWxkQwtZm70fS6Q5ovio6r3Z6VaY4_ViRosG1CAXmAlNlv1ez_"/>
+<div class="absolute top-2 right-2 bg-surface/90 backdrop-blur-sm rounded-full px-2 py-0.5 flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-primary text-[14px]">timer</span>
+<span class="font-label-sm text-on-surface">30m</span>
+</div>
+</div>
+<div class="flex flex-col flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface text-[18px] leading-tight mb-1">Classic Tomato Soup &amp; Grilled Cheese</h3>
+<div class="flex gap-1 mt-auto pt-2">
+<span class="px-2 py-0.5 rounded-full text-[10px] font-bold text-on-primary-container bg-primary-container/50 border border-primary/20">Comfort</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-md z-50 flex justify-around items-center p-2 rounded-full bg-surface-container dark:bg-surface-container-highest shadow-[8px_8px_16px_rgba(0,0,0,0.1),-8px_-8px_16px_rgba(255,255,255,0.8)] border-none">
+<!-- Library (Active) -->
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-2 shadow-[inset_3px_3px_6px_rgba(255,255,255,0.5),inset_-3px_-3px_6px_rgba(0,110,32,0.2)] active:scale-90 transition-all duration-300 ease-out h-14 w-20">
+<span class="material-symbols-outlined mb-0.5" style="font-variation-settings: 'FILL' 1;">style</span>
+<span class="font-label-sm text-label-sm">Library</span>
+</button>
+<!-- Planner -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:bg-surface-variant/50 active:scale-90 transition-all duration-300 ease-out rounded-full h-14 w-20">
+<span class="material-symbols-outlined mb-0.5">calendar_month</span>
+<span class="font-label-sm text-label-sm">Planner</span>
+</button>
+<!-- Import -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:bg-surface-variant/50 active:scale-90 transition-all duration-300 ease-out rounded-full h-14 w-20">
+<span class="material-symbols-outlined mb-0.5">download</span>
+<span class="font-label-sm text-label-sm">Import</span>
+</button>
+<!-- Profile -->
+<button class="flex flex-col items-center justify-center text-on-surface-variant p-2 hover:bg-surface-variant/50 active:scale-90 transition-all duration-300 ease-out rounded-full h-14 w-20">
+<span class="material-symbols-outlined mb-0.5">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</button>
+</nav>
+<style>
+        /* Hide scrollbar for category filter */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</body></html>

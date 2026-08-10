@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport"/>
+<title>Cook Mode - Creamy Avocado Poached Egg Toast</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed": "#2a1704",
+                        "surface-tint": "#006e20",
+                        "surface-container-low": "#f5f3f3",
+                        "outline-variant": "#becab9",
+                        "error": "#ba1a1a",
+                        "on-tertiary-container": "#6a6946",
+                        "on-primary-fixed-variant": "#005316",
+                        "on-surface-variant": "#3f4a3d",
+                        "surface-container-high": "#eae8e7",
+                        "on-primary-container": "#007924",
+                        "on-tertiary": "#ffffff",
+                        "surface-variant": "#e4e2e2",
+                        "surface-container": "#efeded",
+                        "inverse-surface": "#303030",
+                        "primary-fixed": "#93f993",
+                        "tertiary-fixed-dim": "#cac99f",
+                        "error-container": "#ffdad6",
+                        "surface": "#fbf9f8",
+                        "primary": "#006e20",
+                        "primary-container": "#98ff98",
+                        "on-tertiary-fixed-variant": "#484828",
+                        "tertiary-container": "#eceabe",
+                        "surface-bright": "#fbf9f8",
+                        "surface-container-lowest": "#ffffff",
+                        "inverse-on-surface": "#f2f0f0",
+                        "on-secondary": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "surface-dim": "#dbd9d9",
+                        "secondary-container": "#fed9b8",
+                        "tertiary": "#60603e",
+                        "on-surface": "#1b1c1c",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed": "#ffdcbe",
+                        "secondary": "#74593f",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#5a422a",
+                        "inverse-primary": "#77dc7a",
+                        "on-primary-fixed": "#002105",
+                        "on-tertiary-fixed": "#1d1d03",
+                        "on-background": "#1b1c1c",
+                        "secondary-fixed-dim": "#e3c0a0",
+                        "background": "#fbf9f8",
+                        "on-secondary-container": "#795d43",
+                        "surface-container-highest": "#e4e2e2",
+                        "primary-fixed-dim": "#77dc7a",
+                        "outline": "#6f7a6c",
+                        "tertiary-fixed": "#e6e5b9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "card-gutter": "12px",
+                        "base": "8px",
+                        "touch-target": "48px",
+                        "container-padding": "20px",
+                        "stack-gap": "16px"
+                    },
+                    "fontFamily": {
+                        "label-md": ["Quicksand"],
+                        "headline-lg": ["Quicksand"],
+                        "body-lg": ["Quicksand"],
+                        "headline-lg-mobile": ["Quicksand"],
+                        "headline-xl": ["Quicksand"],
+                        "body-md": ["Quicksand"],
+                        "label-sm": ["Quicksand"]
+                    },
+                    "fontSize": {
+                        "label-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "600" }],
+                        "headline-lg": ["24px", { "lineHeight": "32px", "fontWeight": "700" }],
+                        "body-lg": ["18px", { "lineHeight": "26px", "fontWeight": "500" }],
+                        "headline-lg-mobile": ["22px", { "lineHeight": "28px", "fontWeight": "700" }],
+                        "headline-xl": ["32px", { "lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "500" }],
+                        "label-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0.03em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: #fbf9f8;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Claymorphism Utilities */
+        .clay-card {
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.05),
+                inset 2px 2px 5px rgba(255, 255, 255, 0.7),
+                inset -3px -3px 7px rgba(0, 0, 0, 0.05);
+            background-color: #fbf9f8;
+        }
+        
+        .clay-card-active {
+            box-shadow: 
+                0 12px 36px rgba(0, 110, 32, 0.15),
+                inset 2px 2px 5px rgba(255, 255, 255, 0.8),
+                inset -3px -3px 7px rgba(0, 83, 22, 0.1);
+            background-color: #fbf9f8;
+            border: 2px solid #98ff98;
+        }
+
+        .clay-inset {
+            box-shadow: 
+                inset 4px 4px 8px rgba(0, 0, 0, 0.08),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+            background-color: #efeded;
+        }
+
+        .clay-btn {
+            box-shadow: 
+                0 8px 20px rgba(0, 0, 0, 0.06),
+                inset 2px 2px 4px rgba(255, 255, 255, 0.5),
+                inset -2px -2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .clay-btn-primary {
+            box-shadow: 
+                0 8px 24px rgba(0, 110, 32, 0.2),
+                inset 2px 2px 6px rgba(255, 255, 255, 0.6),
+                inset -3px -3px 8px rgba(0, 83, 22, 0.2);
+        }
+
+        .clay-btn:active {
+            box-shadow: 
+                0 2px 5px rgba(0, 0, 0, 0.04),
+                inset 4px 4px 8px rgba(0, 0, 0, 0.1),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.4);
+            transform: scale(0.96);
+        }
+        
+        .clay-btn-primary:active {
+            box-shadow: 
+                0 2px 8px rgba(0, 110, 32, 0.1),
+                inset 4px 4px 10px rgba(0, 83, 22, 0.3),
+                inset -2px -2px 5px rgba(255, 255, 255, 0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="text-on-surface font-body-md h-screen flex flex-col overflow-hidden selection:bg-primary-container selection:text-on-primary-container">
+<!-- TopAppBar -->
+<header class="w-full top-0 sticky bg-surface dark:bg-surface-dim shadow-[0_10px_20px_rgba(0,0,0,0.05),inset_4px_4px_8px_rgba(255,255,255,0.6),inset_-4px_-4px_8px_rgba(0,0,0,0.05)] z-40">
+<div class="flex items-center justify-between px-container-padding h-touch-target">
+<button class="text-on-surface-variant hover:opacity-80 transition-opacity active:scale-95 duration-200 w-10 h-10 flex items-center justify-center rounded-full clay-btn bg-surface">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">close</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary">Cook Mode</h1>
+<button class="text-primary hover:opacity-80 transition-opacity active:scale-95 duration-200 w-10 h-10 flex items-center justify-center rounded-full clay-inset">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">timer</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col px-container-padding py-stack-gap overflow-y-auto pb-32">
+<!-- Progress Indicator -->
+<div class="flex flex-col gap-2 mb-6 items-center">
+<span class="font-label-md text-label-md text-on-surface-variant">Step 2 of 5</span>
+<div class="w-full h-4 rounded-full clay-inset overflow-hidden flex">
+<div class="w-2/5 h-full bg-primary-container rounded-full shadow-[inset_2px_2px_4px_rgba(255,255,255,0.5),inset_-2px_-2px_4px_rgba(0,110,32,0.2)]"></div>
+</div>
+</div>
+<!-- Steps List -->
+<div class="flex flex-col gap-4">
+<!-- Completed Step 1 -->
+<div class="clay-inset rounded-xl p-4 flex gap-4 items-start opacity-70">
+<button class="w-8 h-8 rounded-full clay-btn-primary bg-primary-container text-on-primary-container flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-[20px]">check</span>
+</button>
+<div class="flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface-variant mb-2">Step 1</h3>
+<p class="font-body-md text-body-md text-on-surface-variant line-through">
+                Bring a medium pot of water to a gentle simmer. Add a splash of vinegar.
+            </p>
+</div>
+</div>
+<!-- Active Step 2 -->
+<div class="clay-card-active rounded-xl p-5 flex gap-4 items-start relative overflow-visible">
+<button class="w-8 h-8 rounded-full clay-inset bg-surface text-on-surface-variant flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-[20px]">radio_button_unchecked</span>
+</button>
+<div class="flex-1 flex flex-col gap-4">
+<div class="flex justify-between items-center">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-primary">Step 2</h3>
+<span class="clay-btn bg-secondary-container text-on-secondary-container font-label-sm text-label-sm px-3 py-1.5 rounded-full flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">egg_alt</span>
+                    2 Eggs
+                </span>
+</div>
+<p class="font-body-lg text-body-lg text-on-surface leading-snug">
+                Gently lower the eggs into the simmering water. Set a timer for 3 minutes for a soft yolk.
+            </p>
+<!-- Inline Timer Widget -->
+<div class="clay-inset rounded-lg p-3 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-2xl">hourglass_empty</span>
+<span class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface tracking-widest font-mono">03:00</span>
+</div>
+<button class="clay-btn-primary bg-primary-container text-on-primary-container font-label-sm text-label-sm px-4 py-2 rounded-full flex items-center gap-1 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                    Start
+                </button>
+</div>
+</div>
+</div>
+<!-- Inactive Step 3 -->
+<div class="clay-inset rounded-xl p-4 flex gap-4 items-start opacity-80">
+<button class="w-8 h-8 rounded-full clay-inset bg-surface text-on-surface-variant flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-[20px]">radio_button_unchecked</span>
+</button>
+<div class="flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface-variant mb-2">Step 3</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                While eggs are cooking, toast the sourdough bread until golden brown and crispy.
+            </p>
+</div>
+</div>
+<!-- Inactive Step 4 -->
+<div class="clay-inset rounded-xl p-4 flex gap-4 items-start opacity-80">
+<button class="w-8 h-8 rounded-full clay-inset bg-surface text-on-surface-variant flex items-center justify-center flex-shrink-0 mt-1">
+<span class="material-symbols-outlined text-[20px]">radio_button_unchecked</span>
+</button>
+<div class="flex-1">
+<h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface-variant mb-2">Step 4</h3>
+<p class="font-body-md text-body-md text-on-surface-variant">
+                Mash the avocado in a small bowl with lime juice, salt, and pepper.
+            </p>
+</div>
+</div>
+</div>
+</main>
+<!-- Navigation Area -->
+<div class="fixed bottom-0 left-0 w-full bg-surface-container/90 backdrop-blur-md pb-8 pt-4 px-container-padding z-50 flex items-center justify-center">
+<button class="clay-btn-primary bg-primary-container text-on-primary-container font-label-md text-label-md px-8 h-14 rounded-full flex items-center justify-center gap-2 w-full max-w-sm shadow-[0_8px_24px_rgba(0,110,32,0.2),inset_2px_2px_6px_rgba(255,255,255,0.6),inset_-3px_-3px_8px_rgba(0,83,22,0.2)]">
+            Next Step
+            <span class="material-symbols-outlined">arrow_downward</span>
+</button>
+</div>
+</body></html>

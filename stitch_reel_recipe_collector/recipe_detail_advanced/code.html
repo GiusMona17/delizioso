@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ClayCook - Recipe Detail</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "error": "#ba1a1a",
+                      "on-surface-variant": "#3f4a3d",
+                      "secondary-fixed-dim": "#e3c0a0",
+                      "surface-container": "#efeded",
+                      "on-background": "#1b1c1c",
+                      "outline": "#6f7a6c",
+                      "secondary": "#74593f",
+                      "on-primary-fixed-variant": "#005316",
+                      "on-secondary-fixed-variant": "#5a422a",
+                      "background": "#fbf9f8",
+                      "on-secondary-fixed": "#2a1704",
+                      "inverse-primary": "#77dc7a",
+                      "on-error": "#ffffff",
+                      "tertiary-container": "#eceabe",
+                      "on-tertiary-fixed-variant": "#484828",
+                      "tertiary-fixed": "#e6e5b9",
+                      "primary-container": "#98ff98",
+                      "surface-bright": "#fbf9f8",
+                      "surface-variant": "#e4e2e2",
+                      "outline-variant": "#becab9",
+                      "on-primary-container": "#007924",
+                      "on-primary": "#ffffff",
+                      "secondary-container": "#fed9b8",
+                      "surface": "#fbf9f8",
+                      "surface-dim": "#dbd9d9",
+                      "on-secondary-container": "#795d43",
+                      "on-tertiary-container": "#6a6946",
+                      "surface-container-lowest": "#ffffff",
+                      "on-tertiary-fixed": "#1d1d03",
+                      "surface-container-low": "#f5f3f3",
+                      "surface-container-highest": "#e4e2e2",
+                      "primary-fixed": "#93f993",
+                      "on-primary-fixed": "#002105",
+                      "inverse-on-surface": "#f2f0f0",
+                      "tertiary": "#60603e",
+                      "primary-fixed-dim": "#77dc7a",
+                      "surface-tint": "#006e20",
+                      "tertiary-fixed-dim": "#cac99f",
+                      "on-secondary": "#ffffff",
+                      "on-tertiary": "#ffffff",
+                      "primary": "#006e20",
+                      "error-container": "#ffdad6",
+                      "on-error-container": "#93000a",
+                      "inverse-surface": "#303030",
+                      "on-surface": "#1b1c1c",
+                      "surface-container-high": "#eae8e7",
+                      "secondary-fixed": "#ffdcbe"
+              },
+              "borderRadius": {
+                      "DEFAULT": "1rem",
+                      "lg": "2rem",
+                      "xl": "3rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "touch-target": "48px",
+                      "container-padding": "20px",
+                      "card-gutter": "12px",
+                      "base": "8px",
+                      "stack-gap": "16px"
+              },
+              "fontFamily": {
+                      "headline-lg": [
+                              "Quicksand"
+                      ],
+                      "body-lg": [
+                              "Quicksand"
+                      ],
+                      "headline-lg-mobile": [
+                              "Quicksand"
+                      ],
+                      "label-sm": [
+                              "Quicksand"
+                      ],
+                      "body-md": [
+                              "Quicksand"
+                      ],
+                      "label-md": [
+                              "Quicksand"
+                      ],
+                      "headline-xl": [
+                              "Quicksand"
+                      ]
+              },
+              "fontSize": {
+                      "headline-lg": [
+                              "24px",
+                              {
+                                      "lineHeight": "32px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-lg": [
+                              "18px",
+                              {
+                                      "lineHeight": "26px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "headline-lg-mobile": [
+                              "22px",
+                              {
+                                      "lineHeight": "28px",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "label-sm": [
+                              "12px",
+                              {
+                                      "lineHeight": "16px",
+                                      "letterSpacing": "0.03em",
+                                      "fontWeight": "700"
+                              }
+                      ],
+                      "body-md": [
+                              "16px",
+                              {
+                                      "lineHeight": "24px",
+                                      "fontWeight": "500"
+                              }
+                      ],
+                      "label-md": [
+                              "14px",
+                              {
+                                      "lineHeight": "20px",
+                                      "letterSpacing": "0.01em",
+                                      "fontWeight": "600"
+                              }
+                      ],
+                      "headline-xl": [
+                              "32px",
+                              {
+                                      "lineHeight": "40px",
+                                      "letterSpacing": "-0.02em",
+                                      "fontWeight": "700"
+                              }
+                      ]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+        .clay-card {
+            box-shadow: inset 4px 4px 8px rgba(255, 255, 255, 0.6), inset -4px -4px 8px rgba(0, 110, 32, 0.1), 8px 8px 16px rgba(0, 0, 0, 0.05), -8px -8px 16px rgba(255, 255, 255, 0.8);
+        }
+        .clay-btn {
+            box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.5), inset -2px -2px 4px rgba(0, 110, 32, 0.2), 4px 4px 8px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s ease;
+        }
+        .clay-btn:active {
+            box-shadow: inset 4px 4px 8px rgba(0, 110, 32, 0.2), inset -4px -4px 8px rgba(255, 255, 255, 0.5);
+            transform: scale(0.98);
+        }
+        .clay-inset {
+            box-shadow: inset 3px 3px 6px rgba(0, 0, 0, 0.1), inset -3px -3px 6px rgba(255, 255, 255, 0.7);
+        }
+        
+        .pb-safe {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- Top Navigation (Task-Focused Sub-page: Hidden Shell, custom back button instead) -->
+<div class="fixed top-0 w-full z-50 flex justify-between items-center px-container-padding py-4 pointer-events-none">
+<button class="pointer-events-auto clay-btn bg-surface-container rounded-full w-12 h-12 flex items-center justify-center text-primary active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</button>
+<button class="pointer-events-auto clay-btn bg-surface-container rounded-full w-12 h-12 flex items-center justify-center text-primary active:scale-95 transition-transform duration-200">
+<span class="material-symbols-outlined" data-icon="favorite">favorite</span>
+</button>
+</div>
+<!-- Hero Image -->
+<div class="relative w-full h-[397px] rounded-b-xl overflow-hidden shadow-[0_16px_32px_rgba(0,0,0,0.1)]">
+<img class="w-full h-full object-cover" data-alt="A top-down view of a vibrant, freshly made avocado toast on rustic sourdough bread, topped with microgreens, red pepper flakes, and a perfectly poached egg. The setting is bright and inviting, styled like a modern culinary magazine shoot with a soft, natural morning light casting gentle shadows across a clean marble countertop. The overall aesthetic is appetizing, fresh, and slightly playful, perfectly matching a bright, creamy, tactile user interface style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrf9loivp69cVme4wYoCVhegZrx4nhrPCqmPfKXOS6DspO2NLjscSluH6SRxIFrhV2pMCgp8vkr5SXMMhhsgThDiNFKXzBQhnsXWSYG4niBiEZh_ABlJLkhCOPAMexc2MAtSNZ1WlyFt7_WVgjCJdWWsKUrXuLzY1Y7g34tBcog8qUbg0zXaAR-rCaI06gAkLHW0294tWYzUKxKclOGpbrZHaTKnS0wvV8BploZXzk_8VCG_t_6e2Y"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+</div>
+<!-- Main Content Container -->
+<div class="px-container-padding -mt-8 relative z-10">
+<!-- Recipe Header Card -->
+<div class="clay-card bg-surface-container rounded-xl p-6 flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-background w-3/4">Creamy Avocado Poached Egg Toast</h1>
+<div class="flex items-center gap-1 bg-tertiary-container text-on-tertiary-container px-3 py-1 rounded-full text-label-sm font-label-sm shadow-[inset_1px_1px_2px_rgba(255,255,255,0.5),inset_-1px_-1px_2px_rgba(0,0,0,0.1)]">
+<span class="material-symbols-outlined text-[16px]" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+<span>4.9</span>
+</div>
+</div>
+<div class="flex flex-wrap gap-x-4 gap-y-3">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="schedule">schedule</span>
+<span class="font-body-md text-body-md">15 min</span>
+</div>
+<div class="flex items-center gap-2 text-on-surface-variant">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<div class="flex items-center gap-1">
+<button class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center clay-btn text-primary">
+<span class="material-symbols-outlined text-[16px]" data-icon="remove">remove</span>
+</button>
+<span class="font-body-md text-body-md w-3 text-center">2</span>
+<button class="w-6 h-6 rounded-full bg-surface-container flex items-center justify-center clay-btn text-primary">
+<span class="material-symbols-outlined text-[16px]" data-icon="add">add</span>
+</button>
+</div>
+<span class="font-body-md text-body-md">Servings</span>
+</div>
+<div class="flex flex-col text-on-surface-variant">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="local_fire_department">local_fire_department</span>
+<span class="font-body-md text-body-md">320 kcal</span>
+</div>
+<span class="text-[12px] font-bold text-on-surface-variant/70 pl-8">P: 12g • C: 28g • F: 18g</span>
+</div>
+</div>
+<!-- Tags -->
+<div class="flex flex-wrap gap-2 mt-2">
+<span class="px-4 py-2 bg-primary-container/40 text-on-primary-container rounded-full font-label-md text-label-md border border-primary/10">Vegetarian</span>
+<span class="px-4 py-2 bg-secondary-container/40 text-on-secondary-container rounded-full font-label-md text-label-md border border-secondary/10">Breakfast</span>
+<span class="px-4 py-2 bg-tertiary-container/40 text-on-tertiary-container rounded-full font-label-md text-label-md border border-tertiary/10">Quick</span>
+</div>
+</div>
+<!-- Tabs -->
+<div class="flex bg-surface-container rounded-full p-2 my-stack-gap clay-inset">
+<button class="flex-1 py-3 text-center rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md shadow-[inset_2px_2px_4px_rgba(255,255,255,0.5),inset_-2px_-2px_4px_rgba(0,110,32,0.2)]" onclick="switchTab('ingredients')">
+                Ingredients
+            </button>
+<button class="flex-1 py-3 text-center rounded-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-variant/50 transition-colors" onclick="switchTab('instructions')">
+                Instructions
+            </button>
+</div>
+<!-- Tab Content -->
+<div class="space-y-4" id="ingredients-tab">
+<!-- Ingredient Item -->
+<label class="flex items-center p-4 bg-surface-container rounded-lg clay-card cursor-pointer group">
+<div class="relative w-6 h-6 mr-4 flex-shrink-0">
+<input class="peer appearance-none w-6 h-6 rounded-md bg-background clay-inset checked:bg-primary transition-colors cursor-pointer" type="checkbox"/>
+<span class="material-symbols-outlined absolute inset-0 text-on-primary opacity-0 peer-checked:opacity-100 pointer-events-none flex items-center justify-center text-[20px]" data-icon="check">check</span>
+</div>
+<span class="font-body-md text-body-md flex-grow group-hover:text-primary transition-colors">Sourdough Bread</span>
+<span class="font-label-md text-label-md text-on-surface-variant">2 slices</span>
+</label>
+<!-- Ingredient Item -->
+<label class="flex items-center p-4 bg-surface-container rounded-lg clay-card cursor-pointer group">
+<div class="relative w-6 h-6 mr-4 flex-shrink-0">
+<input class="peer appearance-none w-6 h-6 rounded-md bg-background clay-inset checked:bg-primary transition-colors cursor-pointer" type="checkbox"/>
+<span class="material-symbols-outlined absolute inset-0 text-on-primary opacity-0 peer-checked:opacity-100 pointer-events-none flex items-center justify-center text-[20px]" data-icon="check">check</span>
+</div>
+<span class="font-body-md text-body-md flex-grow group-hover:text-primary transition-colors">Ripe Avocado</span>
+<span class="font-label-md text-label-md text-on-surface-variant">1 large</span>
+</label>
+<!-- Ingredient Item -->
+<label class="flex items-center p-4 bg-surface-container rounded-lg clay-card cursor-pointer group">
+<div class="relative w-6 h-6 mr-4 flex-shrink-0">
+<input class="peer appearance-none w-6 h-6 rounded-md bg-background clay-inset checked:bg-primary transition-colors cursor-pointer" type="checkbox"/>
+<span class="material-symbols-outlined absolute inset-0 text-on-primary opacity-0 peer-checked:opacity-100 pointer-events-none flex items-center justify-center text-[20px]" data-icon="check">check</span>
+</div>
+<span class="font-body-md text-body-md flex-grow group-hover:text-primary transition-colors">Eggs</span>
+<span class="font-label-md text-label-md text-on-surface-variant">2 large</span>
+</label>
+</div>
+<div class="hidden space-y-6" id="instructions-tab">
+<!-- Instruction Step -->
+<div class="flex gap-4">
+<div class="w-12 h-12 flex-shrink-0 bg-primary-container text-on-primary-container rounded-full flex items-center justify-center font-headline-lg-mobile text-headline-lg-mobile clay-card">
+                    1
+                </div>
+<div class="bg-surface-container rounded-xl p-5 clay-card flex-grow">
+<p class="font-body-md text-body-md">Toast the sourdough bread slices until golden brown and crispy on the edges.</p>
+</div>
+</div>
+<!-- Instruction Step -->
+<div class="flex gap-4">
+<div class="w-12 h-12 flex-shrink-0 bg-surface-container text-on-surface-variant rounded-full flex items-center justify-center font-headline-lg-mobile text-headline-lg-mobile clay-card">
+                    2
+                </div>
+<div class="bg-surface-container rounded-xl p-5 clay-card flex-grow">
+<p class="font-body-md text-body-md">In a small bowl, mash the avocado with a fork. Season with a pinch of salt, pepper, and a squeeze of fresh lemon juice if desired.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Action Button for Cook Mode -->
+<div class="fixed bottom-24 right-6 z-40">
+<button class="px-6 py-4 bg-primary text-on-primary rounded-full flex items-center justify-center gap-2 shadow-[0_8px_24px_rgba(0,110,32,0.4)] hover:scale-105 active:scale-95 transition-transform clay-btn">
+<span class="material-symbols-outlined text-[24px]" data-icon="play_arrow">play_arrow</span>
+<span class="font-label-md text-label-md font-bold">Start Cooking</span>
+</button>
+</div>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 w-full bg-surface/90 backdrop-blur-md pb-safe border-t border-outline-variant/30 z-50">
+<div class="flex justify-around items-center px-4 py-3">
+<button class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors w-16">
+<span class="material-symbols-outlined text-[24px]" data-icon="menu_book">menu_book</span>
+<span class="font-label-sm text-label-sm">Library</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors w-16">
+<span class="material-symbols-outlined text-[24px]" data-icon="calendar_month">calendar_month</span>
+<span class="font-label-sm text-label-sm">Planner</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors w-16">
+<span class="material-symbols-outlined text-[24px]" data-icon="add_circle">add_circle</span>
+<span class="font-label-sm text-label-sm">Import</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors w-16">
+<span class="material-symbols-outlined text-[24px]" data-icon="person">person</span>
+<span class="font-label-sm text-label-sm">Profile</span>
+</button>
+</div>
+</div>
+<script>
+        function switchTab(tabId) {
+            const tabs = ['ingredients', 'instructions'];
+            const buttons = document.querySelectorAll('button[onclick^="switchTab"]');
+            
+            tabs.forEach((id, index) => {
+                const el = document.getElementById(id + '-tab');
+                if(id === tabId) {
+                    el.classList.remove('hidden');
+                    // Style active button
+                    buttons[index].className = 'flex-1 py-3 text-center rounded-full bg-primary-container text-on-primary-container font-label-md text-label-md shadow-[inset_2px_2px_4px_rgba(255,255,255,0.5),inset_-2px_-2px_4px_rgba(0,110,32,0.2)]';
+                } else {
+                    el.classList.add('hidden');
+                    // Style inactive button
+                    buttons[index].className = 'flex-1 py-3 text-center rounded-full text-on-surface-variant font-label-md text-label-md hover:bg-surface-variant/50 transition-colors';
+                }
+            });
+        }
+    </script>
+</body></html>
