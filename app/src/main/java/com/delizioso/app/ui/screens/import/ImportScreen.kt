@@ -46,7 +46,7 @@ import com.delizioso.app.ui.components.ClayTopBar
 import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
-import com.delizioso.app.ui.theme.clayInner
+import com.delizioso.app.ui.theme.clayBevel
 
 @Composable
 fun ImportScreen(
@@ -113,7 +113,7 @@ fun ImportScreen(
                             modifier = Modifier
                                 .clip(PillShape)
                                 .background(MaterialTheme.colorScheme.primaryContainer)
-                                .clayInner(PillShape, cornerRadius = null)
+                                .clayBevel(PillShape)
                                 .clickable { clipboard.getText()?.text?.let { url = it.trim() } }
                                 .padding(horizontal = 18.dp, vertical = 10.dp),
                         )

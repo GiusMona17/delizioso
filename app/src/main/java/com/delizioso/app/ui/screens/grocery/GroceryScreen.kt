@@ -47,7 +47,7 @@ import com.delizioso.app.ui.components.ClayTextField
 import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
-import com.delizioso.app.ui.theme.clayInner
+import com.delizioso.app.ui.theme.clayBevel
 
 private const val GROUP_BY_RECIPE = 0
 
@@ -80,12 +80,7 @@ fun GroceryScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clayInner(
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(0.dp),
-                    cornerRadius = 0.dp,
-                    topLight = androidx.compose.ui.graphics.Color(0x99FFFFFF),
-                    bottomDark = androidx.compose.ui.graphics.Color(0x1A006E20),
-                )
+                .clayBevel(androidx.compose.foundation.shape.RoundedCornerShape(0.dp), light = androidx.compose.ui.graphics.Color(0x99FFFFFF), dark = androidx.compose.ui.graphics.Color(0x1A006E20))
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -123,7 +118,7 @@ fun GroceryScreen(
                     ClayEmptyState(
                         icon = Icons.Filled.ShoppingCart,
                         title = "Nothing to buy",
-                        subtitle = "Plan a few meals and their ingredients land here automatically — or add your own below.",
+                        subtitle = "Open a recipe and tap “Add all to shopping list”, or plan it into a meal slot — either way its ingredients land here. You can also type your own below.",
                     )
                 }
             }
@@ -187,7 +182,7 @@ fun GroceryScreen(
                     )
                 }
             }
-            item { Spacer(Modifier.height(16.dp)) }
+            item { Spacer(Modifier.height(40.dp)) }
         }
     }
 }

@@ -40,7 +40,7 @@ import com.delizioso.app.data.local.MealSlot
 import com.delizioso.app.data.local.RecipeWithDetails
 import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.clayCard
-import com.delizioso.app.ui.theme.clayInner
+import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayInset
 import com.delizioso.app.ui.theme.clayOuter
 import java.time.LocalDate
@@ -194,12 +194,7 @@ private fun DayPill(day: LocalDate, selected: Boolean, onClick: () -> Unit) {
                 if (selected) MaterialTheme.colorScheme.primaryContainer
                 else MaterialTheme.colorScheme.surfaceContainer
             )
-            .clayInner(
-                PillShape,
-                cornerRadius = null,
-                topLight = Color(0x99FFFFFF),
-                bottomDark = if (selected) Color(0x33006E20) else Color(0x14000000),
-            )
+            .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = if (selected) Color(0x33006E20) else Color(0x14000000))
             .clickable(role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -232,12 +227,7 @@ private fun MealTypeOption(
                 if (selected) MaterialTheme.colorScheme.primaryContainer
                 else MaterialTheme.colorScheme.surfaceContainerLowest
             )
-            .clayInner(
-                PillShape,
-                cornerRadius = null,
-                topLight = Color(0x99FFFFFF),
-                bottomDark = if (selected) Color(0x33006E20) else Color(0x14000000),
-            )
+            .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = if (selected) Color(0x33006E20) else Color(0x14000000))
             .clickable(role = Role.RadioButton, onClick = onClick)
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalAlignment = Alignment.CenterVertically,

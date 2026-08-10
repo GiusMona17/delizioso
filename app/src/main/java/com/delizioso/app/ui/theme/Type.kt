@@ -1,22 +1,36 @@
 package com.delizioso.app.ui.theme
 
 import androidx.compose.material3.Typography
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.delizioso.app.R
 
 /**
  * Quicksand across all levels (per DESIGN.md). One variable font file serves every
- * weight via the wght axis (Android supports variable fonts since API 26).
+ * weight via the wght axis (300–700, API 26+).
+ *
+ * The `variationSettings` are what actually move the axis — without them every
+ * weight renders at the file's default instance (300 / Light), which is far too
+ * thin for the mockups' "plump" headlines.
  */
+@OptIn(ExperimentalTextApi::class)
+private fun quicksand(weight: FontWeight) = Font(
+    resId = R.font.quicksand_variable,
+    weight = weight,
+    variationSettings = FontVariation.Settings(FontVariation.weight(weight.weight)),
+)
+
 val Quicksand = FontFamily(
-    Font(R.font.quicksand_variable, FontWeight.Normal),
-    Font(R.font.quicksand_variable, FontWeight.Medium),
-    Font(R.font.quicksand_variable, FontWeight.SemiBold),
-    Font(R.font.quicksand_variable, FontWeight.Bold),
+    quicksand(FontWeight.Light),
+    quicksand(FontWeight.Normal),
+    quicksand(FontWeight.Medium),
+    quicksand(FontWeight.SemiBold),
+    quicksand(FontWeight.Bold),
 )
 
 /**

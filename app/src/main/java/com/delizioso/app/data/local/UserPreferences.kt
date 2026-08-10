@@ -61,9 +61,15 @@ class UserPreferences(private val context: Context) {
     val groceryChecked: Flow<Set<String>> =
         context.userDataStore.data.map { it[Keys.GROCERY_CHECKED] ?: emptySet() }
 
-    /** Extra lines the user typed in by hand. */
-    val groceryCustomItems: Flow<Set<String>> =
-        context.userDataStore.data.map { it[Keys.GROCERY_CUSTOM] ?: emptySet() }
+    /**
+     * Lines added outside the meal planner — typed by hand, or copied off a recipe.
+     * Stored as "linesource" so the shopping list can still group by recipe
+     * without needing a table of its own.
+     */
+    val groceryCustomItems: Flow<List<CustomGroceryLine>> =
+        context.userDataStore.data.map { prefs ->
+            (prefs[Keys.GROCERY_CUSTOM] ?: emptySet()).map(CustomGroceryLine::parse)
+        }
 
     suspend fun toggleGroceryChecked(line: String) {
         context.userDataStore.edit { prefs ->
@@ -76,18 +82,44 @@ class UserPreferences(private val context: Context) {
         context.userDataStore.edit { it[Keys.GROCERY_CHECKED] = emptySet() }
     }
 
-    suspend fun addGroceryCustomItem(line: String) {
+    /** [source] names the recipe the line came from; null means the user typed it. */
+    suspend fun addGroceryCustomItem(line: String, source: String? = null) {
         val trimmed = line.trim()
         if (trimmed.isEmpty()) return
         context.userDataStore.edit { prefs ->
-            prefs[Keys.GROCERY_CUSTOM] = (prefs[Keys.GROCERY_CUSTOM] ?: emptySet()) + trimmed
+            val current = prefs[Keys.GROCERY_CUSTOM] ?: emptySet()
+            // Re-adding the same line from the same recipe shouldn't duplicate it.
+            val withoutDuplicate = current.filterNot { CustomGroceryLine.parse(it).line == trimmed }.toSet()
+            prefs[Keys.GROCERY_CUSTOM] = withoutDuplicate + CustomGroceryLine(trimmed, source).encode()
         }
     }
 
     suspend fun removeGroceryCustomItem(line: String) {
         context.userDataStore.edit { prefs ->
-            prefs[Keys.GROCERY_CUSTOM] = (prefs[Keys.GROCERY_CUSTOM] ?: emptySet()) - line
+            prefs[Keys.GROCERY_CUSTOM] = (prefs[Keys.GROCERY_CUSTOM] ?: emptySet())
+                .filterNot { CustomGroceryLine.parse(it).line == line }
+                .toSet()
             prefs[Keys.GROCERY_CHECKED] = (prefs[Keys.GROCERY_CHECKED] ?: emptySet()) - line
+        }
+    }
+}
+
+/** A shopping-list line that didn't come from the meal planner. */
+data class CustomGroceryLine(val line: String, val source: String?) {
+
+    fun encode(): String = if (source.isNullOrBlank()) line else "$line$SEPARATOR$source"
+
+    companion object {
+        /** ASCII unit separator — will never appear in an ingredient name. */
+        private const val SEPARATOR = ''
+
+        fun parse(stored: String): CustomGroceryLine {
+            val at = stored.indexOf(SEPARATOR)
+            return if (at < 0) {
+                CustomGroceryLine(stored, null)
+            } else {
+                CustomGroceryLine(stored.substring(0, at), stored.substring(at + 1).ifBlank { null })
+            }
         }
     }
 }

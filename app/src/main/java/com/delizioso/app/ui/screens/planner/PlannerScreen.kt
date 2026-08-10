@@ -65,7 +65,7 @@ import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.Secondary
 import com.delizioso.app.ui.theme.clayCard
-import com.delizioso.app.ui.theme.clayInner
+import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayOuter
 import java.time.LocalDate
 import java.time.format.TextStyle
@@ -237,12 +237,7 @@ private fun DayPill(
             .clayOuter(shape = PillShape, elevation = if (selected) 14.dp else 8.dp)
             .clip(PillShape)
             .background(if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer)
-            .clayInner(
-                PillShape,
-                cornerRadius = null,
-                topLight = Color(0x99FFFFFF),
-                bottomDark = if (selected) Color(0x33006E20) else Color(0x14000000),
-            )
+            .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = if (selected) Color(0x33006E20) else Color(0x14000000))
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -293,7 +288,7 @@ private fun ViewToggle(label: String, icon: androidx.compose.ui.graphics.vector.
                 .clayOuter(shape = PillShape, elevation = 10.dp)
                 .clip(PillShape)
                 .background(MaterialTheme.colorScheme.primaryContainer)
-                .clayInner(PillShape, cornerRadius = null, topLight = Color(0x99FFFFFF), bottomDark = Color(0x33006E20))
+                .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = Color(0x33006E20))
                 .clickable(onClick = onClick)
                 .padding(horizontal = 22.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -454,7 +449,7 @@ private fun CalendarCell(
                 .size(44.dp)
                 .clip(PillShape)
                 .background(if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest)
-                .clayInner(PillShape, cornerRadius = null, topLight = Color(0x99FFFFFF), bottomDark = Color(0x14000000))
+                .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = Color(0x14000000))
                 .clickable(onClick = onClick),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,

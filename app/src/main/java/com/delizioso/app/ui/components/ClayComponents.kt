@@ -54,7 +54,7 @@ import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayButton
 import com.delizioso.app.ui.theme.clayCard
-import com.delizioso.app.ui.theme.clayInner
+import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayInset
 import com.delizioso.app.ui.theme.clayOuter
 
@@ -79,12 +79,7 @@ fun ClayTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clayInner(
-                shape = RoundedCornerShape(0.dp),
-                cornerRadius = 0.dp,
-                topLight = Color(0x99FFFFFF),
-                bottomDark = Color(0x1A006E20),
-            )
+            .clayBevel(RoundedCornerShape(0.dp), light = Color(0x99FFFFFF), dark = Color(0x1A006E20))
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -129,12 +124,7 @@ fun ClayRoundButton(
             .clayOuter(shape = PillShape, elevation = 12.dp)
             .clip(PillShape)
             .background(container)
-            .clayInner(
-                shape = PillShape,
-                cornerRadius = null,
-                topLight = if (pressed) Color(0x66FFFFFF) else Color(0x7AFFFFFF),
-                bottomDark = if (pressed) Color(0x40000000) else Color(0x26000000),
-            )
+            .clayBevel(PillShape, light = if (pressed) Color(0x66FFFFFF) else Color(0x7AFFFFFF), dark = if (pressed) Color(0x40000000) else Color(0x26000000))
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -344,12 +334,7 @@ fun ClayFilterChip(
             .clayOuter(shape = PillShape, elevation = if (selected) 10.dp else 8.dp)
             .clip(PillShape)
             .background(container)
-            .clayInner(
-                shape = PillShape,
-                cornerRadius = null,
-                topLight = Color(0x99FFFFFF),
-                bottomDark = if (selected) Color(0x33006E20) else Color(0x14000000),
-            )
+            .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = if (selected) Color(0x33006E20) else Color(0x14000000))
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick)
             .padding(horizontal = 24.dp, vertical = 10.dp),
     ) {
@@ -416,7 +401,7 @@ fun ClaySegmentedTabs(
                                 .clayOuter(shape = PillShape, elevation = 8.dp)
                                 .clip(PillShape)
                                 .background(MaterialTheme.colorScheme.primaryContainer)
-                                .clayInner(PillShape, cornerRadius = null, topLight = Color(0x99FFFFFF), bottomDark = Color(0x33006E20))
+                                .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = Color(0x33006E20))
                         } else {
                             Modifier.clip(PillShape)
                         }
@@ -451,7 +436,8 @@ fun ClayCheckbox(
             .size(26.dp)
             .clip(shape)
             .background(if (checked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clayInner(shape, cornerRadius = 8.dp, topLight = Color(0x33000000), bottomDark = Color(0x66FFFFFF))
+            .clayBevel(shape, light = Color(0x33000000), dark = Color(0x66FFFFFF))
+            .border(1.5.dp, if (checked) Primary else MaterialTheme.colorScheme.outlineVariant, shape)
             .clickable(role = Role.Checkbox) { onCheckedChange(!checked) },
         contentAlignment = Alignment.Center,
     ) {
@@ -473,7 +459,8 @@ fun ClayStepPod(
             .size(36.dp)
             .clip(PillShape)
             .background(if (done) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest)
-            .clayInner(PillShape, cornerRadius = null, topLight = Color(0x26000000), bottomDark = Color(0x66FFFFFF))
+            .clayBevel(PillShape, light = Color(0x26000000), dark = Color(0x66FFFFFF))
+            .border(2.dp, if (done) Primary else MaterialTheme.colorScheme.outlineVariant, PillShape)
             .clickable(role = Role.Checkbox, onClick = onToggle),
         contentAlignment = Alignment.Center,
     ) {
@@ -700,7 +687,7 @@ fun ClayEmptyState(
                 .clayOuter(shape = PillShape)
                 .clip(PillShape)
                 .background(MaterialTheme.colorScheme.surfaceContainer)
-                .clayInner(PillShape, cornerRadius = null),
+                .clayBevel(PillShape),
             contentAlignment = Alignment.Center,
         ) {
             Icon(icon, contentDescription = null, tint = Primary, modifier = Modifier.size(44.dp))

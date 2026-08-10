@@ -128,7 +128,7 @@ fun LibraryScreen(
                     },
                 )
             }
-            if (filters.size > 1) {
+            if (recipes.isNotEmpty()) {
                 item {
                     LazyRow(
                         contentPadding = PaddingValues(horizontal = 20.dp),

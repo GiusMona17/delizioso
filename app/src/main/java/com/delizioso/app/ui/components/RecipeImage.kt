@@ -34,8 +34,8 @@ fun RecipeImage(
         modifier = modifier.background(
             Brush.linearGradient(
                 listOf(
-                    MaterialTheme.colorScheme.primaryContainer,
-                    MaterialTheme.colorScheme.secondaryContainer,
+                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                    MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f),
                 )
             )
         ),
@@ -45,7 +45,7 @@ fun RecipeImage(
             Icon(
                 Icons.Filled.Restaurant,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.35f),
                 modifier = Modifier.size(placeholderIconSize),
             )
         } else {

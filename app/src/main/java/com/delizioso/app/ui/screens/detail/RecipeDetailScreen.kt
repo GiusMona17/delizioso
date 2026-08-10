@@ -21,11 +21,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.CircularProgressIndicator
@@ -77,7 +79,7 @@ import com.delizioso.app.ui.components.RecipeImage
 import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
-import com.delizioso.app.ui.theme.clayInner
+import com.delizioso.app.ui.theme.clayBevel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -116,6 +118,21 @@ class RecipeDetailViewModel(
             repository.addMeal(
                 PlannedMealEntity(recipeId = recipeId, dateEpochDay = epochDay, slot = slot, servings = servings)
             )
+        }
+    }
+
+    /** Copy every ingredient (scaled to the chosen servings) onto the shopping list. */
+    fun addToShoppingList(factor: Double) {
+        val d = details.value ?: return
+        viewModelScope.launch {
+            d.ingredients.sortedBy { it.position }.forEach { ingredient ->
+                val line = listOfNotNull(
+                    Quantities.scale(ingredient.quantity, factor),
+                    ingredient.unit,
+                    ingredient.name,
+                ).joinToString(" ").trim()
+                preferences.addGroceryCustomItem(line.ifBlank { ingredient.name }, source = d.recipe.title)
+            }
         }
     }
 
@@ -201,6 +218,7 @@ fun RecipeDetailScreen(
     var tab by rememberSaveable { mutableStateOf(TAB_INGREDIENTS) }
     var servings by rememberSaveable { mutableStateOf(0) }
     var showPlanner by remember { mutableStateOf(false) }
+    var addedToList by remember { mutableStateOf(false) }
     val ticked = remember { mutableStateOf(setOf<Long>()) }
 
     val d = details
@@ -225,11 +243,44 @@ fun RecipeDetailScreen(
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState()),
         ) {
-            RecipeImage(
-                d.recipe.imageUri,
-                placeholderIconSize = 72.dp,
-                modifier = Modifier.fillMaxWidth().height(320.dp),
-            )
+            Box(Modifier.fillMaxWidth()) {
+                RecipeImage(
+                    d.recipe.imageUri,
+                    placeholderIconSize = 64.dp,
+                    // A photo-less recipe doesn't deserve 320dp of empty hero.
+                    modifier = Modifier.fillMaxWidth().height(if (d.recipe.imageUri.isNullOrBlank()) 200.dp else 320.dp),
+                )
+                // The actions ride on the hero, so they scroll away with it.
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 16.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    ClayRoundButton(
+                        icon = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        onClick = onBack,
+                        container = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    )
+                    Spacer(Modifier.weight(1f))
+                    ClayRoundButton(
+                        icon = Icons.Filled.CalendarMonth,
+                        contentDescription = "Add to planner",
+                        onClick = { showPlanner = true },
+                        container = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    ClayRoundButton(
+                        icon = if (d.recipe.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = "Favourite",
+                        onClick = { viewModel.toggleFavorite(d.recipe.isFavorite) },
+                        container = MaterialTheme.colorScheme.surfaceContainerLowest,
+                        tint = if (d.recipe.isFavorite) MaterialTheme.colorScheme.error else Primary,
+                    )
+                }
+            }
             Column(
                 modifier = Modifier
                     .offset(y = (-32).dp)
@@ -255,6 +306,17 @@ fun RecipeDetailScreen(
                             ticked.value = if (id in ticked.value) ticked.value - id else ticked.value + id
                         },
                     )
+                    ClayButton(
+                        text = if (addedToList) "Added to shopping list" else "Add all to shopping list",
+                        icon = if (addedToList) Icons.Filled.Check else Icons.Filled.ShoppingCart,
+                        onClick = {
+                            viewModel.addToShoppingList(factor)
+                            addedToList = true
+                        },
+                        container = MaterialTheme.colorScheme.surfaceContainerLow,
+                        contentColor = Primary,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 } else {
                     StepList(d)
                 }
@@ -272,37 +334,6 @@ fun RecipeDetailScreen(
                 // Room for the floating "Start Cooking" pill.
                 Spacer(Modifier.height(72.dp))
             }
-        }
-
-        // Floating actions over the hero.
-        Row(
-            modifier = Modifier
-                .align(Alignment.TopCenter)
-                .fillMaxWidth()
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            ClayRoundButton(
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                onClick = onBack,
-                container = MaterialTheme.colorScheme.surfaceContainerLowest,
-            )
-            Spacer(Modifier.weight(1f))
-            ClayRoundButton(
-                icon = Icons.Filled.CalendarMonth,
-                contentDescription = "Add to planner",
-                onClick = { showPlanner = true },
-                container = MaterialTheme.colorScheme.surfaceContainerLowest,
-            )
-            Spacer(Modifier.width(12.dp))
-            ClayRoundButton(
-                icon = if (d.recipe.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                contentDescription = "Favourite",
-                onClick = { viewModel.toggleFavorite(d.recipe.isFavorite) },
-                container = MaterialTheme.colorScheme.surfaceContainerLowest,
-                tint = if (d.recipe.isFavorite) MaterialTheme.colorScheme.error else Primary,
-            )
         }
 
         ClayButton(
@@ -410,7 +441,7 @@ private fun StepperButton(icon: androidx.compose.ui.graphics.vector.ImageVector,
             .size(26.dp)
             .clip(PillShape)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clayInner(PillShape, cornerRadius = null)
+            .clayBevel(PillShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -471,7 +502,7 @@ private fun StepList(details: RecipeWithDetails) {
                         .size(32.dp)
                         .clip(PillShape)
                         .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                        .clayInner(PillShape, cornerRadius = null),
+                        .clayBevel(PillShape),
                     contentAlignment = Alignment.Center,
                 ) {
                     Text("${index + 1}", style = MaterialTheme.typography.labelLarge, color = Primary)

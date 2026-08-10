@@ -58,7 +58,7 @@ fun CookCompleteScreen(
         Box(
             modifier = Modifier
                 .size(220.dp)
-                .clayOuter(shape = PillShape, color = Primary.copy(alpha = 0.25f), elevation = 32.dp)
+                .clayOuter(shape = PillShape, dark = Primary.copy(alpha = 0.25f), elevation = 32.dp)
                 .clip(PillShape),
         ) {
             RecipeImage(recipe?.imageUri, placeholderIconSize = 64.dp, modifier = Modifier.fillMaxSize())

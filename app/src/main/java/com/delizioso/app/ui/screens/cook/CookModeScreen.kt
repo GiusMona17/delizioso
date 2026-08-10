@@ -59,7 +59,7 @@ import com.delizioso.app.ui.components.ClayStepPod
 import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
-import com.delizioso.app.ui.theme.clayInner
+import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayInset
 import com.delizioso.app.ui.theme.clayOuter
 import kotlinx.coroutines.delay
@@ -96,12 +96,7 @@ fun CookModeScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clayInner(
-                    shape = RoundedCornerShape(0.dp),
-                    cornerRadius = 0.dp,
-                    topLight = androidx.compose.ui.graphics.Color(0x99FFFFFF),
-                    bottomDark = androidx.compose.ui.graphics.Color(0x1A006E20),
-                )
+                .clayBevel(RoundedCornerShape(0.dp), light = androidx.compose.ui.graphics.Color(0x99FFFFFF), dark = androidx.compose.ui.graphics.Color(0x1A006E20))
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -275,12 +270,7 @@ private fun StepProgressBar(progress: Float, modifier: Modifier = Modifier) {
                 .height(14.dp)
                 .clip(PillShape)
                 .background(MaterialTheme.colorScheme.primaryContainer)
-                .clayInner(
-                    PillShape,
-                    cornerRadius = null,
-                    topLight = androidx.compose.ui.graphics.Color(0x99FFFFFF),
-                    bottomDark = androidx.compose.ui.graphics.Color(0x33006E20),
-                ),
+                .clayBevel(PillShape, light = androidx.compose.ui.graphics.Color(0x99FFFFFF), dark = androidx.compose.ui.graphics.Color(0x33006E20)),
         )
     }
 }
@@ -302,7 +292,7 @@ private fun StepCard(
         modifier = Modifier
             .fillMaxWidth()
             .then(
-                if (active) Modifier.clayOuter(shape = RoundedCornerShape(28.dp), color = Primary.copy(alpha = 0.25f), elevation = 24.dp)
+                if (active) Modifier.clayOuter(shape = RoundedCornerShape(28.dp), elevation = 24.dp, dark = Primary.copy(alpha = 0.25f))
                 else Modifier
             )
             .clip(RoundedCornerShape(28.dp))

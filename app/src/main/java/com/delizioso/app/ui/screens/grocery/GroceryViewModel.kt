@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -44,13 +45,13 @@ class GroceryViewModel(
             ) { meals, all, custom ->
                 val plannedIds = meals.map { it.meal.recipeId }.toSet()
                 val planned = all.filter { it.recipe.id in plannedIds }
-                GroceryAggregator.aggregate(planned) + custom.sorted().map { line ->
+                GroceryAggregator.aggregate(planned) + custom.sortedBy { it.line }.map { entry ->
                     GroceryItem(
-                        name = line,
-                        line = line,
+                        name = entry.line,
+                        line = entry.line,
                         isMerged = false,
-                        recipeTitles = listOf(CUSTOM_ITEM_SOURCE),
-                        category = GroceryCategories.of(line),
+                        recipeTitles = listOf(entry.source ?: CUSTOM_ITEM_SOURCE),
+                        category = GroceryCategories.of(entry.line),
                     )
                 }
             }
@@ -61,8 +62,10 @@ class GroceryViewModel(
     val checked: StateFlow<Set<String>> =
         preferences.groceryChecked.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
-    val customItems: StateFlow<Set<String>> =
-        preferences.groceryCustomItems.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
+    /** Display lines the user can delete by hand (everything not from the planner). */
+    val customItems: StateFlow<Set<String>> = preferences.groceryCustomItems
+        .map { entries -> entries.map { it.line }.toSet() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
 
     fun toggleChecked(line: String) = viewModelScope.launch { preferences.toggleGroceryChecked(line) }
 

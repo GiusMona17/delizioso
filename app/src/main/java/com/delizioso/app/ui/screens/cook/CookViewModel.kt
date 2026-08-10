@@ -62,15 +62,17 @@ class CookViewModel(
 
     /** Put every ingredient the cook has NOT ticked off onto the shopping list. */
     fun addMissingToShoppingList() {
-        val ingredients = details.value?.ingredients ?: return
+        val recipe = details.value ?: return
+        val ingredients = recipe.ingredients
         val gathered = _gathered.value
         viewModelScope.launch {
             ingredients
                 .filter { it.id !in gathered }
                 .forEach { ingredient ->
                     preferences.addGroceryCustomItem(
-                        ingredient.rawText
-                            ?: listOfNotNull(ingredient.quantity, ingredient.unit, ingredient.name).joinToString(" ")
+                        line = ingredient.rawText
+                            ?: listOfNotNull(ingredient.quantity, ingredient.unit, ingredient.name).joinToString(" "),
+                        source = recipe.recipe.title,
                     )
                 }
         }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.automirrored.filled.MenuBook
@@ -33,7 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.delizioso.app.R
 import com.delizioso.app.ui.theme.PillShape
-import com.delizioso.app.ui.theme.clayInner
+import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayOuter
 
 object Routes {
@@ -55,7 +56,7 @@ object Routes {
     fun recipeDetail(recipeId: Long) = "recipe/$recipeId"
 
     /** Routes that show the floating dock. */
-    val tabRoutes = listOf(LIBRARY, PLANNER, IMPORT, PROFILE)
+    val tabRoutes = listOf(LIBRARY, PLANNER, CREATE, IMPORT, PROFILE)
 }
 
 private data class DockItem(
@@ -64,7 +65,7 @@ private data class DockItem(
     val icon: ImageVector,
 )
 
-/** Floating clay "dock" — Library / Planner / Import / Profile (per mockups). */
+/** Floating clay "dock" — Library / Planner / Create / Import / Profile (per mockups). */
 @Composable
 fun ClayDock(
     currentRoute: String?,
@@ -74,6 +75,7 @@ fun ClayDock(
     val items = listOf(
         DockItem(Routes.LIBRARY, stringResource(R.string.nav_library), Icons.AutoMirrored.Filled.MenuBook),
         DockItem(Routes.PLANNER, stringResource(R.string.nav_planner), Icons.Filled.CalendarMonth),
+        DockItem(Routes.CREATE, stringResource(R.string.nav_create), Icons.Filled.AddCircleOutline),
         DockItem(Routes.IMPORT, stringResource(R.string.nav_import), Icons.Filled.Download),
         DockItem(Routes.PROFILE, stringResource(R.string.nav_profile), Icons.Filled.Person),
     )
@@ -84,13 +86,18 @@ fun ClayDock(
             .clayOuter(shape = PillShape, elevation = 24.dp)
             .clip(PillShape)
             .background(MaterialTheme.colorScheme.surfaceContainer)
-            .clayInner(shape = PillShape, cornerRadius = null, topLight = Color(0x40FFFFFF), bottomDark = Color(0x14000000))
+            .clayBevel(PillShape, light = Color(0x40FFFFFF), dark = Color(0x14000000))
             .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         items.forEach { item ->
-            DockItemView(item = item, selected = currentRoute == item.route, onNavigate = onNavigate)
+            DockItemView(
+                item = item,
+                selected = currentRoute == item.route,
+                onNavigate = onNavigate,
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
@@ -100,6 +107,7 @@ private fun DockItemView(
     item: DockItem,
     selected: Boolean,
     onNavigate: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
@@ -107,20 +115,20 @@ private fun DockItemView(
     val inactiveTint = MaterialTheme.colorScheme.onSurfaceVariant
 
     Column(
-        modifier = Modifier
+        modifier = modifier
+            .scale(if (pressed) 0.92f else 1f)
             .then(
                 if (selected) {
                     Modifier
                         .clip(PillShape)
                         .background(MaterialTheme.colorScheme.primaryContainer)
-                        .clayInner(shape = PillShape, cornerRadius = null, topLight = Color(0x50FFFFFF), bottomDark = Color(0x20006E20))
-                        .padding(horizontal = 20.dp, vertical = 8.dp)
+                        .clayBevel(PillShape, light = Color(0x66FFFFFF), dark = Color(0x33006E20))
                 } else {
-                    Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                    Modifier.clip(PillShape)
                 }
             )
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Tab, onClick = { onNavigate(item.route) })
-            .scale(if (pressed) 0.92f else 1f),
+            .padding(vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Icon(
@@ -133,7 +141,8 @@ private fun DockItemView(
             item.label,
             style = MaterialTheme.typography.labelMedium,
             color = if (selected) activeTint else inactiveTint,
-            fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+            fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
+            maxLines = 1,
             modifier = Modifier.padding(top = 2.dp),
         )
     }

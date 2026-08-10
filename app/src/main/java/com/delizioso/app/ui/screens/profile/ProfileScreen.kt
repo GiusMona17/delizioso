@@ -50,7 +50,7 @@ import com.delizioso.app.ui.components.ClayTopBar
 import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
-import com.delizioso.app.ui.theme.clayInner
+import com.delizioso.app.ui.theme.clayBevel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -130,7 +130,7 @@ fun ProfileScreen(
                             .size(84.dp)
                             .clip(PillShape)
                             .background(MaterialTheme.colorScheme.secondaryContainer)
-                            .clayInner(PillShape, cornerRadius = null),
+                            .clayBevel(PillShape),
                         contentAlignment = Alignment.Center,
                     ) {
                         Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(40.dp))
@@ -234,7 +234,7 @@ private fun RoundStepper(
             .size(32.dp)
             .clip(PillShape)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clayInner(PillShape, cornerRadius = null)
+            .clayBevel(PillShape)
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {

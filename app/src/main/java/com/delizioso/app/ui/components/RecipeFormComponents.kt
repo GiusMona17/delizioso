@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
-import com.delizioso.app.ui.theme.clayInner
+import com.delizioso.app.ui.theme.clayBevel
 
 /** A text row with a delete affordance — used by ingredient and step editors. */
 @Composable
@@ -71,7 +71,7 @@ fun StepNumberPod(number: Int, modifier: Modifier = Modifier) {
             .size(32.dp)
             .clip(PillShape)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clayInner(PillShape, cornerRadius = null),
+            .clayBevel(PillShape),
         contentAlignment = Alignment.Center,
     ) {
         Text("$number", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -106,7 +106,7 @@ fun FormSectionCard(
                         .size(36.dp)
                         .clip(PillShape)
                         .background(MaterialTheme.colorScheme.primaryContainer)
-                        .clayInner(PillShape, cornerRadius = null)
+                        .clayBevel(PillShape)
                         .clickable(role = Role.Button, onClick = onAdd),
                     contentAlignment = Alignment.Center,
                 ) {
