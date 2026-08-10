@@ -86,6 +86,12 @@ interface RecipeDao {
         updatedAt: Long = System.currentTimeMillis(),
     )
 
+    @Query("UPDATE recipes SET imageUri = :imageUri, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun updateImage(id: Long, imageUri: String?, updatedAt: Long = System.currentTimeMillis())
+
+    @Query("SELECT imageUri FROM recipes WHERE id = :id")
+    suspend fun imageUriOf(id: Long): String?
+
     @Update
     suspend fun updateRecipe(recipe: RecipeEntity)
 

@@ -36,6 +36,7 @@ class TikTokImporter(
             url = rawUrl,
             author = data.authorUniqueId ?: data.authorName,
             content = ImportContent.RawText(text = caption, title = null),
+            thumbnailUrl = data.thumbnailUrl,
         )
     }
 }

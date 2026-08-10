@@ -1,5 +1,7 @@
 package com.delizioso.app.ui.screens.import
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayTopBar
-import com.delizioso.app.ui.components.RecipeImage
+import com.delizioso.app.ui.components.PhotoPickerArea
 import com.delizioso.app.ui.screens.create.IngredientsCard
 import com.delizioso.app.ui.screens.create.InstructionsCard
 import com.delizioso.app.ui.screens.create.RecipeIdentityFields
@@ -50,8 +52,12 @@ fun ImportPreviewScreen(
     // Hold on to the imported recipe: saving resets the view model to Idle, and
     // this screen must keep rendering until the caller has navigated away.
     var ready by remember { mutableStateOf<ImportUiState.Ready?>(null) }
+    val pickedPhoto by viewModel.pickedPhoto.collectAsStateWithLifecycle()
     val form = rememberRecipeFormState()
     val scope = rememberCoroutineScope()
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let(viewModel::onPhotoPicked)
+    }
 
     LaunchedEffect(state) {
         (state as? ImportUiState.Ready)?.let {
@@ -84,16 +90,11 @@ fun ImportPreviewScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
             modifier = Modifier.weight(1f),
         ) {
-            current.recipe.imageUrl?.let { image ->
-                item {
-                    RecipeImage(
-                        image,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(24.dp)),
-                    )
-                }
+            item {
+                PhotoPickerArea(
+                    imageUri = pickedPhoto ?: current.raw.thumbnailUrl ?: current.recipe.imageUrl,
+                    onPick = { photoPicker.launch("image/*") },
+                )
             }
             item {
                 ClayChip(

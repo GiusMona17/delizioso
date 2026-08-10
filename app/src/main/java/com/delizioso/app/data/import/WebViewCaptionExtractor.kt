@@ -26,7 +26,10 @@ class WebViewCaptionExtractor(
     private val context: Context,
 ) {
 
-    suspend fun extract(url: String, timeoutMillis: Long = 30_000L): String =
+    /** Caption plus the embed's cover image, when the page renders one. */
+    data class Extracted(val caption: String, val imageUrl: String?)
+
+    suspend fun extract(url: String, timeoutMillis: Long = 30_000L): Extracted =
         withContext(Dispatchers.Main) {
             withTimeout(timeoutMillis) {
                 suspendCancellableCoroutine { cont ->
@@ -37,9 +40,11 @@ class WebViewCaptionExtractor(
                     webView.webViewClient = object : WebViewClient() {
                         override fun onPageFinished(view: WebView?, pageUrl: String?) {
                             view?.evaluateJavascript(CAPTION_JS) { result ->
-                                val caption = unescapeJsString(result).trim()
+                                val payload = unescapeJsString(result).trim()
+                                val caption = payload.substringBefore(FIELD_SEPARATOR).trim()
+                                val image = payload.substringAfter(FIELD_SEPARATOR, "").trim().ifBlank { null }
                                 if (caption.isNotBlank()) {
-                                    if (!cont.isCompleted) cont.resume(caption)
+                                    if (!cont.isCompleted) cont.resume(Extracted(caption, image))
                                 } else if (!cont.isCompleted) {
                                     cont.resumeWithException(ImportException("Caption did not render (page may be blocked)", retryable = true))
                                 }
@@ -65,14 +70,31 @@ class WebViewCaptionExtractor(
         }
 
     private companion object {
-        /** Prefer the caption element; fall back to the article, then the whole body. */
+        /** Separates the caption from the image URL in the single JS return value. */
+        const val FIELD_SEPARATOR = ""
+
+        /**
+         * Prefer the caption element; fall back to the article, then the whole body.
+         * The cover image is the largest rendered <img> that isn't an avatar.
+         */
         const val CAPTION_JS = """
             (function() {
               var cap = document.querySelector('.Caption')
                    || document.querySelector('[class*="Caption"]')
                    || document.querySelector('article')
                    || document.body;
-              return cap ? cap.innerText : '';
+              var text = cap ? cap.innerText : '';
+              var best = null, bestArea = 0;
+              var imgs = document.querySelectorAll('img');
+              for (var i = 0; i < imgs.length; i++) {
+                var el = imgs[i];
+                var area = (el.naturalWidth || el.width || 0) * (el.naturalHeight || el.height || 0);
+                // Avatars are small and usually round; the media is the big one.
+                if (area > bestArea && area > 40000 && el.src && el.src.indexOf('data:') !== 0) {
+                  best = el.src; bestArea = area;
+                }
+              }
+              return text + '' + (best || '');
             })()
         """
 

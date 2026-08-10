@@ -5,7 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import android.content.Context
+import android.net.Uri
 import com.delizioso.app.DeliziosoApplication
+import com.delizioso.app.data.ImageStore
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.AiUnavailableException
 import com.delizioso.app.data.ai.NanoInference
@@ -22,6 +25,8 @@ import com.delizioso.app.data.local.SourceEntity
 import com.delizioso.app.data.local.StepEntity
 import com.delizioso.app.data.local.UserPreferences
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -44,6 +49,7 @@ class ImportViewModel(
     private val structurer: NanoStructurer,
     private val repository: RecipeRepository,
     private val preferences: UserPreferences,
+    private val appContext: Context,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow<ImportUiState>(ImportUiState.Idle)
@@ -56,6 +62,21 @@ class ImportViewModel(
 
     private var lastRaw: RawImport? = null
     private var lastUrl: String? = null
+
+    /** A photo the user picked in the preview; overrides the source's thumbnail. */
+    private val _pickedPhoto = MutableStateFlow<String?>(null)
+    val pickedPhoto: StateFlow<String?> = _pickedPhoto.asStateFlow()
+
+    fun onPhotoPicked(uri: Uri) {
+        viewModelScope.launch {
+            runCatching { withContext(Dispatchers.IO) { ImageStore.saveToInternal(appContext, uri) } }
+                .onSuccess { _pickedPhoto.value = it }
+        }
+    }
+
+    fun clearPickedPhoto() {
+        _pickedPhoto.value = null
+    }
 
     fun importLink(url: String) {
         if (url.isBlank()) return
@@ -120,17 +141,23 @@ class ImportViewModel(
 
     /** Persist the (edited) recipe; returns the new recipe id. */
     suspend fun save(recipe: StructuredRecipe, raw: RawImport, tags: List<String> = emptyList()): Long {
-        val details = toDetails(recipe, raw)
+        // Prefer the user's own photo; otherwise cache the source thumbnail locally so
+        // it outlives the CDN link.
+        val photo = _pickedPhoto.value
+            ?: raw.thumbnailUrl?.let { ImageStore.downloadToInternal(appContext, it) }
+            ?: recipe.imageUrl?.let { ImageStore.downloadToInternal(appContext, it) }
+        val details = toDetails(recipe, raw, photo)
         val id = repository.save(details, tags)
         // Back to a blank slate, or returning to the Import tab would bounce
         // straight back into the preview of the recipe we just saved.
         _state.value = ImportUiState.Idle
         lastRaw = null
         lastUrl = null
+        _pickedPhoto.value = null
         return id
     }
 
-    private fun toDetails(recipe: StructuredRecipe, raw: RawImport): RecipeWithDetails {
+    private fun toDetails(recipe: StructuredRecipe, raw: RawImport, photoPath: String?): RecipeWithDetails {
         val source = SourceEntity(
             recipeId = 0,
             platform = raw.platform,
@@ -144,7 +171,7 @@ class ImportViewModel(
             servings = recipe.servings,
             prepTimeMinutes = recipe.prepTimeMinutes,
             cookTimeMinutes = recipe.cookTimeMinutes,
-            imageUri = recipe.imageUrl,
+            imageUri = photoPath,
         )
         val ingredients = recipe.ingredients.mapIndexed { i, ing -> ing.copy(recipeId = 0, position = i) }
         val steps = recipe.steps.mapIndexed { i, s -> StepEntity(recipeId = 0, position = i + 1, text = s) }
@@ -160,6 +187,7 @@ class ImportViewModel(
                     structurer = app.container.nanoStructurer,
                     repository = app.container.recipeRepository,
                     preferences = app.container.preferences,
+                    appContext = app,
                 )
             }
         }

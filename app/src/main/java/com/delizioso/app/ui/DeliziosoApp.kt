@@ -6,6 +6,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -32,11 +33,25 @@ import com.delizioso.app.ui.screens.profile.ProfileScreen
 import kotlinx.coroutines.launch
 
 @Composable
-fun DeliziosoApp() {
+fun DeliziosoApp(
+    sharedLink: String? = null,
+    onSharedLinkHandled: () -> Unit = {},
+) {
     val navController = rememberNavController()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // A link shared into the app always lands on the Import tab.
+    LaunchedEffect(sharedLink) {
+        if (sharedLink != null && currentRoute != Routes.IMPORT) {
+            navController.navigate(Routes.IMPORT) {
+                popUpTo(Routes.LIBRARY) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -112,6 +127,8 @@ fun DeliziosoApp() {
                     onPreview = { navController.navigate(Routes.IMPORT_PREVIEW) },
                     onRecipeClick = { id -> navController.navigate(Routes.recipeDetail(id)) },
                     onProfileClick = { navController.navigate(Routes.PROFILE) },
+                    sharedLink = sharedLink,
+                    onSharedLinkHandled = onSharedLinkHandled,
                 )
             }
             composable(Routes.IMPORT_PREVIEW) {

@@ -25,6 +25,10 @@ class RecipeRepository(private val dao: RecipeDao) {
 
     suspend fun setFavorite(id: Long, favorite: Boolean) = dao.setFavorite(id, favorite)
 
+    suspend fun currentImage(id: Long): String? = dao.imageUriOf(id)
+
+    suspend fun setImage(id: Long, imageUri: String?) = dao.updateImage(id, imageUri)
+
     suspend fun updateMacros(id: Long, kcal: Float?, proteinG: Float?, fatG: Float?, carbsG: Float?) =
         dao.updateMacros(id, kcal, proteinG, fatG, carbsG)
 

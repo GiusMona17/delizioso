@@ -15,12 +15,13 @@ class FacebookImporter(
     override suspend fun fetch(rawUrl: String): RawImport {
         val embedUrl = "https://www.facebook.com/plugins/video.php?href=" +
             URLEncoder.encode(rawUrl, "UTF-8")
-        val caption = extractor.extract(embedUrl)
+        val extracted = extractor.extract(embedUrl)
         return RawImport(
             platform = platform.key,
             url = rawUrl,
             author = null,
-            content = ImportContent.RawText(text = caption),
+            content = ImportContent.RawText(text = extracted.caption),
+            thumbnailUrl = extracted.imageUrl,
         )
     }
 }

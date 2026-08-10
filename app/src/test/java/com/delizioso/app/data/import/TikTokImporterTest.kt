@@ -46,6 +46,20 @@ class TikTokImporterTest {
     }
 
     @Test
+    fun `carries the oEmbed thumbnail through`() = runTest {
+        server.enqueue(
+            MockResponse()
+                .setHeader("Content-Type", "application/json")
+                .setBody(
+                    """{"title":"Udon","author_unique_id":"chef","thumbnail_url":"https://p16.tiktokcdn.com/cover.jpg"}"""
+                )
+        )
+        val importer = TikTokImporter(client = ImportHttp.client, json = json, oEmbedBase = server.url("/").toString().trimEnd('/'))
+        val result = importer.fetch("https://www.tiktok.com/@chef/video/123")
+        assertEquals("https://p16.tiktokcdn.com/cover.jpg", result.thumbnailUrl)
+    }
+
+    @Test
     fun `throws when caption missing`() = runTest {
         server.enqueue(MockResponse().setHeader("Content-Type", "application/json").setBody("""{"title":"  "}"""))
         val importer = TikTokImporter(client = ImportHttp.client, json = json, oEmbedBase = server.url("/").toString().trimEnd('/'))

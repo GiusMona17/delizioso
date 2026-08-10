@@ -39,6 +39,7 @@ class YouTubeImporter(
             url = rawUrl,
             author = snippet.channel,
             content = ImportContent.RawText(text = description, title = snippet.title),
+            thumbnailUrl = snippet.thumbnails?.best(),
         )
     }
 }

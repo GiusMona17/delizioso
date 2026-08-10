@@ -53,6 +53,8 @@ fun ImportScreen(
     onPreview: () -> Unit,
     onRecipeClick: (Long) -> Unit,
     onProfileClick: () -> Unit,
+    sharedLink: String? = null,
+    onSharedLinkHandled: () -> Unit = {},
     viewModel: ImportViewModel = viewModel(factory = ImportViewModel.Factory),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -62,6 +64,14 @@ fun ImportScreen(
 
     LaunchedEffect(state) {
         if (state is ImportUiState.Ready) onPreview()
+    }
+
+    // Shared straight from Instagram/TikTok/Chrome — fill the field and go.
+    LaunchedEffect(sharedLink) {
+        val link = sharedLink ?: return@LaunchedEffect
+        url = link
+        viewModel.importLink(link)
+        onSharedLinkHandled()
     }
 
     val busy = state is ImportUiState.Fetching || state is ImportUiState.Structuring

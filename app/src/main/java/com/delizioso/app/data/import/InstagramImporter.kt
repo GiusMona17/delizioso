@@ -15,12 +15,13 @@ class InstagramImporter(
         val code = PlatformDetector.instagramCode(rawUrl)
             ?: throw ImportException("Not a valid Instagram link")
         val embedUrl = "https://www.instagram.com/p/$code/embed/captioned/"
-        val caption = extractor.extract(embedUrl)
+        val extracted = extractor.extract(embedUrl)
         return RawImport(
             platform = platform.key,
             url = rawUrl,
             author = null,
-            content = ImportContent.RawText(text = caption),
+            content = ImportContent.RawText(text = extracted.caption),
+            thumbnailUrl = extracted.imageUrl,
         )
     }
 }

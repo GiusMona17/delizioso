@@ -1,5 +1,8 @@
 package com.delizioso.app.ui.screens.detail
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
@@ -57,6 +61,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.delizioso.app.DeliziosoApplication
+import com.delizioso.app.data.ImageStore
 import com.delizioso.app.data.Quantities
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.AiUnavailableException
@@ -75,12 +80,14 @@ import com.delizioso.app.ui.components.ClayRoundButton
 import com.delizioso.app.ui.components.ClaySectionHeader
 import com.delizioso.app.ui.components.ClaySegmentedTabs
 import com.delizioso.app.ui.components.ClayTagChip
-import com.delizioso.app.ui.components.RecipeImage
+import com.delizioso.app.ui.components.PhotoPickerArea
 import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.theme.clayBevel
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -133,6 +140,18 @@ class RecipeDetailViewModel(
                 ).joinToString(" ").trim()
                 preferences.addGroceryCustomItem(line.ifBlank { ingredient.name }, source = d.recipe.title)
             }
+        }
+    }
+
+    /** Replace the recipe photo with one from the gallery, dropping the old file. */
+    fun onPhotoPicked(context: android.content.Context, uri: Uri) {
+        viewModelScope.launch {
+            val saved = runCatching {
+                withContext(Dispatchers.IO) { ImageStore.saveToInternal(context, uri) }
+            }.getOrNull() ?: return@launch
+            val previous = repository.currentImage(recipeId)
+            repository.setImage(recipeId, saved)
+            withContext(Dispatchers.IO) { ImageStore.deleteIfOwned(context, previous) }
         }
     }
 
@@ -219,12 +238,17 @@ fun RecipeDetailScreen(
     var servings by rememberSaveable { mutableStateOf(0) }
     var showPlanner by remember { mutableStateOf(false) }
     var addedToList by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { viewModel.onPhotoPicked(context, it) }
+    }
     val ticked = remember { mutableStateOf(setOf<Long>()) }
 
     val d = details
-    // Seed the servings stepper from the recipe once it loads.
-    LaunchedEffect(d?.recipe?.servings) {
-        if (servings == 0) servings = d?.recipe?.servings ?: 2
+    // Seed the stepper once the recipe has actually loaded — keying on the id means
+    // a null first frame can't lock the default in before the real servings arrive.
+    LaunchedEffect(d?.recipe?.id) {
+        d?.let { servings = it.recipe.servings ?: 2 }
     }
 
     if (d == null) {
@@ -244,11 +268,14 @@ fun RecipeDetailScreen(
                 .verticalScroll(rememberScrollState()),
         ) {
             Box(Modifier.fillMaxWidth()) {
-                RecipeImage(
-                    d.recipe.imageUri,
-                    placeholderIconSize = 64.dp,
+                PhotoPickerArea(
+                    imageUri = d.recipe.imageUri,
+                    onPick = { photoPicker.launch("image/*") },
                     // A photo-less recipe doesn't deserve 320dp of empty hero.
-                    modifier = Modifier.fillMaxWidth().height(if (d.recipe.imageUri.isNullOrBlank()) 200.dp else 320.dp),
+                    height = if (d.recipe.imageUri.isNullOrBlank()) 200.dp else 320.dp,
+                    cornerRadius = 0.dp,
+                    // Clear the header card that overlaps the bottom of the hero.
+                    badgeBottomPadding = 56.dp,
                 )
                 // The actions ride on the hero, so they scroll away with it.
                 Row(

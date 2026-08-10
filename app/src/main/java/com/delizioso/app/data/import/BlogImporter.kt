@@ -37,6 +37,7 @@ class BlogImporter(
                 url = rawUrl,
                 author = siteName(html),
                 content = ImportContent.Structured(structured),
+                thumbnailUrl = structured.imageUrl ?: ogImage(html),
             )
         }
 
@@ -50,8 +51,15 @@ class BlogImporter(
             url = rawUrl,
             author = siteName(html),
             content = ImportContent.RawText(text = text, title = doc.title().takeIf { it.isNotBlank() }),
+            thumbnailUrl = ogImage(html),
         )
     }
+
+    /** og:image is the near-universal cover image on recipe sites. */
+    private fun ogImage(html: String): String? = Jsoup.parse(html)
+        .selectFirst("meta[property=og:image], meta[name=og:image]")
+        ?.attr("content")
+        ?.takeIf { it.isNotBlank() }
 
     /** Minimal readability: main/article/role=main content minus boilerplate. */
     private fun readabilityText(doc: Document): String {
