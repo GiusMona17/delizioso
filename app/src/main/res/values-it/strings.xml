@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Identità dell'app: "Delizioso!" — il punto esclamativo fa parte del nome. -->
+    <string name="app_name">Delizioso!</string>
+
+    <!-- Navigazione inferiore -->
+    <string name="nav_library">Libreria</string>
+    <string name="nav_import">Importa</string>
+    <string name="nav_create">Crea</string>
+    <string name="nav_planner">Pianificatore</string>
+    <string name="nav_profile">Profilo</string>
+
+    <!-- Azioni comuni -->
+    <string name="action_save">Salva ricetta</string>
+    <string name="action_cancel">Annulla</string>
+    <string name="action_retry">Riprova</string>
+    <string name="action_paste">Incolla</string>
+    <string name="action_back">Indietro</string>
+    <string name="action_add">Aggiungi</string>
+    <string name="action_edit">Modifica</string>
+    <string name="action_delete">Elimina</string>
+    <string name="action_favorite">Aggiungi ai preferiti</string>
+    <string name="action_share">Condividi</string>
+
+    <!-- Barra superiore / condivise -->
+    <string name="topbar_menu">Menu</string>
+    <string name="topbar_profile">Profilo</string>
+    <string name="topbar_back">Indietro</string>
+    <string name="topbar_close">Chiudi</string>
+    <string name="topbar_send">Invia</string>
+    <string name="topbar_dismiss">Ignora</string>
+    <string name="time_min">%1$d min</string>
+
+    <!-- Modulo -->
+    <string name="form_title_label">Titolo della ricetta</string>
+    <string name="form_title_placeholder">es. Torta di mele della nonna</string>
+    <string name="form_desc_label">Descrizione</string>
+    <string name="form_desc_placeholder">Una breve descrizione di questo piatto…</string>
+    <string name="form_ingredients_title">Ingredienti</string>
+    <string name="form_ingredients_placeholder">es. 200 g di farina</string>
+    <string name="form_instructions_title">Procedimento</string>
+    <string name="form_step_placeholder">Descrivi questo passaggio…</string>
+    <string name="form_prep_time">Tempo di preparazione</string>
+    <string name="form_cook_time">Tempo di cottura</string>
+    <string name="form_servings">Porzioni</string>
+    <string name="form_categories">Categorie</string>
+    <string name="form_add_row">Aggiungi riga</string>
+    <string name="form_remove">Rimuovi</string>
+
+    <!-- Crea / scansione -->
+    <string name="create_title">Crea ricetta</string>
+    <string name="create_subtitle">Dai forma al tuo capolavoro culinario.</string>
+    <string name="create_photo_label">Aggiungi foto ricetta</string>
+    <string name="create_photo_add">Aggiungi una foto</string>
+    <string name="create_photo_change">Cambia foto</string>
+    <string name="create_photo_tap_change">tocca per cambiare</string>
+    <string name="create_photo_desc">Foto della ricetta</string>
+    <string name="create_scan_btn">Scansiona pagina del ricettario</string>
+    <string name="create_ocr_reading">Leggo la pagina…</string>
+    <string name="create_ocr_structuring">Sto organizzando…</string>
+    <string name="create_ocr_no_text">Nessun testo trovato nella pagina</string>
+    <string name="create_ai_unavailable">IA sul dispositivo non disponibile</string>
+    <string name="create_scan_failed">Scansione non riuscita</string>
+    <string name="create_decode_error">Impossibile decodificare l\'immagine</string>
+    <string name="create_photo_save_error">Impossibile salvare la foto</string>
+
+    <!-- Modifica -->
+    <string name="edit_title">Modifica ricetta</string>
+    <string name="edit_save">Salva modifiche</string>
+
+    <!-- Modalità cottura -->
+    <string name="cook_title">Modalità cottura</string>
+    <string name="cook_exit">Esci dalla modalità cottura</string>
+    <string name="cook_step_of">Passaggio %1$d di %2$d</string>
+    <string name="cook_step_label">Passaggio %1$d</string>
+    <string name="cook_no_steps">Questa ricetta non ha ancora istruzioni.</string>
+    <string name="cook_finish">Termina cottura</string>
+    <string name="cook_next_step">Passaggio successivo</string>
+    <string name="cook_ingredients">Ingredienti</string>
+    <string name="cook_add_missing">Aggiungi mancanti alla lista della spesa</string>
+    <string name="cook_timer_done">Fatto</string>
+    <string name="cook_timer_pause">Pausa</string>
+    <string name="cook_timer_start">Avvia</string>
+    <string name="cook_complete_title">Capolavoro culinario completato!</string>
+    <string name="cook_complete_body">Hai preparato con successo %1$s</string>
+    <string name="cook_complete_this_dish">questo piatto</string>
+    <string name="cook_complete_fallback">qualcosa di delizioso</string>
+    <string name="cook_complete_time">Tempo: %1$d min</string>
+    <string name="cook_complete_steps">%1$d passaggi</string>
+    <string name="cook_complete_back">Torna alla Libreria</string>
+    <string name="cook_complete_share">Condividi la mia creazione</string>
+    <string name="cook_complete_share_title">Condividi la mia creazione</string>
+    <string name="cook_share_prefix">Ho appena cucinato </string>
+    <string name="cook_share_suffix"> con Delizioso!</string>
+
+    <!-- Dettaglio ricetta -->
+    <string name="detail_favourite">Preferito</string>
+    <string name="detail_added_list">Aggiunto alla lista della spesa</string>
+    <string name="detail_add_list">Aggiungi tutto alla lista della spesa</string>
+    <string name="detail_add_planner">Aggiungi al pianificatore</string>
+    <string name="detail_edit">Modifica ricetta</string>
+    <string name="detail_delete">Elimina questa ricetta</string>
+    <string name="detail_start_cooking">Inizia a cucinare</string>
+    <string name="detail_serving_fewer">Una porzione in meno</string>
+    <string name="detail_serving_more">Una porzione in più</string>
+    <string name="detail_estimate_macros">Stima i macronutrienti</string>
+    <string name="detail_estimating">Stimo i macronutrienti…</string>
+    <string name="detail_consent_title">L\'IA sul dispositivo richiede il tuo consenso</string>
+    <string name="detail_consent_body">Le stime sono generate da Gemini Nano sul tuo telefono: nulla lascia il dispositivo.</string>
+    <string name="detail_enable_ai">Attiva l\'IA sul dispositivo</string>
+    <string name="detail_retry">Riprova</string>
+    <string name="detail_macros_disclaimer">Stime per porzione — non valori nutrizionali reali.</string>
+    <string name="detail_re_estimate">Ristima</string>
+    <string name="detail_ai_busy">L\'IA sul dispositivo è occupata</string>
+    <string name="detail_macro_failed">Stima dei macronutrienti non riuscita</string>
+    <string name="detail_ai_no_answer">L\'IA sul dispositivo non ha potuto rispondere</string>
+    <string name="detail_thinking">Sto pensando…</string>
+    <string name="detail_per_original_serving">per porzione originale</string>
+    <string name="detail_ai_insights">Approfondimenti IA</string>
+    <string name="macro_kcal">%1$d kcal</string>
+    <string name="macro_protein_short">P: %1$dg</string>
+    <string name="macro_fat_short">G: %1$dg</string>
+    <string name="macro_carbs_short">C: %1$dg</string>
+    <string name="macro_protein">%1$dg di proteine</string>
+    <string name="macro_fat">%1$dg di grassi</string>
+    <string name="macro_carbs">%1$dg di carboidrati</string>
+
+    <!-- Chat -->
+    <string name="chat_title">Chiedi info su questa ricetta</string>
+    <string name="chat_disclaimer">Le risposte arrivano da Gemini Nano in esecuzione sul tuo telefono. Conosce questa ricetta — </string>
+    <string name="chat_tail">chiedi di sostituzioni, tecnica, tempi o conservazione.</string>
+    <string name="chat_setup">Avvio di Gemini Nano — al primo avvio il modello viene scaricato; può richiedere qualche minuto.</string>
+    <string name="chat_placeholder">Chiedi qualsiasi cosa…</string>
+    <string name="chat_quick_sub">Cosa posso usare al posto di…?</string>
+    <string name="chat_quick_veg">Rendila vegetariana</string>
+    <string name="chat_quick_prep">Posso prepararla in anticipo?</string>
+    <string name="chat_quick_leftovers">Come conservo gli avanzi?</string>
+
+    <!-- Importazione -->
+    <string name="import_title">Importa una ricetta</string>
+    <string name="import_subtitle">Incolla un link da Instagram, TikTok, YouTube o un blog per estrarre magicamente la ricetta.</string>
+    <string name="import_extract">Estrai ricetta</string>
+    <string name="import_fetching">Recupero il link…</string>
+    <string name="import_structuring">Organizzo con l\'IA sul dispositivo…</string>
+    <string name="import_recent">Importati di recente</string>
+    <string name="import_error_title">Impossibile importare quel link</string>
+    <string name="import_failed">Importazione non riuscita</string>
+    <string name="import_unexpected">Errore imprevisto</string>
+    <string name="import_ai_failed">Organizzazione con l\'IA non riuscita</string>
+    <string name="import_consent_body">L\'organizzazione di questa didascalia usa Gemini Nano — l\'IA on-device di Google. Tutto resta sul tuo telefono.</string>
+    <string name="import_platform_web">Web</string>
+    <string name="import_preview_title">Rivedi e salva</string>
+    <string name="import_preview_nothing">Niente da rivedere, per ora.</string>
+
+    <!-- Libreria -->
+    <string name="library_search">Cerca ricette, ingredienti…</string>
+    <string name="library_create_menu">Crea una ricetta</string>
+    <string name="library_no_recipes">Nessuna ricetta, per ora</string>
+    <string name="library_no_matches">Nessun risultato</string>
+    <string name="library_empty_hint">Importa da Instagram, TikTok o un blog — oppure creane una a mano.</string>
+    <string name="library_no_match_hint">Niente corrisponde alla tua ricerca e ai filtri.</string>
+    <string name="library_filter_all">Tutte</string>
+    <string name="library_filter_favs">Preferite</string>
+
+    <!-- Pianificatore -->
+    <string name="planner_title">Pianificatore pasti</string>
+    <string name="planner_menu_grocery">Lista della spesa</string>
+    <string name="planner_switch_monthly">Passa a mensile</string>
+    <string name="planner_switch_weekly">Passa a settimanale</string>
+    <string name="planner_prev_week">Settimana precedente</string>
+    <string name="planner_next_week">Settimana successiva</string>
+    <string name="planner_prev_month">Mese precedente</string>
+    <string name="planner_next_month">Mese successivo</string>
+    <string name="planner_add_recipe">Aggiungi ricetta %1$s</string>
+    <string name="planner_add_title">Aggiungi %1$s · %2$s</string>
+    <string name="planner_add_more">+ Aggiungi un\'altra</string>
+    <string name="planner_remove">Rimuovi dal piano</string>
+    <string name="planner_meal_options">Opzioni pasto</string>
+    <string name="planner_legend_planned">Pianificato</string>
+    <string name="planner_legend_cooked">Cucinato</string>
+    <string name="planner_search">Cerca ricette…</string>
+    <string name="planner_no_recipes">Nessuna ricetta — importane o creane una prima.</string>
+    <string name="planner_add_title_sheet">Aggiungi al pianificatore</string>
+    <string name="planner_add_to_plan">Aggiungi al piano</string>
+    <string name="planner_date_label">Data</string>
+    <string name="planner_meal_type">Tipo di pasto</string>
+    <string name="planner_today_prefix">Oggi, </string>
+    <string name="planner_tomorrow_prefix">Domani, </string>
+
+    <!-- Lista della spesa -->
+    <string name="grocery_title">Lista della spesa</string>
+    <string name="grocery_by_recipe">Per ricetta</string>
+    <string name="grocery_by_category">Per categoria</string>
+    <string name="grocery_empty_title">Niente da comprare</string>
+    <string name="grocery_empty_sub">Apri una ricetta e tocca “Aggiungi tutto alla lista della spesa”, oppure pianificala in uno slot pasto: in ogni caso i suoi ingredienti finiranno qui. Puoi anche scriverne di tuoi qui sotto.</string>
+    <string name="grocery_add_custom">Aggiungi articolo personalizzato</string>
+    <string name="grocery_add_item">Aggiungi articolo</string>
+    <string name="grocery_clear_ticked">Cancella %1$d spuntati</string>
+    <string name="grocery_remove_item">Rimuovi articolo</string>
+    <string name="grocery_custom_source">Aggiunto da te</string>
+
+    <!-- Profilo -->
+    <string name="profile_title">Profilo</string>
+    <string name="profile_heading">La tua cucina</string>
+    <string name="profile_recipes_one">1 ricetta salvata su questo dispositivo</string>
+    <string name="profile_recipes_many">%1$d ricette salvate su questo dispositivo</string>
+    <string name="profile_ai_section">IA sul dispositivo</string>
+    <string name="profile_ai_title">Gemini Nano</string>
+    <string name="profile_ai_desc">Organizza le didascalie importate e stima i macronutrienti. Funziona interamente sul telefono.</string>
+    <string name="profile_servings_section">Porzioni predefinite</string>
+    <string name="profile_servings_desc">Usate per pianificare un pasto</string>
+    <string name="profile_servings_fewer">Meno porzioni</string>
+    <string name="profile_servings_more">Più porzioni</string>
+    <string name="profile_yt_section">Chiave API YouTube Data</string>
+    <string name="profile_yt_desc">Necessaria per leggere le descrizioni delle ricette dai video YouTube. Salvata solo su questo dispositivo.</string>
+    <string name="profile_api_key_label">Chiave API</string>
+
+    <!-- Fonti -->
+    <string name="source_created">Creato da te</string>
+    <string name="source_from">Da %1$s</string>
+    <string name="source_delizioso">Delizioso</string>
+    <string name="source_instagram">Instagram</string>
+    <string name="source_facebook">Facebook</string>
+    <string name="source_tiktok">TikTok</string>
+    <string name="source_youtube">YouTube</string>
+    <string name="source_web">il web</string>
+    <string name="source_scan">una scansione</string>
+
+    <!-- Etichette dati -->
+    <string name="data_breakfast">Colazione</string>
+    <string name="data_lunch">Pranzo</string>
+    <string name="data_dinner">Cena</string>
+    <string name="data_snacks">Spuntini</string>
+    <string name="data_category_breakfast">Colazione</string>
+    <string name="data_category_lunch">Pranzo</string>
+    <string name="data_category_dinner">Cena</string>
+    <string name="data_category_snack">Spuntino</string>
+    <string name="data_category_dessert">Dolce</string>
+    <string name="data_category_pasta">Pasta</string>
+    <string name="data_category_soup">Zuppa</string>
+    <string name="data_category_salad">Insalata</string>
+    <string name="data_category_baking">Forno</string>
+    <string name="data_category_vegetarian">Vegetariano</string>
+    <string name="data_category_vegan">Vegano</string>
+    <string name="data_category_healthy">Salutare</string>
+    <string name="data_category_quick">Veloce</string>
+    <string name="data_category_comfort">Comfort</string>
+    <string name="data_category_spicy">Piccante</string>
+    <string name="data_category_other">Altro</string>
+    <string name="grocery_aisle_produce">Frutta e verdura</string>
+    <string name="grocery_aisle_dairy">Latticini e uova</string>
+    <string name="grocery_aisle_meat">Carne e pesce</string>
+    <string name="grocery_aisle_bakery">Panetteria</string>
+    <string name="grocery_aisle_frozen">Surgelati</string>
+    <string name="grocery_aisle_pantry">Dispensa</string>
+    <string name="grocery_aisle_other">Altro</string>
+</resources>

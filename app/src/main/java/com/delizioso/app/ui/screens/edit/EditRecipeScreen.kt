@@ -43,6 +43,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 class EditRecipeViewModel(
     private val repository: RecipeRepository,
@@ -102,10 +104,10 @@ fun EditRecipeScreen(
 
     Column(Modifier.fillMaxSize()) {
         ClayTopBar(
-            title = "Edit Recipe",
+            title = stringResource(R.string.edit_title),
             onMenu = onBack,
             menuIcon = Icons.AutoMirrored.Filled.ArrowBack,
-            menuDescription = "Back",
+            menuDescription = stringResource(R.string.topbar_back),
         )
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
@@ -119,7 +121,7 @@ fun EditRecipeScreen(
             item { Spacer(Modifier.height(8.dp)) }
         }
         ClayButton(
-            text = "Save Changes",
+            text = stringResource(R.string.edit_save),
             icon = Icons.Filled.Save,
             enabled = form.isValid,
             onClick = { viewModel.save(form.toStructuredRecipe(), form.categoryList(), onSaved) },

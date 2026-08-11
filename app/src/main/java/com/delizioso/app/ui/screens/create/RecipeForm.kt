@@ -34,6 +34,8 @@ import com.delizioso.app.ui.components.FormSectionCard
 import com.delizioso.app.ui.components.StepNumberPod
 import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.clayBevel
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 /**
  * Editable recipe form shared by "Create Recipe" and the import preview.
@@ -120,16 +122,16 @@ private val RecipeFormSaver = androidx.compose.runtime.saveable.listSaver<Recipe
 fun RecipeIdentityFields(state: RecipeFormState, modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
         ClayLabelledField(
-            label = "Recipe Title",
+            label = stringResource(R.string.form_title_label),
             value = state.title,
             onValueChange = { state.title = it },
-            placeholder = "e.g. Grandma's Apple Pie",
+            placeholder = stringResource(R.string.form_title_placeholder),
         )
         ClayLabelledField(
-            label = "Description",
+            label = stringResource(R.string.form_desc_label),
             value = state.description,
             onValueChange = { state.description = it },
-            placeholder = "A brief description of this dish…",
+            placeholder = stringResource(R.string.form_desc_placeholder),
             singleLine = false,
         )
     }
@@ -138,7 +140,7 @@ fun RecipeIdentityFields(state: RecipeFormState, modifier: Modifier = Modifier) 
 @Composable
 fun IngredientsCard(state: RecipeFormState, modifier: Modifier = Modifier) {
     FormSectionCard(
-        title = "Ingredients",
+        title = stringResource(R.string.form_ingredients_title),
         onAdd = { state.ingredients = state.ingredients + "" },
         modifier = modifier,
     ) {
@@ -150,7 +152,7 @@ fun IngredientsCard(state: RecipeFormState, modifier: Modifier = Modifier) {
                     onDelete = {
                         state.ingredients = state.ingredients.filterIndexed { i, _ -> i != index }.ifEmpty { listOf("") }
                     },
-                    placeholder = "e.g. 2 cups flour",
+                    placeholder = stringResource(R.string.form_ingredients_placeholder),
                 )
             }
         }
@@ -160,7 +162,7 @@ fun IngredientsCard(state: RecipeFormState, modifier: Modifier = Modifier) {
 @Composable
 fun InstructionsCard(state: RecipeFormState, modifier: Modifier = Modifier) {
     FormSectionCard(
-        title = "Instructions",
+        title = stringResource(R.string.form_instructions_title),
         onAdd = { state.steps = state.steps + "" },
         modifier = modifier,
     ) {
@@ -172,7 +174,7 @@ fun InstructionsCard(state: RecipeFormState, modifier: Modifier = Modifier) {
                     onDelete = {
                         state.steps = state.steps.filterIndexed { i, _ -> i != index }.ifEmpty { listOf("") }
                     },
-                    placeholder = "Describe this step…",
+                    placeholder = stringResource(R.string.form_step_placeholder),
                     singleLine = false,
                     leading = { StepNumberPod(index + 1) },
                 )
@@ -187,7 +189,7 @@ fun RecipeMetaFields(state: RecipeFormState, modifier: Modifier = Modifier) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(16.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
             ClayLabelledField(
-                label = "Prep Time",
+                label = stringResource(R.string.form_prep_time),
                 value = state.prep,
                 onValueChange = { state.prep = it },
                 placeholder = "30",
@@ -195,7 +197,7 @@ fun RecipeMetaFields(state: RecipeFormState, modifier: Modifier = Modifier) {
                 modifier = Modifier.weight(1f),
             )
             ClayLabelledField(
-                label = "Cook Time",
+                label = stringResource(R.string.form_cook_time),
                 value = state.cook,
                 onValueChange = { state.cook = it },
                 placeholder = "20",
@@ -203,7 +205,7 @@ fun RecipeMetaFields(state: RecipeFormState, modifier: Modifier = Modifier) {
                 modifier = Modifier.weight(1f),
             )
             ClayLabelledField(
-                label = "Servings",
+                label = stringResource(R.string.form_servings),
                 value = state.servings,
                 onValueChange = { state.servings = it },
                 placeholder = "4",
@@ -233,7 +235,7 @@ fun CategoryPicker(
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "Categories",
+                stringResource(R.string.form_categories),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f),
@@ -266,7 +268,7 @@ fun CategoryPicker(
                         .padding(horizontal = 16.dp, vertical = 8.dp),
                 ) {
                     Text(
-                        category,
+                        stringResource(Categories.displayNameRes(category)),
                         style = MaterialTheme.typography.labelLarge,
                         color = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
                         else MaterialTheme.colorScheme.onSurfaceVariant,

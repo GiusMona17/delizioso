@@ -23,7 +23,7 @@ object PlatformDetector {
         """^(?:https?://)?(?:www\.)?ig\.me/([A-Za-z0-9_-]+)"""
     )
     private val facebook = Regex(
-        """^(?:https?://)?(?:www\.|m\.|web\.)?facebook\.com/.*?(?:videos|reel|watch|story\.php)"""
+        """^(?:https?://)?(?:www\.|m\.|web\.)?facebook\.com/.*?(?:videos|reel|watch|share|story\.php)"""
     )
     private val facebookShort = Regex(
         """^(?:https?://)?(?:www\.)?fb\.watch/"""

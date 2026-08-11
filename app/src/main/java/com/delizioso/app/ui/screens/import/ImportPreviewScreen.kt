@@ -40,6 +40,8 @@ import com.delizioso.app.ui.screens.create.RecipeIdentityFields
 import com.delizioso.app.ui.screens.create.RecipeMetaFields
 import com.delizioso.app.ui.screens.create.rememberRecipeFormState
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 /** Edit-before-save preview for an imported recipe. */
 @Composable
@@ -70,7 +72,7 @@ fun ImportPreviewScreen(
     if (current == null) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(
-                "Nothing to review yet.",
+                stringResource(R.string.import_preview_nothing),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -80,10 +82,10 @@ fun ImportPreviewScreen(
 
     Column(Modifier.fillMaxSize()) {
         ClayTopBar(
-            title = "Review & Save",
+            title = stringResource(R.string.import_preview_title),
             onMenu = onBack,
             menuIcon = Icons.AutoMirrored.Filled.ArrowBack,
-            menuDescription = "Back",
+            menuDescription = stringResource(R.string.topbar_back),
         )
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
@@ -98,7 +100,7 @@ fun ImportPreviewScreen(
             }
             item {
                 ClayChip(
-                    text = "From ${current.raw.author ?: current.raw.platform.lowercase()}",
+                    text = stringResource(R.string.source_from, current.raw.author ?: current.raw.platform.lowercase()),
                     container = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
@@ -110,7 +112,7 @@ fun ImportPreviewScreen(
             item { Spacer(Modifier.height(8.dp)) }
         }
         ClayButton(
-            text = "Save Recipe",
+            text = stringResource(R.string.action_save),
             icon = Icons.Filled.Save,
             enabled = form.isValid,
             onClick = {

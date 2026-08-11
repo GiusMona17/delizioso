@@ -47,6 +47,8 @@ import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.theme.clayBevel
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 @Composable
 fun ImportScreen(
@@ -85,14 +87,14 @@ fun ImportScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Text(
-                "Import a Recipe",
+                stringResource(R.string.import_title),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp, start = 20.dp, end = 20.dp),
             )
             Text(
-                "Paste a link from Instagram, TikTok, YouTube or a blog to magically extract the recipe.",
+                stringResource(R.string.import_subtitle),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -117,7 +119,7 @@ fun ImportScreen(
                     modifier = Modifier.fillMaxWidth(),
                     trailing = {
                         Text(
-                            "Paste",
+                            stringResource(R.string.action_paste),
                             style = MaterialTheme.typography.labelLarge,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier
@@ -130,7 +132,7 @@ fun ImportScreen(
                     },
                 )
                 ClayButton(
-                    text = "Extract Recipe",
+                    text = stringResource(R.string.import_extract),
                     icon = Icons.Filled.Download,
                     onClick = { viewModel.importLink(url) },
                     enabled = url.isNotBlank() && !busy,
@@ -142,12 +144,21 @@ fun ImportScreen(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
             ) {
-                listOf("INSTAGRAM", "TIKTOK", "YOUTUBE", "WEB").forEach { ClayChip(it) }
+                listOf("INSTAGRAM", "TIKTOK", "YOUTUBE", "WEB").forEach { platform ->
+                    ClayChip(
+                        when (platform) {
+                            "INSTAGRAM" -> stringResource(R.string.source_instagram)
+                            "TIKTOK" -> stringResource(R.string.source_tiktok)
+                            "YOUTUBE" -> stringResource(R.string.source_youtube)
+                            else -> stringResource(R.string.import_platform_web)
+                        }
+                    )
+                }
             }
 
             when (val s = state) {
-                is ImportUiState.Fetching -> BusyRow("Fetching the link…")
-                is ImportUiState.Structuring -> BusyRow("Structuring with on-device AI…")
+                is ImportUiState.Fetching -> BusyRow(stringResource(R.string.import_fetching))
+                is ImportUiState.Structuring -> BusyRow(stringResource(R.string.import_structuring))
                 is ImportUiState.Error -> ErrorCard(message = s.message, retryable = s.retryable, onRetry = viewModel::retry)
                 is ImportUiState.AiConsentNeeded -> ConsentCard(onGrant = viewModel::grantConsent)
                 else -> {}
@@ -155,7 +166,7 @@ fun ImportScreen(
 
             if (recent.isNotEmpty()) {
                 ClaySectionHeader(
-                    title = "Recent Imports",
+                    title = stringResource(R.string.import_recent),
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 4.dp),
                 )
                 LazyRow(
@@ -194,10 +205,10 @@ private fun ErrorCard(message: String, retryable: Boolean, onRetry: () -> Unit) 
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("Couldn't import that link", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onErrorContainer)
+        Text(stringResource(R.string.import_error_title), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onErrorContainer)
         Text(message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
         if (retryable) {
-            ClayButton(text = "Retry", onClick = onRetry, container = MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxWidth())
+            ClayButton(text = stringResource(R.string.detail_retry), onClick = onRetry, container = MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxWidth())
         }
     }
 }
@@ -212,12 +223,12 @@ private fun ConsentCard(onGrant: () -> Unit) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("On-device AI needs your consent", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+        Text(stringResource(R.string.detail_consent_title), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
         Text(
-            "Structuring this caption uses Gemini Nano — Google's on-device AI. Everything stays on your phone.",
+            stringResource(R.string.import_consent_body),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
-        ClayButton(text = "Enable on-device AI", onClick = onGrant, modifier = Modifier.fillMaxWidth())
+        ClayButton(text = stringResource(R.string.detail_enable_ai), onClick = onGrant, modifier = Modifier.fillMaxWidth())
     }
 }

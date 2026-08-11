@@ -1,6 +1,7 @@
 package com.delizioso.app.data
 
 import com.delizioso.app.data.local.RecipeWithDetails
+import com.delizioso.app.R
 
 /** A consolidated grocery-list line. */
 data class GroceryItem(
@@ -100,5 +101,16 @@ object GroceryCategories {
     fun of(ingredientName: String): String {
         val name = ingredientName.lowercase()
         return BUCKETS.firstOrNull { (_, keywords) -> keywords.any { name.contains(it) } }?.first ?: OTHER
+    }
+
+    /** String resource for the localized display label of an aisle [category]. */
+    fun labelRes(aisle: String): Int = when (aisle) {
+        "Produce" -> R.string.grocery_aisle_produce
+        "Dairy & Eggs" -> R.string.grocery_aisle_dairy
+        "Meat & Fish" -> R.string.grocery_aisle_meat
+        "Bakery" -> R.string.grocery_aisle_bakery
+        "Frozen" -> R.string.grocery_aisle_frozen
+        "Pantry" -> R.string.grocery_aisle_pantry
+        else -> R.string.grocery_aisle_other
     }
 }

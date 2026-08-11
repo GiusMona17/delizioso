@@ -1,6 +1,7 @@
 package com.delizioso.app.ui.screens.create
 
 import android.content.Context
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
@@ -10,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.delizioso.app.DeliziosoApplication
+import com.delizioso.app.R
 import com.delizioso.app.data.ImageStore
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.AiUnavailableException
@@ -43,6 +45,7 @@ data class CreateUiState(
 )
 
 class CreateViewModel(
+    private val resources: Resources,
     private val ocr: OcrTextExtractor,
     private val structurer: NanoStructurer,
     private val repository: RecipeRepository,
@@ -55,7 +58,7 @@ class CreateViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             runCatching { ImageStore.saveToInternal(context, uri) }
                 .onSuccess { path -> _state.update { it.copy(photoPath = path, error = null) } }
-                .onFailure { e -> _state.update { it.copy(error = e.message ?: "Could not save the photo") } }
+                .onFailure { e -> _state.update { it.copy(error = e.message ?: resources.getString(R.string.create_photo_save_error)) } }
         }
     }
 
@@ -68,7 +71,7 @@ class CreateViewModel(
                 val bitmap = withContext(Dispatchers.IO) { decodeSampledBitmap(File(path)) }
                 val text = ocr.recognize(bitmap)
                 if (text.isBlank()) {
-                    _state.update { it.copy(busy = null, error = "No text found on the page") }
+                    _state.update { it.copy(busy = null, error = resources.getString(R.string.create_ocr_no_text)) }
                     return@launch
                 }
                 _state.update { it.copy(busy = CreateBusy.STRUCTURING) }
@@ -77,9 +80,9 @@ class CreateViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: AiUnavailableException) {
-                _state.update { it.copy(busy = null, error = e.message ?: "On-device AI unavailable") }
+                _state.update { it.copy(busy = null, error = resources.getString(R.string.create_ai_unavailable)) }
             } catch (e: Exception) {
-                _state.update { it.copy(busy = null, error = e.message ?: "Scan failed") }
+                _state.update { it.copy(busy = null, error = e.message ?: resources.getString(R.string.create_scan_failed)) }
             }
         }
     }
@@ -108,7 +111,7 @@ class CreateViewModel(
         while (bounds.outWidth / sample > maxDim || bounds.outHeight / sample > maxDim) sample *= 2
         val opts = BitmapFactory.Options().apply { inSampleSize = sample }
         return BitmapFactory.decodeFile(file.absolutePath, opts)
-            ?: throw IOException("Cannot decode the image")
+            ?: throw IOException(resources.getString(R.string.create_decode_error))
     }
 
     companion object {
@@ -116,6 +119,7 @@ class CreateViewModel(
             initializer {
                 val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as DeliziosoApplication
                 CreateViewModel(
+                    resources = app.resources,
                     ocr = app.container.ocrTextExtractor,
                     structurer = app.container.nanoStructurer,
                     repository = app.container.recipeRepository,

@@ -1,5 +1,7 @@
 package com.delizioso.app.data
 
+import com.delizioso.app.R
+
 /**
  * The closed category vocabulary.
  *
@@ -80,4 +82,24 @@ object Categories {
         .distinct()
         .sortedBy { ALL.indexOf(it) }
         .take(MAX_PER_RECIPE)
+
+    /** String resource for the localized display label of a canonical [category]. */
+    fun displayNameRes(category: String): Int = when (category) {
+        "Breakfast" -> R.string.data_category_breakfast
+        "Lunch" -> R.string.data_category_lunch
+        "Dinner" -> R.string.data_category_dinner
+        "Snack" -> R.string.data_category_snack
+        "Dessert" -> R.string.data_category_dessert
+        "Pasta" -> R.string.data_category_pasta
+        "Soup" -> R.string.data_category_soup
+        "Salad" -> R.string.data_category_salad
+        "Baking" -> R.string.data_category_baking
+        "Vegetarian" -> R.string.data_category_vegetarian
+        "Vegan" -> R.string.data_category_vegan
+        "Healthy" -> R.string.data_category_healthy
+        "Quick" -> R.string.data_category_quick
+        "Comfort" -> R.string.data_category_comfort
+        "Spicy" -> R.string.data_category_spicy
+        else -> R.string.data_category_other
+    }
 }

@@ -48,6 +48,8 @@ import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.theme.clayBevel
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 private const val GROUP_BY_RECIPE = 0
 
@@ -91,7 +93,7 @@ fun GroceryScreen(
                 container = MaterialTheme.colorScheme.surfaceContainerLowest,
             )
             Text(
-                "Shopping List",
+                stringResource(R.string.grocery_title),
                 style = MaterialTheme.typography.headlineLarge,
                 color = Primary,
                 textAlign = TextAlign.Center,
@@ -107,7 +109,7 @@ fun GroceryScreen(
         ) {
             item {
                 ClaySegmentedTabs(
-                    options = listOf("By Recipe", "By Category"),
+                    options = listOf(stringResource(R.string.grocery_by_recipe), stringResource(R.string.grocery_by_category)),
                     selectedIndex = grouping,
                     onSelect = { grouping = it },
                 )
@@ -117,8 +119,8 @@ fun GroceryScreen(
                 item {
                     ClayEmptyState(
                         icon = Icons.Filled.ShoppingCart,
-                        title = "Nothing to buy",
-                        subtitle = "Open a recipe and tap “Add all to shopping list”, or plan it into a meal slot — either way its ingredients land here. You can also type your own below.",
+                        title = stringResource(R.string.grocery_empty_title),
+                        subtitle = stringResource(R.string.grocery_empty_sub),
                     )
                 }
             }
@@ -126,7 +128,7 @@ fun GroceryScreen(
             groups.forEach { (groupName, groupItems) ->
                 item(key = "header-$groupName") {
                     Text(
-                        groupName,
+                        if (groupName == CUSTOM_ITEM_SOURCE) stringResource(R.string.grocery_custom_source) else groupName,
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(top = 12.dp),
@@ -154,14 +156,14 @@ fun GroceryScreen(
                     ClayTextField(
                         value = newItem,
                         onValueChange = { newItem = it },
-                        placeholder = "Add custom item",
+                        placeholder = stringResource(R.string.grocery_add_custom),
                         leadingIcon = Icons.Filled.Add,
                         cornerRadius = 24.dp,
                         modifier = Modifier.weight(1f),
                     )
                     ClayRoundButton(
                         icon = Icons.Filled.Add,
-                        contentDescription = "Add item",
+                        contentDescription = stringResource(R.string.grocery_add_item),
                         onClick = {
                             viewModel.addCustomItem(newItem)
                             newItem = ""
@@ -174,7 +176,7 @@ fun GroceryScreen(
             if (checked.isNotEmpty()) {
                 item {
                     ClayButton(
-                        text = "Clear ${checked.size} ticked",
+                        text = stringResource(R.string.grocery_clear_ticked, checked.size),
                         onClick = viewModel::clearChecked,
                         container = MaterialTheme.colorScheme.surfaceContainer,
                         contentColor = MaterialTheme.colorScheme.primary,
@@ -224,7 +226,9 @@ private fun GroceryRow(
                         modifier = Modifier.size(14.dp),
                     )
                     Text(
-                        item.recipeTitles.joinToString(", "),
+                        item.recipeTitles
+                            .map { title -> if (title == CUSTOM_ITEM_SOURCE) stringResource(R.string.grocery_custom_source) else title }
+                            .joinToString(", "),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -234,7 +238,7 @@ private fun GroceryRow(
         if (onRemove != null) {
             Icon(
                 Icons.Filled.Close,
-                contentDescription = "Remove item",
+                contentDescription = stringResource(R.string.grocery_remove_item),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .clip(PillShape)

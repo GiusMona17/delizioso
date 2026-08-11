@@ -55,6 +55,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 class ProfileViewModel(
     private val preferences: UserPreferences,
@@ -110,7 +112,7 @@ fun ProfileScreen(
     }
 
     Column(modifier = modifier.fillMaxSize()) {
-        ClayTopBar(title = "Profile")
+        ClayTopBar(title = stringResource(R.string.profile_title))
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -135,9 +137,13 @@ fun ProfileScreen(
                     ) {
                         Icon(Icons.Filled.Person, contentDescription = null, tint = MaterialTheme.colorScheme.onSecondaryContainer, modifier = Modifier.size(40.dp))
                     }
-                    Text("Your kitchen", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.profile_heading), style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
                     Text(
-                        if (recipeCount == 1) "1 recipe saved on this device" else "$recipeCount recipes saved on this device",
+                        if (recipeCount == 1) {
+                            stringResource(R.string.profile_recipes_one)
+                        } else {
+                            stringResource(R.string.profile_recipes_many, recipeCount)
+                        },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -145,13 +151,13 @@ fun ProfileScreen(
             }
 
             item {
-                SettingsCard(title = "On-device AI") {
+                SettingsCard(title = stringResource(R.string.profile_ai_section)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = Primary, modifier = Modifier.size(22.dp))
                         Column(Modifier.weight(1f).padding(horizontal = 14.dp)) {
-                            Text("Gemini Nano", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
+                            Text(stringResource(R.string.profile_ai_title), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                             Text(
-                                "Structures imported captions and estimates macros. Runs entirely on this phone.",
+                                stringResource(R.string.profile_ai_desc),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -169,31 +175,31 @@ fun ProfileScreen(
             }
 
             item {
-                SettingsCard(title = "Default servings") {
+                SettingsCard(title = stringResource(R.string.profile_servings_section)) {
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
                         Text(
-                            "Used when planning a meal",
+                            stringResource(R.string.profile_servings_desc),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.weight(1f),
                         )
-                        RoundStepper(Icons.Filled.Remove, "Fewer servings") { viewModel.setDefaultServings(servings - 1) }
+                        RoundStepper(Icons.Filled.Remove, stringResource(R.string.profile_servings_fewer)) { viewModel.setDefaultServings(servings - 1) }
                         Text("$servings", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
-                        RoundStepper(Icons.Filled.Add, "More servings") { viewModel.setDefaultServings(servings + 1) }
+                        RoundStepper(Icons.Filled.Add, stringResource(R.string.profile_servings_more)) { viewModel.setDefaultServings(servings + 1) }
                     }
                 }
             }
 
             item {
-                SettingsCard(title = "YouTube Data API key") {
+                SettingsCard(title = stringResource(R.string.profile_yt_section)) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
-                            "Needed to read recipe descriptions from YouTube videos. Stored only on this device.",
+                            stringResource(R.string.profile_yt_desc),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                         ClayLabelledField(
-                            label = "API key",
+                            label = stringResource(R.string.profile_api_key_label),
                             value = apiKey,
                             onValueChange = {
                                 apiKey = it

@@ -57,6 +57,8 @@ import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayInset
 import com.delizioso.app.ui.theme.clayOuter
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 /** Card corner radius used by the mockups' "clay-surface" panels. */
 val ClayCardRadius = 28.dp
@@ -73,7 +75,7 @@ fun ClayTopBar(
     title: String = "Delizioso!",
     onMenu: (() -> Unit)? = null,
     menuIcon: ImageVector = Icons.Filled.Menu,
-    menuDescription: String = "Menu",
+    menuDescription: String = stringResource(R.string.topbar_menu),
     onProfile: (() -> Unit)? = null,
 ) {
     Row(
@@ -99,7 +101,7 @@ fun ClayTopBar(
         )
         Box(Modifier.size(48.dp)) {
             if (onProfile != null) {
-                ClayRoundButton(icon = Icons.Filled.Person, contentDescription = "Profile", onClick = onProfile)
+                ClayRoundButton(icon = Icons.Filled.Person, contentDescription = stringResource(R.string.topbar_profile), onClick = onProfile)
             }
         }
     }
@@ -513,7 +515,7 @@ fun ClayRecipeCard(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
                     Icon(Icons.Filled.Schedule, contentDescription = null, tint = Primary, modifier = Modifier.size(14.dp))
-                    Text("${minutes}m", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.time_min, minutes), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
                 }
             }
             if (onToggleFavorite != null) {
@@ -529,7 +531,7 @@ fun ClayRecipeCard(
                 ) {
                     Icon(
                         if (recipe.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = "Favourite",
+                        contentDescription = stringResource(R.string.detail_favourite),
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier.size(22.dp),
                     )
@@ -637,7 +639,7 @@ fun ClayRecipeRow(
             )
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 totalMinutes(details)?.let {
-                    ClayChip("${it}m", icon = Icons.Filled.Schedule)
+                    ClayChip(stringResource(R.string.time_min, it), icon = Icons.Filled.Schedule)
                 }
                 details.tags.firstOrNull()?.let { ClayTagChip(it.name) }
             }
@@ -652,18 +654,20 @@ fun totalMinutes(details: RecipeWithDetails): Int? {
     return total.takeIf { it > 0 }
 }
 
+@Composable
 fun sourceLabel(details: RecipeWithDetails): String {
-    val source = details.source ?: return "Created by you"
-    source.author?.takeIf { it.isNotBlank() }?.let { return "From $it" }
-    return "From " + when (source.platform) {
-        "INSTAGRAM" -> "Instagram"
-        "FACEBOOK" -> "Facebook"
-        "TIKTOK" -> "TikTok"
-        "YOUTUBE" -> "YouTube"
-        "BLOG" -> "the web"
-        "OCR" -> "a scan"
-        else -> "Delizioso"
+    val source = details.source ?: return stringResource(R.string.source_created)
+    source.author?.takeIf { it.isNotBlank() }?.let { return stringResource(R.string.source_from, it) }
+    val platformRes = when (source.platform) {
+        "INSTAGRAM" -> R.string.source_instagram
+        "FACEBOOK" -> R.string.source_facebook
+        "TIKTOK" -> R.string.source_tiktok
+        "YOUTUBE" -> R.string.source_youtube
+        "BLOG" -> R.string.source_web
+        "OCR" -> R.string.source_scan
+        else -> R.string.source_delizioso
     }
+    return stringResource(R.string.source_from, stringResource(platformRes))
 }
 
 // ---- Empty state -----------------------------------------------------------

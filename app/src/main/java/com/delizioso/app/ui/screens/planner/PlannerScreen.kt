@@ -70,6 +70,8 @@ import com.delizioso.app.ui.theme.clayOuter
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 private enum class PlannerView { WEEK, MONTH }
 
@@ -92,10 +94,10 @@ fun PlannerScreen(
 
     Column(Modifier.fillMaxSize()) {
         ClayTopBar(
-            title = "Meal Planner",
+            title = stringResource(R.string.planner_title),
             onMenu = onOpenGrocery,
             menuIcon = Icons.Filled.ShoppingCart,
-            menuDescription = "Grocery list",
+            menuDescription = stringResource(R.string.planner_menu_grocery),
             onProfile = onProfileClick,
         )
 
@@ -108,7 +110,7 @@ fun PlannerScreen(
                 onShiftWeek = viewModel::shiftWeek,
             )
             ViewToggle(
-                label = "Switch to Monthly",
+                label = stringResource(R.string.planner_switch_monthly),
                 icon = Icons.Filled.CalendarViewMonth,
                 onClick = { view = PlannerView.MONTH },
             )
@@ -120,13 +122,13 @@ fun PlannerScreen(
             ) {
                 MealSlot.all.forEach { slot ->
                     item(key = "label-$slot") {
-                        ClayGroupLabel(MealSlot.label(slot), icon = mealSlotIcon(slot), modifier = Modifier.padding(top = 12.dp))
+                        ClayGroupLabel(stringResource(MealSlot.labelRes(slot)), icon = mealSlotIcon(slot), modifier = Modifier.padding(top = 12.dp))
                     }
                     val slotMeals = dayMeals.filter { it.meal.slot == slot }
                     if (slotMeals.isEmpty()) {
                         item(key = "empty-$slot") {
                             ClayAddPanel(
-                                text = "Add ${MealSlot.label(slot).lowercase()} recipe",
+                                text = stringResource(R.string.planner_add_recipe, stringResource(MealSlot.labelRes(slot)).lowercase()),
                                 onClick = { pickerSlot = slot },
                                 accent = if (slot == MealSlot.SNACK) Secondary else Primary,
                             )
@@ -142,7 +144,7 @@ fun PlannerScreen(
                         }
                         item(key = "add-more-$slot") {
                             Text(
-                                "+ Add another",
+                                stringResource(R.string.planner_add_more),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = Primary,
                                 modifier = Modifier
@@ -176,7 +178,11 @@ fun PlannerScreen(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ) {
             RecipePickerSheet(
-                title = "Add ${MealSlot.label(slot).lowercase()} · ${selectedDate.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault())}",
+                title = stringResource(
+                    R.string.planner_add_title,
+                    stringResource(MealSlot.labelRes(slot)),
+                    selectedDate.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault()),
+                ),
                 recipes = recipes,
                 onPick = { recipeId ->
                     viewModel.addMeal(recipeId, selectedDate.toEpochDay(), slot)
@@ -202,7 +208,7 @@ private fun DayStrip(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ArrowButton(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Previous week") { onShiftWeek(-1) }
+        ArrowButton(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.planner_prev_week)) { onShiftWeek(-1) }
         LazyRow(
             contentPadding = PaddingValues(horizontal = 8.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -220,7 +226,7 @@ private fun DayStrip(
                 )
             }
         }
-        ArrowButton(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Next week") { onShiftWeek(1) }
+        ArrowButton(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.planner_next_week)) { onShiftWeek(1) }
     }
 }
 
@@ -320,7 +326,7 @@ private fun PlannedMealRow(
             Box {
                 Icon(
                     Icons.Filled.MoreVert,
-                    contentDescription = "Meal options",
+                    contentDescription = stringResource(R.string.planner_meal_options),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier
                         .clip(PillShape)
@@ -329,7 +335,7 @@ private fun PlannedMealRow(
                 )
                 DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                     DropdownMenuItem(
-                        text = { Text("Remove from plan") },
+                        text = { Text(stringResource(R.string.planner_remove)) },
                         onClick = {
                             menuOpen = false
                             onRemove()
@@ -372,7 +378,7 @@ private fun MonthCalendar(
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                ArrowButton(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Previous month") { onShiftMonth(-1) }
+                ArrowButton(Icons.AutoMirrored.Filled.KeyboardArrowLeft, stringResource(R.string.planner_prev_month)) { onShiftMonth(-1) }
                 Text(
                     "${first.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${first.year}",
                     style = MaterialTheme.typography.headlineMedium,
@@ -380,9 +386,9 @@ private fun MonthCalendar(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f),
                 )
-                ArrowButton(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Next month") { onShiftMonth(1) }
+                ArrowButton(Icons.AutoMirrored.Filled.KeyboardArrowRight, stringResource(R.string.planner_next_month)) { onShiftMonth(1) }
             }
-            ViewToggle(label = "Switch to Weekly", icon = Icons.Filled.CalendarViewWeek, onClick = onSwitchToWeekly)
+            ViewToggle(label = stringResource(R.string.planner_switch_weekly), icon = Icons.Filled.CalendarViewWeek, onClick = onSwitchToWeekly)
         }
 
         Column(
@@ -425,9 +431,9 @@ private fun MonthCalendar(
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 horizontalArrangement = Arrangement.Center,
             ) {
-                LegendEntry(Primary, "Planned")
+                LegendEntry(Primary, stringResource(R.string.planner_legend_planned))
                 Spacer(Modifier.size(24.dp))
-                LegendEntry(Secondary, "Cooked")
+                LegendEntry(Secondary, stringResource(R.string.planner_legend_cooked))
             }
         }
     }
@@ -505,7 +511,7 @@ private fun RecipePickerSheet(
             )
             ClayRoundButton(
                 icon = Icons.Filled.Close,
-                contentDescription = "Close",
+                contentDescription = stringResource(R.string.topbar_close),
                 onClick = onClose,
                 container = MaterialTheme.colorScheme.surfaceContainerLowest,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -514,14 +520,14 @@ private fun RecipePickerSheet(
         ClayTextField(
             value = query,
             onValueChange = { query = it },
-            placeholder = "Search recipes…",
+            placeholder = stringResource(R.string.planner_search),
             leadingIcon = Icons.Filled.Search,
             cornerRadius = 24.dp,
             modifier = Modifier.fillMaxWidth(),
         )
         if (visible.isEmpty()) {
             Text(
-                "No recipes yet — import or create one first.",
+                stringResource(R.string.planner_no_recipes),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -553,7 +559,7 @@ private fun RecipePickerSheet(
                             modifier = Modifier.weight(1f).padding(start = 14.dp),
                         )
                         val minutes = (details.recipe.prepTimeMinutes ?: 0) + (details.recipe.cookTimeMinutes ?: 0)
-                        if (minutes > 0) ClayChip("${minutes}m")
+                        if (minutes > 0) ClayChip(stringResource(R.string.time_min, minutes))
                     }
                 }
             }

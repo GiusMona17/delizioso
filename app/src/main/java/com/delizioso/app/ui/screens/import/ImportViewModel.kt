@@ -15,6 +15,7 @@ import com.delizioso.app.data.ai.NanoInference
 import com.delizioso.app.data.ai.NanoStructurer
 import com.delizioso.app.data.import.ImportContent
 import com.delizioso.app.data.import.ImportException
+import com.delizioso.app.data.import.LoginWall
 import com.delizioso.app.data.import.RawImport
 import com.delizioso.app.data.import.RecipeImporterRegistry
 import com.delizioso.app.data.import.StructuredRecipe
@@ -34,6 +35,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.delizioso.app.R
 
 sealed interface ImportUiState {
     data object Idle : ImportUiState
@@ -90,9 +92,9 @@ class ImportViewModel(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: ImportException) {
-                _state.value = ImportUiState.Error(e.message ?: "Import failed", e.retryable)
+                _state.value = ImportUiState.Error(e.message ?: appContext.getString(R.string.import_failed), e.retryable)
             } catch (e: Exception) {
-                _state.value = ImportUiState.Error(e.message ?: "Unexpected error", false)
+                _state.value = ImportUiState.Error(e.message ?: appContext.getString(R.string.import_unexpected), false)
             }
         }
     }
@@ -103,28 +105,61 @@ class ImportViewModel(
                 _state.value = ImportUiState.Ready(content.recipe, raw)
             }
             is ImportContent.RawText -> {
+                val isWall = LoginWall.matches(content.text)
+                // Behind a login/consent wall the caption is wall text, but the page's
+                // og:title often carries the FULL recipe (name + ingredients + method).
+                val textToStructure = if (isWall) {
+                    content.title?.takeIf { !LoginWall.matches(it) }
+                } else {
+                    content.text
+                }
+                if (textToStructure.isNullOrBlank()) {
+                    // Wall with no usable recipe text: keep title + cover thumbnail as
+                    // an editable shell so the reel still imports with its thumbnail.
+                    fallbackToShell(content, raw)
+                    return
+                }
                 when (structurer.availability()) {
                     NanoInference.Availability.UNAVAILABLE -> _state.value = ImportUiState.AiConsentNeeded
                     else -> {
                         _state.value = ImportUiState.Structuring
                         try {
                             structurer.ensureDownloaded()
-                            val recipe = structurer.structure(content.text)
+                            val recipe = structurer.structure(textToStructure)
                             _state.value = ImportUiState.Ready(
-                                recipe = recipe.copy(title = recipe.title.orEmpty().ifBlank { content.title.orEmpty() }),
+                                recipe = recipe.copy(
+                                    title = recipe.title.orEmpty().ifBlank {
+                                        content.text.ifBlank { content.title.orEmpty() }
+                                    }
+                                ),
                                 raw = raw,
                             )
                         } catch (e: CancellationException) {
                             throw e
                         } catch (e: AiUnavailableException) {
-                            _state.value = ImportUiState.Error(e.message ?: "AI structuring failed", false)
+                            // Structuring failed (transient model output, or the caption
+                            // was just a name): still land title + thumbnail as a shell.
+                            fallbackToShell(content, raw)
                         } catch (e: Exception) {
-                            _state.value = ImportUiState.Error(e.message ?: "AI structuring failed", false)
+                            fallbackToShell(content, raw)
                         }
                     }
                 }
             }
         }
+    }
+
+    /** Structuring failed / wall: keep title + cover thumbnail as an editable shell. */
+    private fun fallbackToShell(content: ImportContent.RawText, raw: RawImport) {
+        _state.value = ImportUiState.Ready(
+            recipe = StructuredRecipe(
+                // Prefer the already-cleaned caption (recipe name); the raw og:title may
+                // contain the whole recipe ("Name | INGREDIENTI: … | PROCEDIMENTO: …").
+                title = shellTitle(content.text, content.title),
+                imageUrl = raw.thumbnailUrl,
+            ),
+            raw = raw,
+        )
     }
 
     /** User accepted on-device AI terms — retry structuring. */
@@ -192,4 +227,16 @@ class ImportViewModel(
             }
         }
     }
+}
+
+/**
+ * Title for the editable shell: the first non-blank line of the cleaned caption
+ * (the recipe name). Multi-line captions carry the whole recipe — "Name\n\nMarinade\n• 700g…"
+ * or "Name | INGREDIENTI: … | PROCEDIMENTO: …" — which must not become the title.
+ * Falls back to the og:title's first line when the caption is blank.
+ */
+internal fun shellTitle(text: String, title: String?): String {
+    val fromText = text.lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty()
+    if (fromText.isNotBlank()) return fromText.take(120)
+    return title.orEmpty().lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty().take(120)
 }

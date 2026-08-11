@@ -34,6 +34,9 @@ class PlatformDetectorTest {
         assertEquals(Platform.FACEBOOK, PlatformDetector.detect("https://www.facebook.com/watch/?v=123456789"))
         assertEquals(Platform.FACEBOOK, PlatformDetector.detect("https://fb.watch/AbCdEfGh/"))
         assertEquals(Platform.FACEBOOK, PlatformDetector.detect("https://www.facebook.com/reel/123456789"))
+        // Share-redirect links (/share/r|v|p/<id>) are how the app's share sheet sends reels.
+        assertEquals(Platform.FACEBOOK, PlatformDetector.detect("https://www.facebook.com/share/r/1BXXmnVkag/"))
+        assertEquals(Platform.FACEBOOK, PlatformDetector.detect("https://www.facebook.com/share/v/1BXXmnVkag/"))
     }
 
     @Test

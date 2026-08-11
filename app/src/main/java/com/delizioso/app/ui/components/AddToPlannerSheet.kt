@@ -46,6 +46,8 @@ import com.delizioso.app.ui.theme.clayOuter
 import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 /** Icon per meal slot — matches the `add_to_planner_popup` mockup. */
 fun mealSlotIcon(slot: String): ImageVector = when (slot) {
@@ -84,14 +86,14 @@ fun AddToPlannerSheet(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                "Add to Planner",
+                stringResource(R.string.planner_add_title_sheet),
                 style = MaterialTheme.typography.headlineLarge,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f),
             )
             ClayRoundButton(
                 icon = Icons.Filled.Close,
-                contentDescription = "Close",
+                contentDescription = stringResource(R.string.topbar_close),
                 onClick = onClose,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -119,7 +121,7 @@ fun AddToPlannerSheet(
                 )
                 totalMinutes(details)?.let {
                     Text(
-                        "$it mins",
+                        stringResource(R.string.time_min, it),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
@@ -128,7 +130,7 @@ fun AddToPlannerSheet(
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Date", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.planner_date_label), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -160,7 +162,7 @@ fun AddToPlannerSheet(
         }
 
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("Meal Type", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.planner_meal_type), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
             MealSlot.all.chunked(2).forEach { row ->
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                     row.forEach { option ->
@@ -176,7 +178,7 @@ fun AddToPlannerSheet(
         }
 
         ClayButton(
-            text = "Add to Plan",
+            text = stringResource(R.string.planner_add_to_plan),
             icon = Icons.Filled.EventAvailable,
             onClick = { onAdd(selectedDay, slot) },
             modifier = Modifier.fillMaxWidth(),
@@ -241,17 +243,18 @@ private fun MealTypeOption(
         )
         Box(Modifier.size(8.dp))
         Text(
-            MealSlot.label(slot),
+            stringResource(MealSlot.labelRes(slot)),
             style = MaterialTheme.typography.labelLarge,
             color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
 
+@Composable
 private fun dateLabel(day: LocalDate, today: LocalDate): String {
     val prefix = when (day.toEpochDay() - today.toEpochDay()) {
-        0L -> "Today, "
-        1L -> "Tomorrow, "
+        0L -> stringResource(R.string.planner_today_prefix)
+        1L -> stringResource(R.string.planner_tomorrow_prefix)
         else -> ""
     }
     return prefix + day.month.getDisplayName(TextStyle.SHORT, Locale.getDefault()) + " " + day.dayOfMonth

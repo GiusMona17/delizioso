@@ -25,6 +25,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.delizioso.app.ui.theme.PillShape
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 /**
  * Recipe photo with a "tap to change" affordance — the imported thumbnail, the
@@ -61,7 +63,7 @@ fun PhotoPickerArea(
                     modifier = Modifier.size(40.dp),
                 )
                 Text(
-                    "Add a photo",
+                    stringResource(R.string.create_photo_add),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(top = 10.dp),
@@ -86,7 +88,7 @@ fun PhotoPickerArea(
                     modifier = Modifier.size(16.dp),
                 )
                 Text(
-                    "Change photo",
+                    stringResource(R.string.create_photo_change),
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                 )

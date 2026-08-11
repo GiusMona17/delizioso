@@ -6,6 +6,7 @@ import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.delizioso.app.R
 
 /** A meal planned on a specific day/slot. */
 @Entity(
@@ -45,6 +46,15 @@ object MealSlot {
         DINNER -> "Dinner"
         SNACK -> "Snacks"
         else -> slot.lowercase().replaceFirstChar { it.uppercase() }
+    }
+
+    /** String resource for the display label of [slot] (localized at the UI boundary). */
+    fun labelRes(slot: String): Int = when (slot) {
+        BREAKFAST -> R.string.data_breakfast
+        LUNCH -> R.string.data_lunch
+        DINNER -> R.string.data_dinner
+        SNACK -> R.string.data_snacks
+        else -> R.string.data_snacks
     }
 }
 

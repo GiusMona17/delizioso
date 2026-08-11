@@ -33,6 +33,8 @@ import com.delizioso.app.ui.components.RecipeImage
 import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayOuter
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 /** "Culinary Masterpiece Complete!" — the celebration screen after cook mode. */
 @Composable
@@ -64,14 +66,17 @@ fun CookCompleteScreen(
             RecipeImage(recipe?.imageUri, placeholderIconSize = 64.dp, modifier = Modifier.fillMaxSize())
         }
         Text(
-            "Culinary Masterpiece Complete!",
+            stringResource(R.string.cook_complete_title),
             style = MaterialTheme.typography.displaySmall,
             color = Primary,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 32.dp),
         )
         Text(
-            "You've successfully prepared ${recipe?.title ?: "this dish"}",
+            stringResource(
+                R.string.cook_complete_body,
+                recipe?.title ?: stringResource(R.string.cook_complete_this_dish),
+            ),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -83,32 +88,33 @@ fun CookCompleteScreen(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.padding(top = 20.dp),
             ) {
-                ClayChip("Time: ${minutes}m", icon = Icons.Filled.Schedule)
+                ClayChip(stringResource(R.string.cook_complete_time, minutes), icon = Icons.Filled.Schedule)
                 details?.steps?.size?.takeIf { it > 0 }?.let {
-                    ClayChip("$it steps")
+                    ClayChip(stringResource(R.string.cook_complete_steps, it))
                 }
             }
         }
         ClayButton(
-            text = "Back to Library",
+            text = stringResource(R.string.cook_complete_back),
             icon = Icons.AutoMirrored.Filled.MenuBook,
             onClick = onBackToLibrary,
             modifier = Modifier.fillMaxWidth().padding(top = 36.dp),
         )
+        val shareText = buildString {
+            append(stringResource(R.string.cook_share_prefix))
+            append(recipe?.title ?: stringResource(R.string.cook_complete_fallback))
+            append(stringResource(R.string.cook_share_suffix))
+        }
+        val shareTitle = stringResource(R.string.cook_complete_share_title)
         ClayOutlinedButton(
-            text = "Share My Creation",
+            text = stringResource(R.string.cook_complete_share),
             icon = Icons.Filled.Share,
             onClick = {
-                val text = buildString {
-                    append("I just cooked ")
-                    append(recipe?.title ?: "something delicious")
-                    append(" with Delizioso!")
-                }
                 val share = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, text)
+                    putExtra(Intent.EXTRA_TEXT, shareText)
                 }
-                context.startActivity(Intent.createChooser(share, "Share my creation"))
+                context.startActivity(Intent.createChooser(share, shareTitle))
             },
             modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
         )

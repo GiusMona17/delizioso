@@ -36,13 +36,16 @@ import com.delizioso.app.ui.components.ClayRoundButton
 import com.delizioso.app.ui.components.ClayTextField
 import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 /** Starter questions, so the first turn doesn't need typing. */
-private val SUGGESTIONS = listOf(
-    "What can I use instead?",
-    "Make it vegetarian",
-    "Can I prepare it ahead?",
-    "How do I store leftovers?",
+@Composable
+private fun suggestionQuestions(): List<String> = listOf(
+    stringResource(R.string.chat_quick_sub),
+    stringResource(R.string.chat_quick_veg),
+    stringResource(R.string.chat_quick_prep),
+    stringResource(R.string.chat_quick_leftovers),
 )
 
 /** "Ask about this recipe" — a conversation grounded in the open recipe. */
@@ -72,7 +75,7 @@ fun RecipeChatSheet(
     ) {
         Column {
             Text(
-                "Ask about this recipe",
+                stringResource(R.string.chat_title),
                 style = MaterialTheme.typography.headlineLarge,
                 color = Primary,
             )
@@ -87,8 +90,7 @@ fun RecipeChatSheet(
 
         if (state.messages.isEmpty() && state.streaming == null) {
             Text(
-                "Answers come from Gemini Nano running on your phone. It knows this recipe — " +
-                    "ask about swaps, technique, timing or storage.",
+                stringResource(R.string.chat_disclaimer) + stringResource(R.string.chat_tail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -109,9 +111,9 @@ fun RecipeChatSheet(
                                 CircularProgressIndicator(color = Primary, strokeWidth = 3.dp, modifier = Modifier.size(18.dp))
                                 Text(
                                     if (state.preparingModel) {
-                                        "Setting up Gemini Nano — the first run downloads the model, which can take a few minutes."
+                                        stringResource(R.string.chat_setup)
                                     } else {
-                                        "Thinking…"
+                                        stringResource(R.string.detail_thinking)
                                     },
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -140,7 +142,7 @@ fun RecipeChatSheet(
                     modifier = Modifier.weight(1f),
                 )
                 Text(
-                    "Dismiss",
+                    stringResource(R.string.topbar_dismiss),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     modifier = Modifier.padding(start = 12.dp).clickable(onClick = onDismissError),
@@ -149,11 +151,12 @@ fun RecipeChatSheet(
         }
 
         if (state.messages.isEmpty()) {
+            val suggestions = suggestionQuestions()
             LazyRow(
                 contentPadding = PaddingValues(vertical = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                items(SUGGESTIONS) { suggestion ->
+                items(suggestions) { suggestion ->
                     Box(modifier = Modifier.clickable { onAsk(suggestion) }) {
                         ClayChip(
                             suggestion,
@@ -172,13 +175,13 @@ fun RecipeChatSheet(
             ClayTextField(
                 value = question,
                 onValueChange = { question = it },
-                placeholder = "Ask anything…",
+                placeholder = stringResource(R.string.chat_placeholder),
                 cornerRadius = 24.dp,
                 modifier = Modifier.weight(1f),
             )
             ClayRoundButton(
                 icon = Icons.AutoMirrored.Filled.Send,
-                contentDescription = "Send",
+                contentDescription = stringResource(R.string.topbar_send),
                 onClick = {
                     onAsk(question)
                     question = ""

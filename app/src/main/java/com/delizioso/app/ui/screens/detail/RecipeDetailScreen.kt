@@ -63,6 +63,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.delizioso.app.DeliziosoApplication
+import com.delizioso.app.data.Categories
 import com.delizioso.app.data.ImageStore
 import com.delizioso.app.data.Quantities
 import com.delizioso.app.data.RecipeRepository
@@ -101,6 +102,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 sealed interface MacrosState {
     data object Hidden : MacrosState
@@ -122,6 +125,7 @@ data class ChatState(
 }
 
 class RecipeDetailViewModel(
+    private val resources: android.content.res.Resources,
     private val repository: RecipeRepository,
     private val advisor: NanoAdvisor,
     private val chatModel: NanoChat,
@@ -197,12 +201,12 @@ class RecipeDetailViewModel(
                 throw e
             } catch (e: AiUnavailableException) {
                 _macros.value = if (e.retryable) {
-                    MacrosState.Error(e.message ?: "On-device AI is busy", true)
+                    MacrosState.Error(resources.getString(R.string.detail_ai_busy), true)
                 } else {
                     MacrosState.ConsentNeeded
                 }
             } catch (e: Exception) {
-                _macros.value = MacrosState.Error(e.message ?: "Macro estimate failed", false)
+                _macros.value = MacrosState.Error(resources.getString(R.string.detail_macro_failed), false)
             }
         }
     }
@@ -243,7 +247,7 @@ class RecipeDetailViewModel(
                     it.copy(
                         streaming = null,
                         preparingModel = false,
-                        error = e.message ?: "The on-device AI could not answer",
+                        error = resources.getString(R.string.detail_ai_no_answer),
                     )
                 }
             }
@@ -264,6 +268,7 @@ class RecipeDetailViewModel(
             initializer {
                 val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as DeliziosoApplication
                 RecipeDetailViewModel(
+                    resources = app.resources,
                     repository = app.container.recipeRepository,
                     advisor = app.container.nanoAdvisor,
                     chatModel = app.container.nanoChat,
@@ -347,21 +352,21 @@ fun RecipeDetailScreen(
                 ) {
                     ClayRoundButton(
                         icon = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.topbar_back),
                         onClick = onBack,
                         container = MaterialTheme.colorScheme.surfaceContainerLowest,
                     )
                     Spacer(Modifier.weight(1f))
                     ClayRoundButton(
                         icon = Icons.Filled.CalendarMonth,
-                        contentDescription = "Add to planner",
+                        contentDescription = stringResource(R.string.detail_add_planner),
                         onClick = { showPlanner = true },
                         container = MaterialTheme.colorScheme.surfaceContainerLowest,
                     )
                     Spacer(Modifier.width(12.dp))
                     ClayRoundButton(
                         icon = if (d.recipe.isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = "Favourite",
+                        contentDescription = stringResource(R.string.detail_favourite),
                         onClick = { viewModel.toggleFavorite(d.recipe.isFavorite) },
                         container = MaterialTheme.colorScheme.surfaceContainerLowest,
                         tint = if (d.recipe.isFavorite) MaterialTheme.colorScheme.error else Primary,
@@ -380,7 +385,7 @@ fun RecipeDetailScreen(
                     onServingsChange = { servings = it.coerceIn(1, 99) },
                 )
                 ClaySegmentedTabs(
-                    options = listOf("Ingredients", "Instructions"),
+                    options = listOf(stringResource(R.string.form_ingredients_title), stringResource(R.string.form_instructions_title)),
                     selectedIndex = tab,
                     onSelect = { tab = it },
                 )
@@ -394,7 +399,7 @@ fun RecipeDetailScreen(
                         },
                     )
                     ClayButton(
-                        text = if (addedToList) "Added to shopping list" else "Add all to shopping list",
+                        text = if (addedToList) stringResource(R.string.detail_added_list) else stringResource(R.string.detail_add_list),
                         icon = if (addedToList) Icons.Filled.Check else Icons.Filled.ShoppingCart,
                         onClick = {
                             viewModel.addToShoppingList(factor)
@@ -416,7 +421,7 @@ fun RecipeDetailScreen(
                 SourceSection(d)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ClayButton(
-                        text = "Edit recipe",
+                        text = stringResource(R.string.detail_edit),
                         icon = Icons.Filled.Edit,
                         onClick = onEdit,
                         container = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -425,7 +430,7 @@ fun RecipeDetailScreen(
                     )
                 }
                 Text(
-                    "Delete this recipe",
+                    stringResource(R.string.detail_delete),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier
@@ -439,7 +444,7 @@ fun RecipeDetailScreen(
         }
 
         ClayButton(
-            text = "Start Cooking",
+            text = stringResource(R.string.detail_start_cooking),
             icon = Icons.Filled.PlayArrow,
             onClick = onStartCooking,
             modifier = Modifier
@@ -505,15 +510,15 @@ private fun HeaderCard(
             if (minutes > 0) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Icon(Icons.Filled.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
-                    Text("$minutes min", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.time_min, minutes), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
                 }
             }
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Icon(Icons.Filled.Restaurant, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
-                StepperButton(Icons.Filled.Remove, "One serving fewer") { onServingsChange(servings - 1) }
+                StepperButton(Icons.Filled.Remove, stringResource(R.string.detail_serving_fewer)) { onServingsChange(servings - 1) }
                 Text("$servings", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                StepperButton(Icons.Filled.Add, "One serving more") { onServingsChange(servings + 1) }
-                Text("Servings", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                StepperButton(Icons.Filled.Add, stringResource(R.string.detail_serving_more)) { onServingsChange(servings + 1) }
+                Text(stringResource(R.string.form_servings), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
         recipe.macrosKcal?.let { kcal ->
@@ -521,7 +526,7 @@ private fun HeaderCard(
             Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     Icon(Icons.Filled.LocalFireDepartment, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
-                    Text("${kcal.toInt()} kcal", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.macro_kcal, kcal.toInt()), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
                 }
                 Text(
                     macroLine(recipe.macrosProteinG, recipe.macrosCarbsG, recipe.macrosFatG),
@@ -530,7 +535,7 @@ private fun HeaderCard(
                 )
                 if (perServing != 1.0) {
                     Text(
-                        "per original serving",
+                        stringResource(R.string.detail_per_original_serving),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
                     )
@@ -539,16 +544,17 @@ private fun HeaderCard(
         }
         if (details.tags.isNotEmpty()) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                details.tags.take(3).forEach { ClayTagChip(it.name) }
+                details.tags.take(3).forEach { ClayTagChip(stringResource(Categories.displayNameRes(it.name))) }
             }
         }
     }
 }
 
+@Composable
 private fun macroLine(protein: Float?, carbs: Float?, fat: Float?): String = listOfNotNull(
-    protein?.let { "P: ${it.toInt()}g" },
-    carbs?.let { "C: ${it.toInt()}g" },
-    fat?.let { "F: ${it.toInt()}g" },
+    protein?.let { stringResource(R.string.macro_protein_short, it.toInt()) },
+    carbs?.let { stringResource(R.string.macro_carbs_short, it.toInt()) },
+    fat?.let { stringResource(R.string.macro_fat_short, it.toInt()) },
 ).joinToString(" • ")
 
 @Composable
@@ -654,11 +660,11 @@ private fun AiPanel(
     onOpenChat: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        ClaySectionHeader(title = "AI Insights")
+        ClaySectionHeader(title = stringResource(R.string.detail_ai_insights))
         when (macros) {
             is MacrosState.Hidden -> {
                 ClayButton(
-                    text = "Estimate macros",
+                    text = stringResource(R.string.detail_estimate_macros),
                     icon = Icons.Filled.LocalFireDepartment,
                     onClick = onEstimate,
                     container = MaterialTheme.colorScheme.primaryContainer,
@@ -669,7 +675,7 @@ private fun AiPanel(
             is MacrosState.Loading -> {
                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, strokeWidth = 3.dp)
-                    Text("Estimating macros…", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(stringResource(R.string.detail_estimating), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
             is MacrosState.ConsentNeeded -> {
@@ -680,13 +686,13 @@ private fun AiPanel(
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text("On-device AI needs your consent", style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
+                    Text(stringResource(R.string.detail_consent_title), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
                     Text(
-                        "Estimates are generated by Gemini Nano on your phone — nothing leaves the device.",
+                        stringResource(R.string.detail_consent_body),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
                     )
-                    ClayButton(text = "Enable on-device AI", onClick = onGrant, modifier = Modifier.fillMaxWidth())
+                    ClayButton(text = stringResource(R.string.detail_enable_ai), onClick = onGrant, modifier = Modifier.fillMaxWidth())
                 }
             }
             is MacrosState.Error -> {
@@ -699,7 +705,7 @@ private fun AiPanel(
                 ) {
                     Text(macros.message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
                     if (macros.retryable) {
-                        ClayButton(text = "Retry", onClick = onEstimate, container = MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxWidth())
+                        ClayButton(text = stringResource(R.string.detail_retry), onClick = onEstimate, container = MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxWidth())
                     }
                 }
             }
@@ -712,18 +718,18 @@ private fun AiPanel(
                     verticalArrangement = Arrangement.spacedBy(12.dp),
                 ) {
                     Text(
-                        "Estimates per serving — not nutrition facts.",
+                        stringResource(R.string.detail_macros_disclaimer),
                         style = MaterialTheme.typography.labelMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        MacroChip("${macros.macros.kcal?.toInt() ?: "—"} kcal")
-                        MacroChip("${macros.macros.proteinG?.toInt() ?: "—"}g protein")
-                        MacroChip("${macros.macros.fatG?.toInt() ?: "—"}g fat")
-                        MacroChip("${macros.macros.carbsG?.toInt() ?: "—"}g carbs")
+                        MacroChip(stringResource(R.string.macro_kcal, macros.macros.kcal?.toInt() ?: 0))
+                        MacroChip(stringResource(R.string.macro_protein, macros.macros.proteinG?.toInt() ?: 0))
+                        MacroChip(stringResource(R.string.macro_fat, macros.macros.fatG?.toInt() ?: 0))
+                        MacroChip(stringResource(R.string.macro_carbs, macros.macros.carbsG?.toInt() ?: 0))
                     }
                     Text(
-                        "Re-estimate",
+                        stringResource(R.string.detail_re_estimate),
                         style = MaterialTheme.typography.labelLarge,
                         color = Primary,
                         modifier = Modifier
@@ -735,7 +741,7 @@ private fun AiPanel(
             }
         }
         ClayButton(
-            text = "Ask about this recipe",
+            text = stringResource(R.string.chat_title),
             icon = Icons.AutoMirrored.Filled.Chat,
             onClick = onOpenChat,
             container = MaterialTheme.colorScheme.surfaceContainerLow,

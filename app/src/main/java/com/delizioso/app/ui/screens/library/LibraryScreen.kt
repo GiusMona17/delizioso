@@ -45,6 +45,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 /** "All" plus the pinned Favourites filter, plus every category in use. */
 private const val FILTER_ALL = "All"
@@ -109,7 +111,7 @@ fun LibraryScreen(
         ClayTopBar(
             onMenu = onCreateClick,
             menuIcon = Icons.Filled.Add,
-            menuDescription = "Create a recipe",
+            menuDescription = stringResource(R.string.library_create_menu),
             onProfile = onProfileClick,
         )
         LazyColumn(
@@ -121,7 +123,7 @@ fun LibraryScreen(
                 ClayTextField(
                     value = query,
                     onValueChange = { query = it },
-                    placeholder = "Search recipes, ingredients…",
+                    placeholder = stringResource(R.string.library_search),
                     leadingIcon = Icons.Filled.Search,
                     cornerRadius = 24.dp,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
@@ -142,7 +144,15 @@ fun LibraryScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         items(filters, key = { it }) { name ->
-                            ClayFilterChip(text = name, selected = activeFilter == name, onClick = { filter = name })
+                            ClayFilterChip(
+                                text = when (name) {
+                                    FILTER_ALL -> stringResource(R.string.library_filter_all)
+                                    FILTER_FAVOURITES -> stringResource(R.string.library_filter_favs)
+                                    else -> stringResource(Categories.displayNameRes(name))
+                                },
+                                selected = activeFilter == name,
+                                onClick = { filter = name },
+                            )
                         }
                     }
                 }
@@ -151,11 +161,11 @@ fun LibraryScreen(
                 item {
                     ClayEmptyState(
                         icon = Icons.Filled.Restaurant,
-                        title = if (recipes.isEmpty()) "No recipes yet" else "No matches",
+                        title = if (recipes.isEmpty()) stringResource(R.string.library_no_recipes) else stringResource(R.string.library_no_matches),
                         subtitle = if (recipes.isEmpty()) {
-                            "Import from Instagram, TikTok or a blog — or create one by hand."
+                            stringResource(R.string.library_empty_hint)
                         } else {
-                            "Nothing here matches your search and filters."
+                            stringResource(R.string.library_no_match_hint)
                         },
                         modifier = Modifier.padding(horizontal = 20.dp),
                     )

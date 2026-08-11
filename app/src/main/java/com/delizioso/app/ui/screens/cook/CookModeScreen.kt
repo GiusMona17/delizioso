@@ -63,6 +63,8 @@ import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayInset
 import com.delizioso.app.ui.theme.clayOuter
 import kotlinx.coroutines.delay
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -102,13 +104,13 @@ fun CookModeScreen(
         ) {
             ClayRoundButton(
                 icon = Icons.Filled.Close,
-                contentDescription = "Exit cook mode",
+                contentDescription = stringResource(R.string.cook_exit),
                 onClick = onBack,
                 container = MaterialTheme.colorScheme.surfaceContainerLowest,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
             Text(
-                "Cook Mode",
+                stringResource(R.string.cook_title),
                 style = MaterialTheme.typography.headlineLarge,
                 color = Primary,
                 textAlign = TextAlign.Center,
@@ -116,7 +118,7 @@ fun CookModeScreen(
             )
             ClayRoundButton(
                 icon = Icons.Filled.Restaurant,
-                contentDescription = "Ingredients",
+                contentDescription = stringResource(R.string.cook_ingredients),
                 onClick = { showIngredients = true },
                 container = MaterialTheme.colorScheme.surfaceContainerLowest,
             )
@@ -125,7 +127,7 @@ fun CookModeScreen(
         if (steps.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text(
-                    if (d == null) "" else "This recipe has no instructions yet.",
+                    if (d == null) "" else stringResource(R.string.cook_no_steps),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -134,7 +136,7 @@ fun CookModeScreen(
         }
 
         Text(
-            "Step ${(currentStep + 1).coerceAtMost(steps.size)} of ${steps.size}",
+            stringResource(R.string.cook_step_of, (currentStep + 1).coerceAtMost(steps.size), steps.size),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
@@ -165,7 +167,7 @@ fun CookModeScreen(
         }
 
         ClayButton(
-            text = if (onLastStep) "Finish Cooking" else "Next Step",
+            text = if (onLastStep) stringResource(R.string.cook_finish) else stringResource(R.string.cook_next_step),
             icon = if (onLastStep) Icons.Filled.Check else Icons.Filled.ArrowDownward,
             onClick = {
                 if (onLastStep) {
@@ -201,14 +203,14 @@ fun CookModeScreen(
                     Icon(Icons.Filled.Restaurant, contentDescription = null, tint = Primary)
                     Spacer(Modifier.width(10.dp))
                     Text(
-                        "Ingredients",
+                        stringResource(R.string.cook_ingredients),
                         style = MaterialTheme.typography.headlineLarge,
                         color = Primary,
                         modifier = Modifier.weight(1f),
                     )
                     ClayRoundButton(
                         icon = Icons.Filled.Close,
-                        contentDescription = "Close",
+                        contentDescription = stringResource(R.string.topbar_close),
                         onClick = { showIngredients = false },
                         container = MaterialTheme.colorScheme.surfaceContainerLowest,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -242,7 +244,7 @@ fun CookModeScreen(
                     }
                 }
                 ClayButton(
-                    text = "Add missing to shopping list",
+                    text = stringResource(R.string.cook_add_missing),
                     icon = Icons.Filled.ShoppingCart,
                     onClick = {
                         viewModel.addMissingToShoppingList()
@@ -308,7 +310,7 @@ private fun StepCard(
         Row(verticalAlignment = Alignment.CenterVertically) {
             ClayStepPod(done = done, onToggle = onToggle)
             Text(
-                "Step ${index + 1}",
+                stringResource(R.string.cook_step_label, index + 1),
                 style = MaterialTheme.typography.headlineMedium,
                 color = when {
                     active -> Primary
@@ -367,9 +369,9 @@ private fun InlineTimer(totalSeconds: Int) {
         )
         ClayButton(
             text = when {
-                remaining == 0 -> "Done"
-                running -> "Pause"
-                else -> "Start"
+                remaining == 0 -> stringResource(R.string.cook_timer_done)
+                running -> stringResource(R.string.cook_timer_pause)
+                else -> stringResource(R.string.cook_timer_start)
             },
             icon = if (running) Icons.Filled.Pause else Icons.Filled.PlayArrow,
             onClick = {

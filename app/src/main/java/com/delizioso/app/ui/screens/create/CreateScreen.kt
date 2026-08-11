@@ -53,6 +53,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import androidx.compose.ui.res.stringResource
+import com.delizioso.app.R
 
 @Composable
 fun CreateScreen(
@@ -77,7 +79,7 @@ fun CreateScreen(
         ClayTopBar(
             onMenu = onBack,
             menuIcon = Icons.AutoMirrored.Filled.ArrowBack,
-            menuDescription = "Back",
+            menuDescription = stringResource(R.string.topbar_back),
         )
         LazyColumn(
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 16.dp),
@@ -86,9 +88,9 @@ fun CreateScreen(
         ) {
             item {
                 Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                    Text("Create Recipe", style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onSurface)
+                    Text(stringResource(R.string.create_title), style = MaterialTheme.typography.headlineLarge, color = MaterialTheme.colorScheme.onSurface)
                     Text(
-                        "Mold your culinary masterpiece.",
+                        stringResource(R.string.create_subtitle),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         textAlign = TextAlign.Center,
@@ -104,7 +106,7 @@ fun CreateScreen(
             }
             item {
                 ClayButton(
-                    text = "Scan Cookbook Page",
+                    text = stringResource(R.string.create_scan_btn),
                     icon = Icons.Filled.DocumentScanner,
                     onClick = viewModel::scanCookbook,
                     enabled = state.photoPath != null && state.busy == null,
@@ -125,7 +127,7 @@ fun CreateScreen(
             item { Spacer(Modifier.height(8.dp)) }
         }
         ClayButton(
-            text = "Save Recipe",
+            text = stringResource(R.string.action_save),
             icon = Icons.Filled.Save,
             enabled = form.isValid,
             onClick = {
@@ -162,7 +164,7 @@ private fun PhotoArea(
         if (bmp != null) {
             Image(
                 bitmap = bmp.asImageBitmap(),
-                contentDescription = "Recipe photo",
+                contentDescription = stringResource(R.string.create_photo_desc),
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize().clip(RoundedCornerShape(CardImageRadius)),
             )
@@ -174,7 +176,7 @@ private fun PhotoArea(
                     tint = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.size(44.dp),
                 )
-                Text("Add Recipe Photo", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
+                Text(stringResource(R.string.create_photo_label), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
             }
         }
         if (busy != null) {
@@ -188,7 +190,7 @@ private fun PhotoArea(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
                     Text(
-                        if (busy == CreateBusy.OCR) "Reading the page…" else "Structuring…",
+                        if (busy == CreateBusy.OCR) stringResource(R.string.create_ocr_reading) else stringResource(R.string.create_ocr_structuring),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(top = 8.dp),
