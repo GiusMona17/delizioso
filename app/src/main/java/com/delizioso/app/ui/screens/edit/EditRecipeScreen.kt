@@ -30,10 +30,14 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.delizioso.app.DeliziosoApplication
 import com.delizioso.app.data.RecipeRepository
+import com.delizioso.app.data.ai.RecipeRefiner
+import com.delizioso.app.data.ai.RefineState
+import com.delizioso.app.data.import.StructuredRecipe
 import com.delizioso.app.data.local.RecipeWithDetails
 import com.delizioso.app.data.toStructuredRecipe
 import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayTopBar
+import com.delizioso.app.ui.components.RefineRecipeCard
 import com.delizioso.app.ui.screens.create.IngredientsCard
 import com.delizioso.app.ui.screens.create.InstructionsCard
 import com.delizioso.app.ui.screens.create.RecipeIdentityFields
@@ -48,11 +52,24 @@ import com.delizioso.app.R
 
 class EditRecipeViewModel(
     private val repository: RecipeRepository,
+    private val refiner: RecipeRefiner,
     private val recipeId: Long,
 ) : ViewModel() {
 
     val details: StateFlow<RecipeWithDetails?> =
         repository.byId(recipeId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    /**
+     * The same convert-and-translate pass the import preview offers. A recipe in
+     * cups is no less annoying once it is saved, and one typed by hand can want
+     * the treatment too.
+     */
+    val refine: StateFlow<RefineState> = refiner.state
+
+    fun convertAndTranslate(recipe: StructuredRecipe, onRefined: (StructuredRecipe) -> Unit) {
+        refiner.clearError()
+        refiner.refine(viewModelScope, recipe, onRefined)
+    }
 
     fun save(
         recipe: com.delizioso.app.data.import.StructuredRecipe,
@@ -69,7 +86,11 @@ class EditRecipeViewModel(
         fun factory(recipeId: Long): ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as DeliziosoApplication
-                EditRecipeViewModel(app.container.recipeRepository, recipeId)
+                EditRecipeViewModel(
+                    repository = app.container.recipeRepository,
+                    refiner = RecipeRefiner(app.container.recipeTranslator),
+                    recipeId = recipeId,
+                )
             }
         }
     }
@@ -88,6 +109,7 @@ fun EditRecipeScreen(
 ) {
     val details by viewModel.details.collectAsStateWithLifecycle()
     val form = rememberRecipeFormState()
+    val refineState by viewModel.refine.collectAsStateWithLifecycle()
 
     // Fill the form once the recipe has loaded; keyed on the id so the user's
     // in-progress edits are never overwritten by a later emission.
@@ -114,6 +136,15 @@ fun EditRecipeScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
             modifier = Modifier.weight(1f),
         ) {
+            item {
+                val draft = form.toStructuredRecipe()
+                RefineRecipeCard(
+                    draft = draft,
+                    state = refineState,
+                    enabled = form.isValid,
+                    onRefine = { viewModel.convertAndTranslate(draft, form::applyDraft) },
+                )
+            }
             item { RecipeIdentityFields(form) }
             item { IngredientsCard(form) }
             item { InstructionsCard(form) }

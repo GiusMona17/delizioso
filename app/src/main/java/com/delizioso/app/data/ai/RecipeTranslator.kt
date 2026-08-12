@@ -1,5 +1,6 @@
 package com.delizioso.app.data.ai
 
+import com.delizioso.app.data.UnitNames
 import com.delizioso.app.data.import.StructuredRecipe
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.languageid.LanguageIdentification
@@ -20,6 +21,8 @@ import java.util.Locale
  *
  * Quantities never reach the model — only ingredient *names* are translated, so
  * the numbers [com.delizioso.app.data.UnitConverter] produced survive verbatim.
+ * Unit words go through [UnitNames], a table: asked to translate the bare word
+ * "cloves" the model returns the spice, not the garlic segment.
  */
 class RecipeTranslator {
 
@@ -50,11 +53,13 @@ class RecipeTranslator {
                 description = client.translateOrKeep(recipe.description),
                 ingredients = recipe.ingredients.map { ingredient ->
                     val name = client.translateOrKeep(ingredient.name) ?: ingredient.name
+                    val unit = UnitNames.localize(ingredient.unit, targetLanguage)
                     ingredient.copy(
                         name = name,
-                        // Amount and unit are already correct — rebuild around them
-                        // rather than letting the model near a number.
-                        rawText = listOfNotNull(ingredient.quantity, ingredient.unit, name)
+                        unit = unit,
+                        // The amount is already correct — rebuild around it rather
+                        // than letting the model anywhere near a number.
+                        rawText = listOfNotNull(ingredient.quantity, unit, name)
                             .joinToString(" ")
                             .trim(),
                     )

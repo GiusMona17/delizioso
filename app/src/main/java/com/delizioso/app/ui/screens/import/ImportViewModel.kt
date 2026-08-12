@@ -10,9 +10,9 @@ import android.net.Uri
 import com.delizioso.app.DeliziosoApplication
 import com.delizioso.app.data.ImageStore
 import com.delizioso.app.data.RecipeRepository
-import com.delizioso.app.data.UnitConverter
 import com.delizioso.app.data.ai.AiUnavailableException
-import com.delizioso.app.data.ai.RecipeTranslator
+import com.delizioso.app.data.ai.RecipeRefiner
+import com.delizioso.app.data.ai.RefineState
 import com.delizioso.app.data.ai.NanoInference
 import com.delizioso.app.data.ai.NanoStructurer
 import com.delizioso.app.data.import.ImportContent
@@ -40,15 +40,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.delizioso.app.R
 
-/** State of the optional "convert units + translate" pass. */
-sealed interface RewriteState {
-    data object Idle : RewriteState
-    data object Running : RewriteState
-    data class Failed(val message: String) : RewriteState
-    /** Converted, but the recipe was already in the user's language. */
-    data object NothingToTranslate : RewriteState
-}
-
 sealed interface ImportUiState {
     data object Idle : ImportUiState
     data object Fetching : ImportUiState
@@ -73,40 +64,14 @@ class ImportViewModel(
     private val repository: RecipeRepository,
     private val preferences: UserPreferences,
     private val appContext: Context,
-    private val translator: RecipeTranslator,
+    private val refiner: RecipeRefiner,
 ) : ViewModel() {
 
-    /** Progress of the optional "convert + translate" pass. */
-    private val _rewrite = MutableStateFlow<RewriteState>(RewriteState.Idle)
-    val rewrite: StateFlow<RewriteState> = _rewrite.asStateFlow()
+    val refine: StateFlow<RefineState> = refiner.state
 
-    /**
-     * Converts imperial amounts in code, then translates the wording with ML Kit.
-     *
-     * The two halves are applied separately on purpose: conversion is exact and
-     * instant, so it lands even when the language pack can't be downloaded.
-     */
-    fun convertAndTranslate(recipe: StructuredRecipe, onRewritten: (StructuredRecipe) -> Unit) {
-        if (_rewrite.value is RewriteState.Running) return
-        viewModelScope.launch {
-            _rewrite.value = RewriteState.Running
-            val converted = UnitConverter.convert(recipe)
-            onRewritten(converted)
-            try {
-                onRewritten(translator.translate(converted))
-                _rewrite.value = RewriteState.Idle
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: RecipeTranslator.AlreadyInTargetLanguage) {
-                _rewrite.value = RewriteState.NothingToTranslate
-            } catch (e: Exception) {
-                _rewrite.value = RewriteState.Failed(e.message ?: "Translation failed")
-            }
-        }
-    }
-
-    fun clearRewriteError() {
-        _rewrite.value = RewriteState.Idle
+    fun convertAndTranslate(recipe: StructuredRecipe, onRefined: (StructuredRecipe) -> Unit) {
+        refiner.clearError()
+        refiner.refine(viewModelScope, recipe, onRefined)
     }
 
     private val _state = MutableStateFlow<ImportUiState>(ImportUiState.Idle)
@@ -311,7 +276,7 @@ class ImportViewModel(
                     repository = app.container.recipeRepository,
                     preferences = app.container.preferences,
                     appContext = app,
-                    translator = app.container.recipeTranslator,
+                    refiner = RecipeRefiner(app.container.recipeTranslator),
                 )
             }
         }

@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,11 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.delizioso.app.data.ImperialUnits
 import com.delizioso.app.data.local.Platform
 import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayTopBar
+import com.delizioso.app.ui.components.RefineRecipeCard
 import com.delizioso.app.ui.components.PhotoPickerArea
 import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.screens.create.IngredientsCard
@@ -59,7 +58,7 @@ fun ImportPreviewScreen(
     // this screen must keep rendering until the caller has navigated away.
     var ready by remember { mutableStateOf<ImportUiState.Ready?>(null) }
     val pickedPhoto by viewModel.pickedPhoto.collectAsStateWithLifecycle()
-    val rewriteState by viewModel.rewrite.collectAsStateWithLifecycle()
+    val refineState by viewModel.refine.collectAsStateWithLifecycle()
     val form = rememberRecipeFormState()
     val scope = rememberCoroutineScope()
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -138,53 +137,12 @@ fun ImportPreviewScreen(
             }
             item {
                 val draft = form.toStructuredRecipe()
-                val imperial = ImperialUnits.isPresentIn(draft)
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    if (imperial) {
-                        Text(
-                            stringResource(R.string.rewrite_imperial_hint),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    when (val s = rewriteState) {
-                        is RewriteState.Failed -> Text(
-                            stringResource(R.string.rewrite_failed, s.message),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.error,
-                        )
-                        is RewriteState.NothingToTranslate -> Text(
-                            stringResource(R.string.rewrite_already_translated),
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                        else -> {}
-                    }
-                    ClayButton(
-                        text = stringResource(
-                            if (rewriteState is RewriteState.Running) R.string.rewrite_running
-                            else R.string.rewrite_button
-                        ),
-                        icon = Icons.Filled.Translate,
-                        enabled = rewriteState !is RewriteState.Running && form.isValid,
-                        onClick = {
-                            viewModel.clearRewriteError()
-                            viewModel.convertAndTranslate(draft, form::applyDraft)
-                        },
-                        // Highlighted only when the recipe actually needs converting.
-                        container = if (imperial) {
-                            MaterialTheme.colorScheme.primaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainerLow
-                        },
-                        contentColor = if (imperial) {
-                            MaterialTheme.colorScheme.onPrimaryContainer
-                        } else {
-                            MaterialTheme.colorScheme.primary
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
+                RefineRecipeCard(
+                    draft = draft,
+                    state = refineState,
+                    enabled = form.isValid,
+                    onRefine = { viewModel.convertAndTranslate(draft, form::applyDraft) },
+                )
             }
             item { RecipeIdentityFields(form) }
             item { IngredientsCard(form) }
