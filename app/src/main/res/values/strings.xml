@@ -269,4 +269,6 @@
     <string name="rewrite_running">Rewriting the recipe…</string>
     <string name="rewrite_imperial_hint">This recipe uses cups/ounces. Tidy up converts them to grams and millilitres and translates the steps.</string>
     <string name="rewrite_failed">The rewrite did not work: %1$s</string>
+    <string name="rewrite_convert_only">Convert to grams and °C</string>
+    <string name="rewrite_convert_hint">This recipe uses cups/ounces. Convert rewrites them as grams, millilitres and °C.</string>
 </resources>

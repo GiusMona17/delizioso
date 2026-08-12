@@ -269,4 +269,6 @@
     <string name="rewrite_running">Riscrivo la ricetta…</string>
     <string name="rewrite_imperial_hint">Questa ricetta usa cup/once. "Sistema" le converte in grammi e millilitri e traduce i passaggi.</string>
     <string name="rewrite_failed">La riscrittura non ha funzionato: %1$s</string>
+    <string name="rewrite_convert_only">Converti in grammi e °C</string>
+    <string name="rewrite_convert_hint">Questa ricetta usa cup/once. Converti le riscrive in grammi, millilitri e °C.</string>
 </resources>

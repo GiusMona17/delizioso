@@ -134,14 +134,19 @@ fun ImportPreviewScreen(
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
             }
-            if (canRewrite) {
-                item {
-                    val draft = form.toStructuredRecipe()
-                    val imperial = ImperialUnits.isPresentIn(draft)
+            item {
+                val draft = form.toStructuredRecipe()
+                val imperial = ImperialUnits.isPresentIn(draft)
+                // Worth offering when a model can translate, or when the units alone
+                // need fixing — the conversion is useful with no model at all.
+                if (canRewrite || imperial) {
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (imperial) {
                             Text(
-                                stringResource(R.string.rewrite_imperial_hint),
+                                stringResource(
+                                    if (canRewrite) R.string.rewrite_imperial_hint
+                                    else R.string.rewrite_convert_hint
+                                ),
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -155,8 +160,11 @@ fun ImportPreviewScreen(
                         }
                         ClayButton(
                             text = stringResource(
-                                if (rewriteState is RewriteState.Running) R.string.rewrite_running
-                                else R.string.rewrite_button
+                                when {
+                                    rewriteState is RewriteState.Running -> R.string.rewrite_running
+                                    canRewrite -> R.string.rewrite_button
+                                    else -> R.string.rewrite_convert_only
+                                }
                             ),
                             icon = Icons.Filled.AutoAwesome,
                             enabled = rewriteState !is RewriteState.Running && form.isValid,

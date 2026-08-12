@@ -1,5 +1,6 @@
 package com.delizioso.app.data.ai
 
+import com.delizioso.app.data.UnitConverter
 import com.delizioso.app.data.import.IngredientParser
 import com.delizioso.app.data.import.StructuredRecipe
 import kotlinx.serialization.json.Json
@@ -32,10 +33,15 @@ class GemmaRewriter(
         recipe: StructuredRecipe,
         targetLanguage: String = Locale.getDefault().displayLanguage,
     ): StructuredRecipe {
-        val prompt = buildPrompt(recipe, targetLanguage)
+        // Units are converted in code FIRST, so the model never does arithmetic —
+        // it only ever sees numbers that are already correct and is told to copy
+        // them verbatim. Gemma 3 1B left cups and ounces untouched when asked to
+        // convert them itself.
+        val metric = UnitConverter.convert(recipe)
+        val prompt = buildPrompt(metric, targetLanguage)
         val raw = engine.generate(prompt)
         android.util.Log.d("GemmaRewrite", "DIAG len=${raw.length} raw=<<<$raw>>>")
-        return parse(raw, recipe)
+        return parse(raw, metric)
     }
 
     private fun buildPrompt(recipe: StructuredRecipe, targetLanguage: String): String = buildString {
@@ -43,12 +49,12 @@ class GemmaRewriter(
         appendLine("Return ONLY valid JSON, no markdown and no commentary, in exactly this shape:")
         appendLine("""{"title":"","description":"","ingredients":["..."],"steps":["..."]}""")
         appendLine("Rules:")
-        appendLine("- Write every field in $targetLanguage.")
-        appendLine("- Convert imperial amounts to metric: cups/oz/lb to grams or millilitres, °F to °C. Round sensibly (e.g. 1 cup flour = 120 g).")
-        appendLine("- Amounts ALREADY metric must be copied unchanged. Never invent quantities that were not there.")
-        appendLine("- Keep every ingredient. Do not add or drop any.")
-        appendLine("- Rewrite each step as one clear instruction, adding the technique detail a beginner needs, but never inventing times or temperatures that were not implied.")
-        appendLine("- \"description\": one short appetising sentence.")
+        appendLine("- Translate every field into $targetLanguage.")
+        appendLine("- The amounts below are ALREADY correct. Copy every number and unit EXACTLY as written. Do not convert, recalculate or round anything.")
+        appendLine("- Keep every ingredient, in the same order. Do not add or drop any.")
+        appendLine("- Keep the same number of steps. Rewrite each one as a clear instruction in $targetLanguage, adding the technique detail a beginner needs, but never inventing times, temperatures or ingredients.")
+        appendLine("- \"title\": the name of THIS dish. Do not rename it to a different dish.")
+        appendLine("- \"description\": one short appetising sentence about this dish.")
         appendLine("--- RECIPE ---")
         recipe.title?.let { appendLine("Title: $it") }
         recipe.servings?.let { appendLine("Servings: $it") }

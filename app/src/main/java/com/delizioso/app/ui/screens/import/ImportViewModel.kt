@@ -10,6 +10,7 @@ import android.net.Uri
 import com.delizioso.app.DeliziosoApplication
 import com.delizioso.app.data.ImageStore
 import com.delizioso.app.data.RecipeRepository
+import com.delizioso.app.data.UnitConverter
 import com.delizioso.app.data.ai.AiUnavailableException
 import com.delizioso.app.data.ai.GemmaRewriter
 import com.delizioso.app.data.ai.NanoInference
@@ -76,6 +77,7 @@ class ImportViewModel(
     private val _rewrite = MutableStateFlow<RewriteState>(RewriteState.Idle)
     val rewrite: StateFlow<RewriteState> = _rewrite.asStateFlow()
 
+    /** True when a Gemma model is installed and can translate/rewrite. */
     fun canRewrite(): Boolean = rewriter.isAvailable()
 
     /**
@@ -87,7 +89,14 @@ class ImportViewModel(
         viewModelScope.launch {
             _rewrite.value = RewriteState.Running
             try {
-                val improved = rewriter.rewrite(recipe)
+                // Without a model the conversion still stands on its own: it is
+                // exact, instant, and the whole point of the button for a recipe
+                // written in cups.
+                val improved = if (rewriter.isAvailable()) {
+                    rewriter.rewrite(recipe)
+                } else {
+                    UnitConverter.convert(recipe)
+                }
                 _rewrite.value = RewriteState.Idle
                 onRewritten(improved)
             } catch (e: CancellationException) {
