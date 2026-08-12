@@ -147,6 +147,8 @@
     <string name="import_failed">Importazione non riuscita</string>
     <string name="import_unexpected">Errore imprevisto</string>
     <string name="import_ai_failed">Organizzazione con l\'IA non riuscita</string>
+    <string name="import_shell_title">Non sono riuscito a leggere gli ingredienti</string>
+    <string name="import_shell_body">L\'IA sul dispositivo non è riuscita a estrarre una ricetta da questo post, quindi sono stati importati solo il titolo e la foto. Aggiungi ingredienti e passaggi qui sotto, oppure torna indietro e riprova.</string>
     <string name="import_consent_body">L\'organizzazione di questa didascalia usa Gemini Nano — l\'IA on-device di Google. Tutto resta sul tuo telefono.</string>
     <string name="import_platform_web">Web</string>
     <string name="import_preview_title">Rivedi e salva</string>

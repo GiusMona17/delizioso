@@ -41,7 +41,16 @@ sealed interface ImportUiState {
     data object Idle : ImportUiState
     data object Fetching : ImportUiState
     data object Structuring : ImportUiState
-    data class Ready(val recipe: StructuredRecipe, val raw: RawImport) : ImportUiState
+    /**
+     * [structuringFailed] means the AI could not read the caption and this is a
+     * bare title+photo shell — the screen must say so rather than silently
+     * presenting empty ingredient and step sections.
+     */
+    data class Ready(
+        val recipe: StructuredRecipe,
+        val raw: RawImport,
+        val structuringFailed: Boolean = false,
+    ) : ImportUiState
     data class Error(val message: String, val retryable: Boolean) : ImportUiState
     data object AiConsentNeeded : ImportUiState
 }
@@ -138,10 +147,11 @@ class ImportViewModel(
                             throw e
                         } catch (e: AiUnavailableException) {
                             // Structuring failed (transient model output, or the caption
-                            // was just a name): still land title + thumbnail as a shell.
-                            fallbackToShell(content, raw)
+                            // was just a name): still land title + thumbnail as a shell,
+                            // but tell the user so an empty form is never a mystery.
+                            fallbackToShell(content, raw, e.message)
                         } catch (e: Exception) {
-                            fallbackToShell(content, raw)
+                            fallbackToShell(content, raw, e.message)
                         }
                     }
                 }
@@ -150,7 +160,14 @@ class ImportViewModel(
     }
 
     /** Structuring failed / wall: keep title + cover thumbnail as an editable shell. */
-    private fun fallbackToShell(content: ImportContent.RawText, raw: RawImport) {
+    private fun fallbackToShell(
+        content: ImportContent.RawText,
+        raw: RawImport,
+        reason: String? = null,
+    ) {
+        if (reason != null) {
+            android.util.Log.w("Import", "structuring failed, falling back to shell: $reason")
+        }
         _state.value = ImportUiState.Ready(
             recipe = StructuredRecipe(
                 // Prefer the already-cleaned caption (recipe name); the raw og:title may
@@ -159,6 +176,7 @@ class ImportViewModel(
                 imageUrl = raw.thumbnailUrl,
             ),
             raw = raw,
+            structuringFailed = true,
         )
     }
 

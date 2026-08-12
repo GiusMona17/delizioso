@@ -147,6 +147,8 @@
     <string name="import_failed">Import failed</string>
     <string name="import_unexpected">Unexpected error</string>
     <string name="import_ai_failed">AI structuring failed</string>
+    <string name="import_shell_title">Couldn\'t read the ingredients</string>
+    <string name="import_shell_body">The on-device AI couldn\'t pull a recipe out of this post, so only the title and photo were imported. Add the ingredients and steps below, or go back and try again.</string>
     <string name="import_consent_body">Structuring this caption uses Gemini Nano — Google\'s on-device AI. Everything stays on your phone.</string>
     <string name="import_platform_web">Web</string>
     <string name="import_preview_title">Review &amp; Save</string>

@@ -34,6 +34,7 @@ import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayTopBar
 import com.delizioso.app.ui.components.PhotoPickerArea
+import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.screens.create.IngredientsCard
 import com.delizioso.app.ui.screens.create.InstructionsCard
 import com.delizioso.app.ui.screens.create.RecipeIdentityFields
@@ -97,6 +98,28 @@ fun ImportPreviewScreen(
                     imageUri = pickedPhoto ?: current.raw.thumbnailUrl ?: current.recipe.imageUrl,
                     onPick = { photoPicker.launch("image/*") },
                 )
+            }
+            if (current.structuringFailed) {
+                item {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clayCard(container = MaterialTheme.colorScheme.errorContainer, cornerRadius = 24.dp)
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Text(
+                            stringResource(R.string.import_shell_title),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                        Text(
+                            stringResource(R.string.import_shell_body),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                        )
+                    }
+                }
             }
             item {
                 ClayChip(

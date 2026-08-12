@@ -3,9 +3,11 @@ package com.delizioso.app.data.ai
 import com.google.mlkit.genai.common.DownloadStatus
 import com.google.mlkit.genai.common.FeatureStatus
 import com.google.mlkit.genai.common.GenAiException
+import com.google.mlkit.genai.prompt.GenerateContentRequest
 import com.google.mlkit.genai.prompt.GenerateContentResponse
 import com.google.mlkit.genai.prompt.GenerativeModel
 import com.google.mlkit.genai.prompt.Generation
+import com.google.mlkit.genai.prompt.TextPart
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 
@@ -39,6 +41,22 @@ object NanoInference {
     }
 
     /**
+     * Builds a request that answers with as much as the platform allows.
+     *
+     * AICore hard-caps a single answer at [MAX_OUTPUT_TOKENS] ("maxOutputTokens
+     * must be between 1 and 256"), roughly 900 characters — which is why asking
+     * Nano to echo a whole recipe back as JSON truncates mid-array. Prompts have
+     * to be designed for a small answer; this just makes sure we ask for all of it.
+     */
+    fun requestFor(prompt: String): GenerateContentRequest =
+        GenerateContentRequest.builder(TextPart(prompt))
+            .apply { maxOutputTokens = MAX_OUTPUT_TOKENS }
+            .build()
+
+    /** AICore's hard ceiling on one answer. Not a tuning knob — the API rejects more. */
+    const val MAX_OUTPUT_TOKENS = 256
+
+    /**
      * AICore enforces a per-app inference quota — under load it returns BUSY.
      * Retry with exponential backoff (500ms → 2s → 8s) before giving up.
      */
@@ -47,12 +65,13 @@ object NanoInference {
         prompt: String,
         maxAttempts: Int = 4,
     ): GenerateContentResponse {
+        val request = requestFor(prompt)
         var attempt = 0
         var backoff = 500L
         while (true) {
             attempt++
             try {
-                return model.generateContent(prompt)
+                return model.generateContent(request)
             } catch (e: GenAiException) {
                 if (attempt >= maxAttempts) {
                     throw AiUnavailableException(
@@ -68,6 +87,52 @@ object NanoInference {
                 throw AiUnavailableException("On-device AI failed: ${e.message}", retryable = true)
             }
         }
+    }
+
+    /**
+     * Closes an object the model ran out of tokens mid-way through.
+     *
+     * A truncated answer still contains most of the recipe; throwing it away loses
+     * every ingredient the model did get right. Rewinds to the last completed
+     * member or array element, then closes whatever brackets are still open.
+     * Returns null when there is nothing salvageable.
+     */
+    fun repairTruncatedJson(raw: String): String? {
+        val start = raw.indexOf('{')
+        if (start == -1) return null
+        val stack = ArrayDeque<Char>()
+        var inString = false
+        var escaped = false
+        // Index just past the last point where the document was structurally complete.
+        var lastSafe = -1
+
+        for (i in start until raw.length) {
+            val c = raw[i]
+            if (inString) {
+                when {
+                    escaped -> escaped = false
+                    c == '\\' -> escaped = true
+                    c == '"' -> inString = false
+                }
+                continue
+            }
+            when (c) {
+                '"' -> inString = true
+                '{' -> stack.addLast('}')
+                '[' -> stack.addLast(']')
+                '}', ']' -> {
+                    if (stack.isEmpty()) return null
+                    stack.removeLast()
+                    lastSafe = i + 1
+                }
+                ',' -> lastSafe = i
+            }
+        }
+        if (stack.isEmpty()) return raw.substring(start)
+        if (lastSafe <= start) return null
+
+        val head = raw.substring(start, lastSafe).trimEnd().trimEnd(',')
+        return head + stack.reversed().joinToString("")
     }
 
     /** Strips markdown fences and surrounding prose, keeping the JSON object. */
