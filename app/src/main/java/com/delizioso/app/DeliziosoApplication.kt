@@ -7,6 +7,7 @@ import com.delizioso.app.data.ai.GemmaEngine
 import com.delizioso.app.data.ai.NanoChat
 import com.delizioso.app.data.ai.RecipeChat
 import com.delizioso.app.data.ai.RecipeTranslator
+import com.delizioso.app.data.backup.BackupManager
 import com.delizioso.app.data.ai.NanoStructurer
 import com.delizioso.app.data.ai.OcrTextExtractor
 import com.delizioso.app.data.import.BlogImporter
@@ -36,6 +37,7 @@ class AppContainer(context: Context) {
     val gemmaEngine: GemmaEngine = GemmaEngine(context.applicationContext)
     val recipeChat: RecipeChat = RecipeChat(nanoChat, gemmaEngine)
     val recipeTranslator: RecipeTranslator = RecipeTranslator()
+    val backupManager: BackupManager = BackupManager(context.applicationContext, recipeRepository)
     val ocrTextExtractor: OcrTextExtractor = OcrTextExtractor()
 
     val importRegistry: RecipeImporterRegistry = RecipeImporterRegistry(

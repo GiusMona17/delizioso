@@ -25,9 +25,6 @@ interface RecipeDao {
     @Query("SELECT * FROM recipes WHERE isFavorite = 1 ORDER BY updatedAt DESC")
     fun observeFavorites(): Flow<List<RecipeEntity>>
 
-    @Query("SELECT * FROM recipes WHERE title LIKE '%' || :query || '%' ORDER BY updatedAt DESC")
-    fun search(query: String): Flow<List<RecipeEntity>>
-
     @Query("SELECT COUNT(*) FROM recipes")
     fun observeCount(): Flow<Int>
 

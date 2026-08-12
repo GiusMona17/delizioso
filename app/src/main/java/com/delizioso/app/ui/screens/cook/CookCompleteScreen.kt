@@ -1,6 +1,8 @@
 package com.delizioso.app.ui.screens.cook
 
 import android.content.Intent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,12 +14,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +32,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.delizioso.app.data.ImageStore
 import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayOutlinedButton
@@ -94,11 +101,42 @@ fun CookCompleteScreen(
                 }
             }
         }
+        // The dish is on the counter right now — this is the only moment the app
+        // can get a real photo of it. Imported reels almost never yield a usable
+        // thumbnail, so the library is otherwise a wall of placeholders.
+        var pendingPhoto by remember { mutableStateOf<String?>(null) }
+        val camera = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { saved ->
+            val path = pendingPhoto
+            pendingPhoto = null
+            if (saved && path != null) {
+                viewModel.setPhoto(context, path)
+            } else {
+                // Cancelled: don't leave an empty file behind in our own storage.
+                path?.let { ImageStore.deleteIfOwned(context, it) }
+            }
+        }
+        ClayButton(
+            text = stringResource(
+                if (recipe?.imageUri.isNullOrBlank()) R.string.cook_photo_add else R.string.cook_photo_replace
+            ),
+            icon = Icons.Filled.PhotoCamera,
+            onClick = {
+                val (path, uri) = ImageStore.newCameraTarget(context)
+                pendingPhoto = path
+                runCatching { camera.launch(uri) }.onFailure {
+                    pendingPhoto = null
+                    ImageStore.deleteIfOwned(context, path)
+                }
+            },
+            container = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.fillMaxWidth().padding(top = 28.dp),
+        )
         ClayButton(
             text = stringResource(R.string.cook_complete_back),
             icon = Icons.AutoMirrored.Filled.MenuBook,
             onClick = onBackToLibrary,
-            modifier = Modifier.fillMaxWidth().padding(top = 36.dp),
+            modifier = Modifier.fillMaxWidth().padding(top = 14.dp),
         )
         val shareText = buildString {
             append(stringResource(R.string.cook_share_prefix))

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.delizioso.app.DeliziosoApplication
+import com.delizioso.app.data.ImageStore
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.local.RecipeWithDetails
 import com.delizioso.app.data.local.UserPreferences
@@ -15,7 +16,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 
 class CookViewModel(
@@ -79,6 +82,20 @@ class CookViewModel(
     }
 
     /** Flag today's planned meals for this recipe as cooked. */
+    /**
+     * Adopt a photo just taken of the finished dish, dropping the old one.
+     *
+     * This is the moment the app has a real picture to show: imported reels rarely
+     * yield a usable thumbnail, and the plate is right there.
+     */
+    fun setPhoto(context: android.content.Context, path: String) {
+        viewModelScope.launch {
+            val previous = repository.currentImage(recipeId)
+            repository.setImage(recipeId, path)
+            withContext(Dispatchers.IO) { ImageStore.deleteIfOwned(context, previous) }
+        }
+    }
+
     fun markCooked() {
         viewModelScope.launch { repository.markMealsCooked(recipeId, LocalDate.now().toEpochDay()) }
     }

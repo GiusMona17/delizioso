@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The camera writes straight into the folder recipe photos already live in, so a
+  shot taken after cooking needs no copy afterwards.
+-->
+<paths>
+    <files-path name="recipe_images" path="recipe_images/" />
+</paths>

@@ -380,7 +380,7 @@ fun RecipeDetailScreen(
                         modifier = Modifier.fillMaxWidth(),
                     )
                 } else {
-                    StepList(d)
+                    StepList(d, factor)
                 }
                 MacrosPanel(macros = macros, onOpenChat = { showChat = true })
                 SourceSection(d)
@@ -567,8 +567,9 @@ private fun IngredientList(
     }
 }
 
+/** [factor] keeps the amounts written into the steps in step with the stepper. */
 @Composable
-private fun StepList(details: RecipeWithDetails) {
+private fun StepList(details: RecipeWithDetails, factor: Double) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         details.steps.sortedBy { it.position }.forEachIndexed { index, step ->
             Row(
@@ -590,7 +591,7 @@ private fun StepList(details: RecipeWithDetails) {
                     Text("${index + 1}", style = MaterialTheme.typography.labelLarge, color = Primary)
                 }
                 Text(
-                    step.text,
+                    Quantities.scaleInText(step.text, factor),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f).padding(top = 4.dp),

@@ -18,8 +18,6 @@ class RecipeRepository(private val dao: RecipeDao) {
 
     fun favorites(): Flow<List<RecipeEntity>> = dao.observeFavorites()
 
-    fun search(query: String): Flow<List<RecipeEntity>> = dao.search(query)
-
     fun count(): Flow<Int> = dao.observeCount()
 
     suspend fun save(details: RecipeWithDetails, tagNames: List<String> = emptyList()): Long =

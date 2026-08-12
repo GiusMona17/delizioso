@@ -40,6 +40,28 @@ object ImageStore {
         }.getOrNull()
     }
 
+    /**
+     * An empty file for the camera to fill, plus the content URI that grants it
+     * write access. Returns the pair so the caller can keep the path once the
+     * shot is taken — [deleteIfOwned] cleans it up if the user backs out.
+     */
+    fun newCameraTarget(context: Context): Pair<String, Uri> {
+        val file = newFile(context)
+        val uri = androidx.core.content.FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file,
+        )
+        return file.absolutePath to uri
+    }
+
+    /** Writes photo bytes lifted out of a backup archive into internal storage. */
+    fun saveBytes(context: Context, bytes: ByteArray): String {
+        val dest = newFile(context)
+        FileOutputStream(dest).use { it.write(bytes) }
+        return dest.absolutePath
+    }
+
     /** Deletes a photo this app owns; ignores anything outside its own directory. */
     fun deleteIfOwned(context: Context, path: String?) {
         if (path.isNullOrBlank()) return
@@ -51,6 +73,12 @@ object ImageStore {
     private fun directory(context: Context): File =
         File(context.filesDir, "recipe_images").apply { mkdirs() }
 
+    /**
+     * A counter joins the timestamp because a restore writes dozens of photos in
+     * a tight loop, and the clock does not tick between them.
+     */
+    private val sequence = java.util.concurrent.atomic.AtomicLong(0)
+
     private fun newFile(context: Context) =
-        File(directory(context), "recipe_${System.currentTimeMillis()}.jpg")
+        File(directory(context), "recipe_${System.currentTimeMillis()}_${sequence.getAndIncrement()}.jpg")
 }

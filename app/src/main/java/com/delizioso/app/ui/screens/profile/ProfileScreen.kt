@@ -48,6 +48,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.delizioso.app.DeliziosoApplication
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.GemmaEngine
+import com.delizioso.app.data.backup.BackupManager
 import com.delizioso.app.data.local.UserPreferences
 import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayLabelledField
@@ -65,10 +66,20 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
 import com.delizioso.app.R
 
+/** Outcome of a library backup or restore, reported rather than assumed. */
+sealed interface BackupState {
+    data object Idle : BackupState
+    data object Working : BackupState
+    data class Exported(val recipes: Int) : BackupState
+    data class Restored(val added: Int, val skipped: Int) : BackupState
+    data class Failed(val message: String) : BackupState
+}
+
 class ProfileViewModel(
     private val preferences: UserPreferences,
     repository: RecipeRepository,
     private val gemma: GemmaEngine,
+    private val backupManager: BackupManager,
 ) : ViewModel() {
 
     /** Bytes installed, 0 when absent; -1 while copying. */
@@ -101,6 +112,36 @@ class ProfileViewModel(
     val recipeCount: StateFlow<Int> =
         repository.count().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
+    /** Progress and outcome of the last backup or restore. */
+    private val _backup = MutableStateFlow<BackupState>(BackupState.Idle)
+    val backup: StateFlow<BackupState> = _backup.asStateFlow()
+
+    fun suggestedBackupName(): String = backupManager.suggestedFileName()
+
+    fun exportLibrary(destination: android.net.Uri) {
+        if (_backup.value is BackupState.Working) return
+        viewModelScope.launch {
+            _backup.value = BackupState.Working
+            _backup.value = runCatching { backupManager.exportTo(destination) }
+                .fold(
+                    onSuccess = { BackupState.Exported(it) },
+                    onFailure = { BackupState.Failed(it.message.orEmpty()) },
+                )
+        }
+    }
+
+    fun importLibrary(source: android.net.Uri) {
+        if (_backup.value is BackupState.Working) return
+        viewModelScope.launch {
+            _backup.value = BackupState.Working
+            _backup.value = runCatching { backupManager.importFrom(source) }
+                .fold(
+                    onSuccess = { BackupState.Restored(it.added, it.skipped) },
+                    onFailure = { BackupState.Failed(it.message.orEmpty()) },
+                )
+        }
+    }
+
     fun setAiConsent(value: Boolean) = viewModelScope.launch { preferences.setAiConsent(value) }
 
     fun setDefaultServings(value: Int) =
@@ -112,7 +153,12 @@ class ProfileViewModel(
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as DeliziosoApplication
-                ProfileViewModel(app.container.preferences, app.container.recipeRepository, app.container.gemmaEngine)
+                ProfileViewModel(
+                    preferences = app.container.preferences,
+                    repository = app.container.recipeRepository,
+                    gemma = app.container.gemmaEngine,
+                    backupManager = app.container.backupManager,
+                )
             }
         }
     }
@@ -127,6 +173,7 @@ fun ProfileScreen(
     val servings by viewModel.defaultServings.collectAsStateWithLifecycle()
     val storedKey by viewModel.youTubeApiKey.collectAsStateWithLifecycle()
     val recipeCount by viewModel.recipeCount.collectAsStateWithLifecycle()
+    val backupState by viewModel.backup.collectAsStateWithLifecycle()
 
     var apiKey by rememberSaveable { mutableStateOf("") }
     var apiKeyLoaded by rememberSaveable { mutableStateOf(false) }
@@ -276,6 +323,17 @@ fun ProfileScreen(
             }
 
             item {
+                SettingsCard(title = stringResource(R.string.backup_section)) {
+                    BackupControls(
+                        state = backupState,
+                        suggestedName = viewModel::suggestedBackupName,
+                        onExport = viewModel::exportLibrary,
+                        onImport = viewModel::importLibrary,
+                    )
+                }
+            }
+
+            item {
                 SettingsCard(title = stringResource(R.string.profile_yt_section)) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text(
@@ -298,6 +356,71 @@ fun ProfileScreen(
             }
         }
     }
+}
+
+/**
+ * Save the whole library to a file, and put it back.
+ *
+ * Everything lives on this phone, so a reset or a lost handset takes the
+ * collection with it unless there is a copy somewhere else. The system picker
+ * chooses where the file goes, which keeps the app out of the user's storage and
+ * lets the copy land in Drive, a USB stick or wherever they already trust.
+ */
+@Composable
+private fun BackupControls(
+    state: BackupState,
+    suggestedName: () -> String,
+    onExport: (android.net.Uri) -> Unit,
+    onImport: (android.net.Uri) -> Unit,
+) {
+    val exportPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/zip")
+    ) { uri -> uri?.let(onExport) }
+    val importPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri -> uri?.let(onImport) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Text(
+            stringResource(R.string.backup_desc),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        when (state) {
+            is BackupState.Working -> StatusLine(stringResource(R.string.backup_working))
+            is BackupState.Exported -> StatusLine(stringResource(R.string.backup_exported, state.recipes))
+            is BackupState.Restored -> StatusLine(
+                stringResource(R.string.backup_restored, state.added, state.skipped)
+            )
+            is BackupState.Failed -> StatusLine(
+                stringResource(R.string.backup_failed, state.message),
+                color = MaterialTheme.colorScheme.error,
+            )
+            BackupState.Idle -> Unit
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            ClayButton(
+                text = stringResource(R.string.backup_export),
+                enabled = state !is BackupState.Working,
+                onClick = { exportPicker.launch(suggestedName()) },
+                modifier = Modifier.weight(1f),
+            )
+            ClayButton(
+                text = stringResource(R.string.backup_import),
+                enabled = state !is BackupState.Working,
+                // Some file providers hand zips out as octet-stream, so accept both.
+                onClick = { importPicker.launch(arrayOf("application/zip", "application/octet-stream")) },
+                container = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = Primary,
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+}
+
+@Composable
+private fun StatusLine(text: String, color: androidx.compose.ui.graphics.Color = Primary) {
+    Text(text, style = MaterialTheme.typography.labelMedium, color = color)
 }
 
 @Composable

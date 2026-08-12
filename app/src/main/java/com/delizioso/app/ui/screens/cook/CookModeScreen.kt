@@ -36,6 +36,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -43,6 +44,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -82,6 +84,10 @@ fun CookModeScreen(
     val completed by viewModel.completed.collectAsStateWithLifecycle()
     val gathered by viewModel.gathered.collectAsStateWithLifecycle()
     var showIngredients by remember { mutableStateOf(false) }
+
+    // Hands are floury and the phone is propped on the counter: letting the screen
+    // time out mid-step is the single most annoying thing this screen could do.
+    KeepScreenOn()
 
     val d = details
     val steps = d?.steps?.sortedBy { it.position }.orEmpty()
@@ -380,5 +386,18 @@ private fun InlineTimer(totalSeconds: Int) {
             container = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
         )
+    }
+}
+
+/**
+ * Holds the screen awake for as long as this composable is on screen, and lets go
+ * again on the way out so the phone is not left burning battery on the counter.
+ */
+@Composable
+private fun KeepScreenOn() {
+    val view = LocalView.current
+    DisposableEffect(view) {
+        view.keepScreenOn = true
+        onDispose { view.keepScreenOn = false }
     }
 }

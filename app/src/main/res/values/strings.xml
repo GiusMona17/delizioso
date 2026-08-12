@@ -276,4 +276,14 @@
     <string name="detail_open_source_failed">Nothing on this phone can open that link</string>
     <string name="detail_macros_unmatched">Not recognised: %1$s</string>
     <string name="chat_disclaimer_gemma">Answers come from the Gemma model you installed, running on your phone. It knows this recipe — </string>
+    <string name="backup_section">Backup</string>
+    <string name="backup_desc">Everything lives on this phone. Save the whole library — recipes and photos — to one file you keep wherever you like.</string>
+    <string name="backup_export">Save to file</string>
+    <string name="backup_import">Restore</string>
+    <string name="backup_working">Working…</string>
+    <string name="backup_exported">Saved %1$d recipes.</string>
+    <string name="backup_restored">Added %1$d recipes, %2$d were already here.</string>
+    <string name="backup_failed">Backup failed: %1$s</string>
+    <string name="cook_photo_add">Photograph the dish</string>
+    <string name="cook_photo_replace">Take a new photo</string>
 </resources>

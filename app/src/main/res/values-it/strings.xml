@@ -276,4 +276,14 @@
     <string name="detail_open_source_failed">Nessuna app su questo telefono può aprire il link</string>
     <string name="detail_macros_unmatched">Non riconosciuti: %1$s</string>
     <string name="chat_disclaimer_gemma">Le risposte arrivano dal modello Gemma che hai installato, in esecuzione sul telefono. Conosce questa ricetta — </string>
+    <string name="backup_section">Backup</string>
+    <string name="backup_desc">Tutto vive su questo telefono. Salva l\'intera libreria — ricette e foto — in un unico file da tenere dove preferisci.</string>
+    <string name="backup_export">Salva su file</string>
+    <string name="backup_import">Ripristina</string>
+    <string name="backup_working">Operazione in corso…</string>
+    <string name="backup_exported">Salvate %1$d ricette.</string>
+    <string name="backup_restored">Aggiunte %1$d ricette, %2$d c\'erano già.</string>
+    <string name="backup_failed">Backup non riuscito: %1$s</string>
+    <string name="cook_photo_add">Fotografa il piatto</string>
+    <string name="cook_photo_replace">Scatta una nuova foto</string>
 </resources>
