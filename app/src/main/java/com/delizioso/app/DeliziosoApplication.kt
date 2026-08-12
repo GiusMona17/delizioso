@@ -5,6 +5,7 @@ import android.content.Context
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.GemmaEngine
 import com.delizioso.app.data.ai.NanoChat
+import com.delizioso.app.data.ai.RecipeChat
 import com.delizioso.app.data.ai.RecipeTranslator
 import com.delizioso.app.data.ai.NanoStructurer
 import com.delizioso.app.data.ai.OcrTextExtractor
@@ -33,6 +34,7 @@ class AppContainer(context: Context) {
     )
     /** Optional, user-supplied Gemma model. Import never uses it — chat is its job. */
     val gemmaEngine: GemmaEngine = GemmaEngine(context.applicationContext)
+    val recipeChat: RecipeChat = RecipeChat(nanoChat, gemmaEngine)
     val recipeTranslator: RecipeTranslator = RecipeTranslator()
     val ocrTextExtractor: OcrTextExtractor = OcrTextExtractor()
 

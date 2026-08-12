@@ -18,11 +18,8 @@ data class RecipeEntity(
     val imageUri: String? = null,
     val notes: String? = null,
     val isFavorite: Boolean = false,
-    /** AI-estimated macros per serving (nullable until computed). */
-    val macrosKcal: Float? = null,
-    val macrosProteinG: Float? = null,
-    val macrosFatG: Float? = null,
-    val macrosCarbsG: Float? = null,
+    // Macros are not stored: they are summed from the ingredients on the fly by
+    // MacroCalculator, so an edit can never leave a stale total behind.
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
 )

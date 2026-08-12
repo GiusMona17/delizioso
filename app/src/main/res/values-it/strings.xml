@@ -104,10 +104,8 @@
     <string name="detail_serving_fewer">Una porzione in meno</string>
     <string name="detail_serving_more">Una porzione in più</string>
     <string name="detail_consent_title">L\'IA sul dispositivo richiede il tuo consenso</string>
-    <string name="detail_consent_body">Le stime sono generate da Gemini Nano sul tuo telefono: nulla lascia il dispositivo.</string>
     <string name="detail_enable_ai">Attiva l\'IA sul dispositivo</string>
     <string name="detail_retry">Riprova</string>
-    <string name="detail_ai_busy">L\'IA sul dispositivo è occupata</string>
     <string name="detail_ai_no_answer">L\'IA sul dispositivo non ha potuto rispondere</string>
     <string name="detail_thinking">Sto pensando…</string>
     <string name="macro_kcal">%1$d kcal</string>
@@ -136,7 +134,6 @@
     <string name="import_error_title">Impossibile importare quel link</string>
     <string name="import_failed">Importazione non riuscita</string>
     <string name="import_unexpected">Errore imprevisto</string>
-    <string name="import_ai_failed">Organizzazione con l\'IA non riuscita</string>
     <string name="import_shell_title">Non sono riuscito a leggere gli ingredienti</string>
     <string name="import_shell_body">L\'IA sul dispositivo non è riuscita a estrarre una ricetta da questo post, quindi sono stati importati solo il titolo e la foto. Aggiungi ingredienti e passaggi qui sotto, oppure torna indietro e riprova.</string>
     <string name="import_consent_body">L\'organizzazione di questa didascalia usa Gemini Nano — l\'IA on-device di Google. Tutto resta sul tuo telefono.</string>
@@ -275,4 +272,8 @@
     <string name="export_share">Condividi</string>
     <string name="export_copy_markdown">Copia come Markdown</string>
     <string name="export_copy_json">Copia come JSON</string>
+    <string name="detail_open_source">Apri su %1$s</string>
+    <string name="detail_open_source_failed">Nessuna app su questo telefono può aprire il link</string>
+    <string name="detail_macros_unmatched">Non riconosciuti: %1$s</string>
+    <string name="chat_disclaimer_gemma">Le risposte arrivano dal modello Gemma che hai installato, in esecuzione sul telefono. Conosce questa ricetta — </string>
 </resources>

@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.delizioso.app.data.ai.ChatMessage
+import com.delizioso.app.data.ai.RecipeChat
 import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayRoundButton
 import com.delizioso.app.ui.components.ClayTextField
@@ -90,7 +91,10 @@ fun RecipeChatSheet(
 
         if (state.messages.isEmpty() && state.streaming == null) {
             Text(
-                stringResource(R.string.chat_disclaimer) + stringResource(R.string.chat_tail),
+                stringResource(
+                    if (state.engine == RecipeChat.Engine.GEMMA) R.string.chat_disclaimer_gemma
+                    else R.string.chat_disclaimer
+                ) + stringResource(R.string.chat_tail),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

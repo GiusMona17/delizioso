@@ -3,6 +3,7 @@ package com.delizioso.app.ui.screens.detail
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.IosShare
+import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
@@ -74,12 +76,13 @@ import com.delizioso.app.data.Quantities
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.toStructuredRecipe
 import com.delizioso.app.data.ai.ChatMessage
-import com.delizioso.app.data.ai.NanoChat
+import com.delizioso.app.data.ai.RecipeChat
 import com.delizioso.app.data.export.RecipeExport
 import com.delizioso.app.data.nutrition.MacroCalculator
 import com.delizioso.app.data.ai.NanoInference
 import com.delizioso.app.data.import.StructuredRecipe
 import com.delizioso.app.data.local.IngredientEntity
+import com.delizioso.app.data.local.Platform
 import com.delizioso.app.data.local.PlannedMealEntity
 import com.delizioso.app.data.local.RecipeWithDetails
 import com.delizioso.app.data.local.UserPreferences
@@ -116,6 +119,8 @@ data class ChatState(
     val error: String? = null,
     /** AICore is fetching Gemini Nano — minutes on first run, not seconds. */
     val preparingModel: Boolean = false,
+    /** Which model is answering, so the sheet can say so rather than guess. */
+    val engine: RecipeChat.Engine = RecipeChat.Engine.NANO,
 ) {
     val busy: Boolean get() = streaming != null
 }
@@ -123,7 +128,7 @@ data class ChatState(
 class RecipeDetailViewModel(
     private val resources: android.content.res.Resources,
     private val repository: RecipeRepository,
-    private val chatModel: NanoChat,
+    private val chatModel: RecipeChat,
     private val preferences: UserPreferences,
     private val recipeId: Long,
 ) : ViewModel() {
@@ -131,7 +136,7 @@ class RecipeDetailViewModel(
     val details: StateFlow<RecipeWithDetails?> =
         repository.byId(recipeId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    private val _chat = MutableStateFlow(ChatState())
+    private val _chat = MutableStateFlow(ChatState(engine = chatModel.active()))
     val chat: StateFlow<ChatState> = _chat.asStateFlow()
 
     fun toggleFavorite(current: Boolean) {
@@ -189,12 +194,13 @@ class RecipeDetailViewModel(
         _chat.value = ChatState(
             messages = history + ChatMessage(ChatMessage.Role.USER, trimmed),
             streaming = "",
+            engine = chatModel.active(),
         )
         viewModelScope.launch {
             try {
                 // First run downloads the model; say so rather than showing a
                 // "Thinking…" spinner for several minutes.
-                if (chatModel.availability() == NanoInference.Availability.DOWNLOADABLE) {
+                if (chatModel.needsDownload()) {
                     _chat.update { it.copy(preparingModel = true) }
                 }
                 var answer = ""
@@ -232,7 +238,7 @@ class RecipeDetailViewModel(
                 RecipeDetailViewModel(
                     resources = app.resources,
                     repository = app.container.recipeRepository,
-                    chatModel = app.container.nanoChat,
+                    chatModel = app.container.recipeChat,
                     preferences = app.container.preferences,
                     recipeId = recipeId,
                 )
@@ -594,14 +600,56 @@ private fun StepList(details: RecipeWithDetails) {
     }
 }
 
+/**
+ * Where the recipe came from, and a way back to it.
+ *
+ * A reel's caption is never the whole story — the technique is in the video. The
+ * link opens through the system, so Instagram or YouTube handle it in their own
+ * app when installed rather than in a stripped-down web view.
+ */
 @Composable
 private fun SourceSection(details: RecipeWithDetails) {
     val source = details.source ?: return
-    Text(
-        text = listOfNotNull(source.author, source.url).joinToString(" · "),
-        style = MaterialTheme.typography.labelMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-    )
+    val context = LocalContext.current
+    val url = source.url?.takeIf { it.startsWith("http") }
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (url != null) {
+            ClayButton(
+                text = stringResource(R.string.detail_open_source, sourceLabel(source.platform)),
+                icon = Icons.Filled.OpenInNew,
+                onClick = {
+                    val view = android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url))
+                    // No handler at all (no browser, link stripped): say so rather
+                    // than crash on an unresolved intent.
+                    runCatching { context.startActivity(view) }.onFailure {
+                        Toast.makeText(context, R.string.detail_open_source_failed, Toast.LENGTH_SHORT).show()
+                    }
+                },
+                container = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = Primary,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+        val caption = listOfNotNull(source.author, url).joinToString(" · ")
+        if (caption.isNotBlank()) {
+            Text(
+                text = caption,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+            )
+        }
+    }
+}
+
+/** Platform key → the name shown on the button ("Open on Instagram"). */
+@Composable
+private fun sourceLabel(platform: String): String = when (platform) {
+    Platform.INSTAGRAM -> stringResource(R.string.source_instagram)
+    Platform.TIKTOK -> stringResource(R.string.source_tiktok)
+    Platform.YOUTUBE -> stringResource(R.string.source_youtube)
+    Platform.FACEBOOK -> stringResource(R.string.source_facebook)
+    else -> stringResource(R.string.import_platform_web)
 }
 
 /**
@@ -655,6 +703,15 @@ private fun MacrosPanel(
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                // Naming what was left out beats a bare count: it is usually a
+                // spelling the table doesn't know, which the user can just fix.
+                if (macros.unmatched.isNotEmpty()) {
+                    Text(
+                        stringResource(R.string.detail_macros_unmatched, macros.unmatched.joinToString(", ")),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    )
+                }
             }
         }
         ClayButton(

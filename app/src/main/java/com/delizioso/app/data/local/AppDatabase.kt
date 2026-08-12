@@ -17,7 +17,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         SourceEntity::class,
         PlannedMealEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -52,10 +52,54 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /**
+         * v3 → v4: drop the four stored macro columns.
+         *
+         * Macros are now summed from the ingredients whenever they are shown, so
+         * the columns could only ever hold a stale copy. SQLite before 3.35 has
+         * no DROP COLUMN, so the table is rebuilt — which is also what Room's own
+         * generated migrations do.
+         */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `recipes_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `title` TEXT NOT NULL,
+                        `description` TEXT,
+                        `servings` INTEGER,
+                        `prepTimeMinutes` INTEGER,
+                        `cookTimeMinutes` INTEGER,
+                        `imageUri` TEXT,
+                        `notes` TEXT,
+                        `isFavorite` INTEGER NOT NULL,
+                        `createdAt` INTEGER NOT NULL,
+                        `updatedAt` INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    """
+                    INSERT INTO `recipes_new` (
+                        `id`, `title`, `description`, `servings`, `prepTimeMinutes`,
+                        `cookTimeMinutes`, `imageUri`, `notes`, `isFavorite`, `createdAt`, `updatedAt`
+                    )
+                    SELECT `id`, `title`, `description`, `servings`, `prepTimeMinutes`,
+                           `cookTimeMinutes`, `imageUri`, `notes`, `isFavorite`, `createdAt`, `updatedAt`
+                    FROM `recipes`
+                    """.trimIndent()
+                )
+                db.execSQL("DROP TABLE `recipes`")
+                db.execSQL("ALTER TABLE `recipes_new` RENAME TO `recipes`")
+            }
+        }
+
         fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "delizioso.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                .fallbackToDestructiveMigration() // safety net; migrations added as the schema evolves
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                // Safety net only; every version bump so far ships a real migration.
+                .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
     }
 }

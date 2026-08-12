@@ -23,6 +23,11 @@ object MacroCalculator {
         val total: Int,
         /** False when the recipe never said how many servings it makes. */
         val perServing: Boolean,
+        /**
+         * Ingredients the table didn't know, named so the user can see exactly
+         * what is missing from the total and rename it if it was a typo.
+         */
+        val unmatched: List<String> = emptyList(),
     )
 
     /** Below this share of recognised ingredients the total is not worth showing. */
@@ -63,14 +68,19 @@ object MacroCalculator {
         var fat = 0.0
         var carbs = 0.0
         var matched = 0
+        val unmatched = mutableListOf<String>()
 
         for (ingredient in ingredients) {
-            val nutrient = NutritionTable.lookup(ingredient.name) ?: continue
+            val nutrient = NutritionTable.lookup(ingredient.name)
+            if (nutrient == null) {
+                unmatched += ingredient.name
+                continue
+            }
             val grams = gramsOf(ingredient, nutrient)
             if (grams == null) {
                 // "salt to taste" carries no amount and no calories: counting it as
                 // unrecognised would understate coverage for no gain.
-                if (nutrient.kcal == 0.0) matched++
+                if (nutrient.kcal == 0.0) matched++ else unmatched += ingredient.name
                 continue
             }
             matched++
@@ -94,6 +104,7 @@ object MacroCalculator {
             matched = matched,
             total = total,
             perServing = servings != null,
+            unmatched = unmatched,
         )
     }
 

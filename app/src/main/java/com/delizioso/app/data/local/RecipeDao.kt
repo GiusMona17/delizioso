@@ -73,19 +73,6 @@ interface RecipeDao {
     @Query("UPDATE recipes SET isFavorite = :favorite, updatedAt = :updatedAt WHERE id = :id")
     suspend fun setFavorite(id: Long, favorite: Boolean, updatedAt: Long = System.currentTimeMillis())
 
-    @Query(
-        "UPDATE recipes SET macrosKcal = :kcal, macrosProteinG = :proteinG, " +
-            "macrosFatG = :fatG, macrosCarbsG = :carbsG, updatedAt = :updatedAt WHERE id = :id"
-    )
-    suspend fun updateMacros(
-        id: Long,
-        kcal: Float?,
-        proteinG: Float?,
-        fatG: Float?,
-        carbsG: Float?,
-        updatedAt: Long = System.currentTimeMillis(),
-    )
-
     @Query("DELETE FROM ingredients WHERE recipeId = :recipeId")
     suspend fun deleteIngredientsOf(recipeId: Long)
 

@@ -78,41 +78,14 @@ class NanoChat(
     ): String {
         var kept = history
         while (true) {
-            val prompt = buildPrompt(recipe, kept, question)
+            val prompt = ChatPrompt.build(recipe, kept, question)
             if (kept.isEmpty() || countTokens(prompt) <= budget) return prompt
             // Drop the oldest exchange (a user turn and its answer).
             kept = kept.drop(2)
         }
     }
 
-    private fun buildPrompt(
-        recipe: StructuredRecipe,
-        history: List<ChatMessage>,
-        question: String,
-    ): String = buildString {
-        appendLine(SYSTEM)
-        appendLine("--- RECIPE ---")
-        appendLine(recipe.toPlainText().take(2500))
-        if (history.isNotEmpty()) {
-            appendLine("--- CONVERSATION SO FAR ---")
-            history.forEach { message ->
-                val who = if (message.role == ChatMessage.Role.USER) "User" else "Assistant"
-                appendLine("$who: ${message.text}")
-            }
-        }
-        appendLine("--- QUESTION ---")
-        appendLine("User: $question")
-        append("Assistant:")
-    }
-
     private companion object {
-        const val SYSTEM =
-            "You are a friendly cooking assistant answering questions about ONE specific recipe, " +
-                "shown below. Answer in 2-4 short sentences, in the language the user writes in. " +
-                "Give practical kitchen advice: substitutions, techniques, timings, storage, scaling. " +
-                "If the recipe does not contain the answer, say what you would do generally and be " +
-                "clear that it is a suggestion. Never invent precise nutrition figures."
-
         /** Nano's window when the model won't say; deliberately conservative. */
         const val DEFAULT_TOKEN_LIMIT = 1024
 
