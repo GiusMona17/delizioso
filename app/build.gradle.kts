@@ -86,6 +86,9 @@ dependencies {
     implementation(libs.mediapipe.tasks.genai)
     implementation(libs.mlkit.genai.prompt)
     implementation(libs.gms.text.recognition)
+    implementation(libs.mlkit.translate)
+    implementation(libs.mlkit.language.id)
+    implementation(libs.kotlinx.coroutines.play.services)
 
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver)

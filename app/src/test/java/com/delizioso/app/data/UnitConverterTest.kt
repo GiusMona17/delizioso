@@ -42,6 +42,15 @@ class UnitConverterTest {
         assertEquals("220 g brown sugar", UnitConverter.convertLine("1 cup brown sugar"))
     }
 
+    /** A spoonful of a solid is a weight too — "2 tbsp sugar" is 25 g, not 30 ml. */
+    @Test
+    fun `spoons of a dry staple also become grams`() {
+        assertEquals("25 g sugar", UnitConverter.convertLine("2 tbsp sugar"))
+        assertEquals("2.5 g flour", UnitConverter.convertLine("1 tsp flour"))
+        // Not a known solid: millilitres, as before.
+        assertEquals("30 ml soy sauce", UnitConverter.convertLine("2 tbsp soy sauce"))
+    }
+
     @Test
     fun `fahrenheit becomes celsius`() {
         // Rounded to tens so the result is a temperature an oven actually has.

@@ -3,10 +3,9 @@ package com.delizioso.app
 import android.app.Application
 import android.content.Context
 import com.delizioso.app.data.RecipeRepository
-import com.delizioso.app.data.ai.NanoAdvisor
 import com.delizioso.app.data.ai.GemmaEngine
-import com.delizioso.app.data.ai.GemmaRewriter
 import com.delizioso.app.data.ai.NanoChat
+import com.delizioso.app.data.ai.RecipeTranslator
 import com.delizioso.app.data.ai.NanoStructurer
 import com.delizioso.app.data.ai.OcrTextExtractor
 import com.delizioso.app.data.import.BlogImporter
@@ -29,15 +28,12 @@ class AppContainer(context: Context) {
     val nanoStructurer: NanoStructurer = NanoStructurer(
         consentProvider = { preferences.aiConsentGiven.first() }
     )
-    val nanoAdvisor: NanoAdvisor = NanoAdvisor(
-        consentProvider = { preferences.aiConsentGiven.first() }
-    )
     val nanoChat: NanoChat = NanoChat(
         consentProvider = { preferences.aiConsentGiven.first() }
     )
-    /** Optional, user-supplied Gemma model — powers the manual "tidy up" rewrite. */
+    /** Optional, user-supplied Gemma model. Import never uses it — chat is its job. */
     val gemmaEngine: GemmaEngine = GemmaEngine(context.applicationContext)
-    val gemmaRewriter: GemmaRewriter = GemmaRewriter(gemmaEngine)
+    val recipeTranslator: RecipeTranslator = RecipeTranslator()
     val ocrTextExtractor: OcrTextExtractor = OcrTextExtractor()
 
     val importRegistry: RecipeImporterRegistry = RecipeImporterRegistry(

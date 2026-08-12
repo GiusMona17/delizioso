@@ -16,7 +16,10 @@ coil = "2.7.0"
 mediapipeGenai = "0.10.27"
 mlkitGenai = "1.0.0-beta2"
 mlkitTextRecognition = "19.0.1"
+mlkitTranslate = "17.0.3"
+mlkitLanguageId = "17.0.6"
 junit = "4.13.2"
+coroutines = "1.10.2"
 coroutinesTest = "1.10.2"
 
 [libraries]
@@ -47,6 +50,10 @@ mlkit-genai-prompt ={ group = "com.google.mlkit", name = "genai-prompt", version
 # Unbundled OCR via Google Play services (carries the public TextRecognizerOptions API;
 # the bundled com.google.mlkit:text-recognition artifact only ships model assets).
 gms-text-recognition = { group = "com.google.android.gms", name = "play-services-mlkit-text-recognition", version.ref = "mlkitTextRecognition" }
+# On-device NMT: purpose-built for translation, unlike a general small LLM.
+mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkitTranslate" }
+mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version.ref = "mlkitLanguageId" }
+kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 okhttp-mockwebserver = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "okhttp" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }

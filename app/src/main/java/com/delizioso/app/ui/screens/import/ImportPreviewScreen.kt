@@ -15,8 +15,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material.icons.filled.Translate
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,6 +32,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.delizioso.app.data.ImperialUnits
+import com.delizioso.app.data.local.Platform
 import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayTopBar
@@ -62,8 +63,6 @@ fun ImportPreviewScreen(
     val rewriteState by viewModel.rewrite.collectAsStateWithLifecycle()
     val form = rememberRecipeFormState()
     val scope = rememberCoroutineScope()
-    // Touches the filesystem, so read it once rather than on every recomposition.
-    val canRewrite = remember { viewModel.canRewrite() }
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let(viewModel::onPhotoPicked)
     }
@@ -129,7 +128,11 @@ fun ImportPreviewScreen(
             }
             item {
                 ClayChip(
-                    text = stringResource(R.string.source_from, current.raw.author ?: current.raw.platform.lowercase()),
+                    text = if (current.raw.platform == Platform.MANUAL) {
+                        stringResource(R.string.source_pasted)
+                    } else {
+                        stringResource(R.string.source_from, current.raw.author ?: current.raw.platform.lowercase())
+                    },
                     container = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
@@ -137,55 +140,51 @@ fun ImportPreviewScreen(
             item {
                 val draft = form.toStructuredRecipe()
                 val imperial = ImperialUnits.isPresentIn(draft)
-                // Worth offering when a model can translate, or when the units alone
-                // need fixing — the conversion is useful with no model at all.
-                if (canRewrite || imperial) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (imperial) {
-                            Text(
-                                stringResource(
-                                    if (canRewrite) R.string.rewrite_imperial_hint
-                                    else R.string.rewrite_convert_hint
-                                ),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                        (rewriteState as? RewriteState.Failed)?.let { failed ->
-                            Text(
-                                stringResource(R.string.rewrite_failed, failed.message),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.error,
-                            )
-                        }
-                        ClayButton(
-                            text = stringResource(
-                                when {
-                                    rewriteState is RewriteState.Running -> R.string.rewrite_running
-                                    canRewrite -> R.string.rewrite_button
-                                    else -> R.string.rewrite_convert_only
-                                }
-                            ),
-                            icon = Icons.Filled.AutoAwesome,
-                            enabled = rewriteState !is RewriteState.Running && form.isValid,
-                            onClick = {
-                                viewModel.clearRewriteError()
-                                viewModel.rewriteCurrent(draft, form::applyDraft)
-                            },
-                            // Highlighted only when the recipe actually needs converting.
-                            container = if (imperial) {
-                                MaterialTheme.colorScheme.primaryContainer
-                            } else {
-                                MaterialTheme.colorScheme.surfaceContainerLow
-                            },
-                            contentColor = if (imperial) {
-                                MaterialTheme.colorScheme.onPrimaryContainer
-                            } else {
-                                Primary
-                            },
-                            modifier = Modifier.fillMaxWidth(),
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (imperial) {
+                        Text(
+                            stringResource(R.string.rewrite_imperial_hint),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
+                    when (val s = rewriteState) {
+                        is RewriteState.Failed -> Text(
+                            stringResource(R.string.rewrite_failed, s.message),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.error,
+                        )
+                        is RewriteState.NothingToTranslate -> Text(
+                            stringResource(R.string.rewrite_already_translated),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        else -> {}
+                    }
+                    ClayButton(
+                        text = stringResource(
+                            if (rewriteState is RewriteState.Running) R.string.rewrite_running
+                            else R.string.rewrite_button
+                        ),
+                        icon = Icons.Filled.Translate,
+                        enabled = rewriteState !is RewriteState.Running && form.isValid,
+                        onClick = {
+                            viewModel.clearRewriteError()
+                            viewModel.convertAndTranslate(draft, form::applyDraft)
+                        },
+                        // Highlighted only when the recipe actually needs converting.
+                        container = if (imperial) {
+                            MaterialTheme.colorScheme.primaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.surfaceContainerLow
+                        },
+                        contentColor = if (imperial) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            Primary
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
                 }
             }
             item { RecipeIdentityFields(form) }

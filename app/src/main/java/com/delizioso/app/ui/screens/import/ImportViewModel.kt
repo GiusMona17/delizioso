@@ -12,12 +12,13 @@ import com.delizioso.app.data.ImageStore
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.UnitConverter
 import com.delizioso.app.data.ai.AiUnavailableException
-import com.delizioso.app.data.ai.GemmaRewriter
+import com.delizioso.app.data.ai.RecipeTranslator
 import com.delizioso.app.data.ai.NanoInference
 import com.delizioso.app.data.ai.NanoStructurer
 import com.delizioso.app.data.import.ImportContent
 import com.delizioso.app.data.import.ImportException
 import com.delizioso.app.data.import.LoginWall
+import com.delizioso.app.data.import.PastedRecipeParser
 import com.delizioso.app.data.import.RawImport
 import com.delizioso.app.data.import.RecipeImporterRegistry
 import com.delizioso.app.data.import.StructuredRecipe
@@ -39,11 +40,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.delizioso.app.R
 
-/** State of the optional Gemma rewrite. */
+/** State of the optional "convert units + translate" pass. */
 sealed interface RewriteState {
     data object Idle : RewriteState
     data object Running : RewriteState
     data class Failed(val message: String) : RewriteState
+    /** Converted, but the recipe was already in the user's language. */
+    data object NothingToTranslate : RewriteState
 }
 
 sealed interface ImportUiState {
@@ -70,39 +73,34 @@ class ImportViewModel(
     private val repository: RecipeRepository,
     private val preferences: UserPreferences,
     private val appContext: Context,
-    private val rewriter: GemmaRewriter,
+    private val translator: RecipeTranslator,
 ) : ViewModel() {
 
-    /** Progress of the optional "tidy up with Gemma" pass. */
+    /** Progress of the optional "convert + translate" pass. */
     private val _rewrite = MutableStateFlow<RewriteState>(RewriteState.Idle)
     val rewrite: StateFlow<RewriteState> = _rewrite.asStateFlow()
 
-    /** True when a Gemma model is installed and can translate/rewrite. */
-    fun canRewrite(): Boolean = rewriter.isAvailable()
-
     /**
-     * Rewrites the recipe currently under review — translation, metric units,
-     * fuller steps — and hands the result back so the form can adopt it.
+     * Converts imperial amounts in code, then translates the wording with ML Kit.
+     *
+     * The two halves are applied separately on purpose: conversion is exact and
+     * instant, so it lands even when the language pack can't be downloaded.
      */
-    fun rewriteCurrent(recipe: StructuredRecipe, onRewritten: (StructuredRecipe) -> Unit) {
+    fun convertAndTranslate(recipe: StructuredRecipe, onRewritten: (StructuredRecipe) -> Unit) {
         if (_rewrite.value is RewriteState.Running) return
         viewModelScope.launch {
             _rewrite.value = RewriteState.Running
+            val converted = UnitConverter.convert(recipe)
+            onRewritten(converted)
             try {
-                // Without a model the conversion still stands on its own: it is
-                // exact, instant, and the whole point of the button for a recipe
-                // written in cups.
-                val improved = if (rewriter.isAvailable()) {
-                    rewriter.rewrite(recipe)
-                } else {
-                    UnitConverter.convert(recipe)
-                }
+                onRewritten(translator.translate(converted))
                 _rewrite.value = RewriteState.Idle
-                onRewritten(improved)
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: RecipeTranslator.AlreadyInTargetLanguage) {
+                _rewrite.value = RewriteState.NothingToTranslate
             } catch (e: Exception) {
-                _rewrite.value = RewriteState.Failed(e.message ?: "Rewrite failed")
+                _rewrite.value = RewriteState.Failed(e.message ?: "Translation failed")
             }
         }
     }
@@ -135,6 +133,30 @@ class ImportViewModel(
 
     fun clearPickedPhoto() {
         _pickedPhoto.value = null
+    }
+
+    /**
+     * Import a recipe the user pasted as plain text.
+     *
+     * Deterministic and instant: [PastedRecipeParser] splits the block into
+     * sections and the preview screen is where anything it misplaced gets fixed.
+     */
+    fun importText(text: String) {
+        if (text.isBlank()) return
+        val recipe = PastedRecipeParser.parse(text)
+        val raw = RawImport(
+            platform = Platform.MANUAL,
+            url = null,
+            author = null,
+            content = ImportContent.RawText(text = text),
+        )
+        lastRaw = raw
+        lastUrl = null
+        _state.value = ImportUiState.Ready(
+            recipe = recipe,
+            raw = raw,
+            structuringFailed = recipe.ingredients.isEmpty() || recipe.steps.isEmpty(),
+        )
     }
 
     fun importLink(url: String) {
@@ -289,7 +311,7 @@ class ImportViewModel(
                     repository = app.container.recipeRepository,
                     preferences = app.container.preferences,
                     appContext = app,
-                    rewriter = app.container.gemmaRewriter,
+                    translator = app.container.recipeTranslator,
                 )
             }
         }

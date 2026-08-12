@@ -15,6 +15,9 @@ import kotlin.math.roundToInt
  */
 object UnitConverter {
 
+    /** One US cup, the reference volume the density table is written against. */
+    private const val CUP_ML = 240.0
+
     /** Millilitres per imperial volume unit (US customary). */
     private val VOLUME_ML = mapOf(
         "cup" to 240.0,
@@ -110,8 +113,9 @@ object UnitConverter {
 
         val millilitres = VOLUME_ML[unit] ?: VOLUME_ML[unit.trimEnd('s')] ?: return null
         // A cup of flour is not a cup of milk: use grams only for staples we know.
-        if (unit.startsWith("cup")) {
-            gramsPerCup(context)?.let { perCup -> return "${round(amount * perCup)} g" }
+        // This applies to spoons as well — "2 tbsp sugar" is 25 g, not 30 ml.
+        gramsPerCup(context)?.let { perCup ->
+            return "${round(amount * millilitres * perCup / CUP_ML)} g"
         }
         return "${round(amount * millilitres)} ml"
     }

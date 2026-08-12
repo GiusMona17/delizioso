@@ -208,6 +208,8 @@ fun ClayTextField(
     placeholder: String = "",
     leadingIcon: ImageVector? = null,
     singleLine: Boolean = true,
+    /** Rows the input is at least tall; use it instead of sizing the field's box. */
+    minLines: Int = 1,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     cornerRadius: androidx.compose.ui.unit.Dp = 16.dp,
     trailing: (@Composable () -> Unit)? = null,
@@ -224,7 +226,7 @@ fun ClayTextField(
             ),
     ) {
         Row(
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = if (singleLine) Alignment.CenterVertically else Alignment.Top,
             modifier = Modifier.padding(start = 16.dp, end = if (trailing != null) 6.dp else 16.dp, top = 10.dp, bottom = 10.dp),
         ) {
             if (leadingIcon != null) {
@@ -241,6 +243,10 @@ fun ClayTextField(
                 modifier = Modifier.weight(1f).padding(vertical = 4.dp),
                 textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
                 singleLine = singleLine,
+                // Height belongs to the input, not to the box around it: sizing the
+                // box instead leaves dead space that swallows taps rather than
+                // focusing the field.
+                minLines = minLines,
                 cursorBrush = SolidColor(Primary),
                 keyboardOptions = keyboardOptions,
                 interactionSource = interactionSource,

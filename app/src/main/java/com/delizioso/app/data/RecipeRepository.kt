@@ -29,7 +29,7 @@ class RecipeRepository(private val dao: RecipeDao) {
 
     /**
      * Save an edit, keeping the fields the form doesn't own (photo, favourite,
-     * macros, createdAt) as they were.
+     * createdAt) as they were.
      */
     suspend fun update(
         id: Long,
@@ -55,9 +55,6 @@ class RecipeRepository(private val dao: RecipeDao) {
     suspend fun currentImage(id: Long): String? = dao.imageUriOf(id)
 
     suspend fun setImage(id: Long, imageUri: String?) = dao.updateImage(id, imageUri)
-
-    suspend fun updateMacros(id: Long, kcal: Float?, proteinG: Float?, fatG: Float?, carbsG: Float?) =
-        dao.updateMacros(id, kcal, proteinG, fatG, carbsG)
 
     // ---- Meal planning ----
 

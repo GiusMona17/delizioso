@@ -8,6 +8,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,10 +28,12 @@ import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.IosShare
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCart
@@ -52,6 +56,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -68,11 +73,10 @@ import com.delizioso.app.data.ImageStore
 import com.delizioso.app.data.Quantities
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.toStructuredRecipe
-import com.delizioso.app.data.ai.AiUnavailableException
-import com.delizioso.app.data.ai.NanoAdvisor
 import com.delizioso.app.data.ai.ChatMessage
-import com.delizioso.app.data.ai.MacrosEstimate
 import com.delizioso.app.data.ai.NanoChat
+import com.delizioso.app.data.export.RecipeExport
+import com.delizioso.app.data.nutrition.MacroCalculator
 import com.delizioso.app.data.ai.NanoInference
 import com.delizioso.app.data.import.StructuredRecipe
 import com.delizioso.app.data.local.IngredientEntity
@@ -105,14 +109,6 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
 import com.delizioso.app.R
 
-sealed interface MacrosState {
-    data object Hidden : MacrosState
-    data object Loading : MacrosState
-    data class Loaded(val macros: MacrosEstimate) : MacrosState
-    data object ConsentNeeded : MacrosState
-    data class Error(val message: String, val retryable: Boolean) : MacrosState
-}
-
 /** A conversation about one recipe; [streaming] is the answer being typed out. */
 data class ChatState(
     val messages: List<ChatMessage> = emptyList(),
@@ -127,7 +123,6 @@ data class ChatState(
 class RecipeDetailViewModel(
     private val resources: android.content.res.Resources,
     private val repository: RecipeRepository,
-    private val advisor: NanoAdvisor,
     private val chatModel: NanoChat,
     private val preferences: UserPreferences,
     private val recipeId: Long,
@@ -135,9 +130,6 @@ class RecipeDetailViewModel(
 
     val details: StateFlow<RecipeWithDetails?> =
         repository.byId(recipeId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
-
-    private val _macros = MutableStateFlow<MacrosState>(MacrosState.Hidden)
-    val macros: StateFlow<MacrosState> = _macros.asStateFlow()
 
     private val _chat = MutableStateFlow(ChatState())
     val chat: StateFlow<ChatState> = _chat.asStateFlow()
@@ -188,29 +180,6 @@ class RecipeDetailViewModel(
         }
     }
 
-    /** Estimate macros per serving with the on-device model. */
-    fun estimateMacros() {
-        val d = details.value ?: return
-        viewModelScope.launch {
-            _macros.value = MacrosState.Loading
-            try {
-                val estimate = advisor.macros(d.toStructuredRecipe())
-                _macros.value = MacrosState.Loaded(estimate)
-                repository.updateMacros(recipeId, estimate.kcal, estimate.proteinG, estimate.fatG, estimate.carbsG)
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: AiUnavailableException) {
-                _macros.value = if (e.retryable) {
-                    MacrosState.Error(resources.getString(R.string.detail_ai_busy), true)
-                } else {
-                    MacrosState.ConsentNeeded
-                }
-            } catch (e: Exception) {
-                _macros.value = MacrosState.Error(resources.getString(R.string.detail_macro_failed), false)
-            }
-        }
-    }
-
     /** Ask a free-form question about this recipe; the answer streams in. */
     fun ask(question: String) {
         val d = details.value ?: return
@@ -256,13 +225,6 @@ class RecipeDetailViewModel(
 
     fun clearChatError() = _chat.update { it.copy(error = null) }
 
-    fun grantConsentAndRetry() {
-        viewModelScope.launch {
-            preferences.setAiConsent(true)
-            estimateMacros()
-        }
-    }
-
     companion object {
         fun factory(recipeId: Long): ViewModelProvider.Factory = viewModelFactory {
             initializer {
@@ -270,7 +232,6 @@ class RecipeDetailViewModel(
                 RecipeDetailViewModel(
                     resources = app.resources,
                     repository = app.container.recipeRepository,
-                    advisor = app.container.nanoAdvisor,
                     chatModel = app.container.nanoChat,
                     preferences = app.container.preferences,
                     recipeId = recipeId,
@@ -295,7 +256,6 @@ fun RecipeDetailScreen(
     ),
 ) {
     val details by viewModel.details.collectAsStateWithLifecycle()
-    val macrosState by viewModel.macros.collectAsStateWithLifecycle()
     val chat by viewModel.chat.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableStateOf(TAB_INGREDIENTS) }
@@ -303,6 +263,7 @@ fun RecipeDetailScreen(
     var showPlanner by remember { mutableStateOf(false) }
     var addedToList by remember { mutableStateOf(false) }
     var showChat by remember { mutableStateOf(false) }
+    var showExport by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { viewModel.onPhotoPicked(context, it) }
@@ -325,6 +286,9 @@ fun RecipeDetailScreen(
 
     val baseServings = d.recipe.servings ?: servings
     val factor = if (baseServings > 0 && servings > 0) servings.toDouble() / baseServings else 1.0
+    // Derived, not stored: editing an ingredient can never leave a stale total,
+    // and recipes saved before this existed get their macros for free.
+    val macros = remember(d) { MacroCalculator.of(d.ingredients, d.recipe.servings) }
 
     Box(Modifier.fillMaxSize()) {
         Column(
@@ -412,18 +376,21 @@ fun RecipeDetailScreen(
                 } else {
                     StepList(d)
                 }
-                AiPanel(
-                    macros = macrosState,
-                    onEstimate = viewModel::estimateMacros,
-                    onGrant = viewModel::grantConsentAndRetry,
-                    onOpenChat = { showChat = true },
-                )
+                MacrosPanel(macros = macros, onOpenChat = { showChat = true })
                 SourceSection(d)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ClayButton(
                         text = stringResource(R.string.detail_edit),
                         icon = Icons.Filled.Edit,
                         onClick = onEdit,
+                        container = MaterialTheme.colorScheme.surfaceContainerLow,
+                        contentColor = Primary,
+                        modifier = Modifier.weight(1f),
+                    )
+                    ClayButton(
+                        text = stringResource(R.string.detail_export),
+                        icon = Icons.Filled.IosShare,
+                        onClick = { showExport = true },
                         container = MaterialTheme.colorScheme.surfaceContainerLow,
                         contentColor = Primary,
                         modifier = Modifier.weight(1f),
@@ -464,6 +431,20 @@ fun RecipeDetailScreen(
                 state = chat,
                 onAsk = viewModel::ask,
                 onDismissError = viewModel::clearChatError,
+            )
+        }
+    }
+
+    if (showExport) {
+        ModalBottomSheet(
+            onDismissRequest = { showExport = false },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ) {
+            ExportSheet(
+                markdown = RecipeExport.toMarkdown(d, macros),
+                json = RecipeExport.toJson(d, macros),
+                onDone = { showExport = false },
             )
         }
     }
@@ -521,27 +502,6 @@ private fun HeaderCard(
                 Text(stringResource(R.string.form_servings), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
-        recipe.macrosKcal?.let { kcal ->
-            val perServing = if ((recipe.servings ?: 0) > 0) servings.toDouble() / recipe.servings!! else 1.0
-            Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Icon(Icons.Filled.LocalFireDepartment, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(18.dp))
-                    Text(stringResource(R.string.macro_kcal, kcal.toInt()), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurface)
-                }
-                Text(
-                    macroLine(recipe.macrosProteinG, recipe.macrosCarbsG, recipe.macrosFatG),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                if (perServing != 1.0) {
-                    Text(
-                        stringResource(R.string.detail_per_original_serving),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                    )
-                }
-            }
-        }
         if (details.tags.isNotEmpty()) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 details.tags.take(3).forEach { ClayTagChip(stringResource(Categories.displayNameRes(it.name))) }
@@ -549,13 +509,6 @@ private fun HeaderCard(
         }
     }
 }
-
-@Composable
-private fun macroLine(protein: Float?, carbs: Float?, fat: Float?): String = listOfNotNull(
-    protein?.let { stringResource(R.string.macro_protein_short, it.toInt()) },
-    carbs?.let { stringResource(R.string.macro_carbs_short, it.toInt()) },
-    fat?.let { stringResource(R.string.macro_fat_short, it.toInt()) },
-).joinToString(" • ")
 
 @Composable
 private fun StepperButton(icon: androidx.compose.ui.graphics.vector.ImageVector, description: String, onClick: () -> Unit) {
@@ -651,99 +604,130 @@ private fun SourceSection(details: RecipeWithDetails) {
     )
 }
 
-/** On-device AI: per-serving macro estimates, plus the way into the chat. */
+/**
+ * Macros added up from the ingredient list, plus the way into the chat.
+ *
+ * There is no "estimate" button any more: the numbers come from a lookup table,
+ * so they are already there when the screen opens. [MacroCalculator] returns null
+ * rather than a total it can't stand behind, and the card says how much of the
+ * recipe it recognised.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun AiPanel(
-    macros: MacrosState,
-    onEstimate: () -> Unit,
-    onGrant: () -> Unit,
+private fun MacrosPanel(
+    macros: MacroCalculator.Macros?,
     onOpenChat: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        ClaySectionHeader(title = stringResource(R.string.detail_ai_insights))
-        when (macros) {
-            is MacrosState.Hidden -> {
-                ClayButton(
-                    text = stringResource(R.string.detail_estimate_macros),
-                    icon = Icons.Filled.LocalFireDepartment,
-                    onClick = onEstimate,
-                    container = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    modifier = Modifier.fillMaxWidth(),
+        ClaySectionHeader(title = stringResource(R.string.detail_nutrition))
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clayCard(container = MaterialTheme.colorScheme.surfaceContainerLow)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            if (macros == null) {
+                Text(
+                    stringResource(R.string.detail_macros_unknown),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
-            is MacrosState.Loading -> {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, strokeWidth = 3.dp)
-                    Text(stringResource(R.string.detail_estimating), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                }
-            }
-            is MacrosState.ConsentNeeded -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clayCard(container = MaterialTheme.colorScheme.primaryContainer)
-                        .padding(16.dp),
+            } else {
+                // Four chips do not fit one row at larger font sizes; wrapping
+                // beats a chip whose label breaks across three lines.
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    Text(stringResource(R.string.detail_consent_title), style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onPrimaryContainer)
-                    Text(
-                        stringResource(R.string.detail_consent_body),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                    )
-                    ClayButton(text = stringResource(R.string.detail_enable_ai), onClick = onGrant, modifier = Modifier.fillMaxWidth())
+                    MacroChip(stringResource(R.string.macro_kcal, macros.kcal.toInt()))
+                    MacroChip(stringResource(R.string.macro_protein, macros.proteinG.toInt()))
+                    MacroChip(stringResource(R.string.macro_fat, macros.fatG.toInt()))
+                    MacroChip(stringResource(R.string.macro_carbs, macros.carbsG.toInt()))
                 }
-            }
-            is MacrosState.Error -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clayCard(container = MaterialTheme.colorScheme.errorContainer)
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    Text(macros.message, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer)
-                    if (macros.retryable) {
-                        ClayButton(text = stringResource(R.string.detail_retry), onClick = onEstimate, container = MaterialTheme.colorScheme.error, modifier = Modifier.fillMaxWidth())
-                    }
-                }
-            }
-            is MacrosState.Loaded -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clayCard(container = MaterialTheme.colorScheme.surfaceContainerLow)
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    Text(
-                        stringResource(R.string.detail_macros_disclaimer),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        MacroChip(stringResource(R.string.macro_kcal, macros.macros.kcal?.toInt() ?: 0))
-                        MacroChip(stringResource(R.string.macro_protein, macros.macros.proteinG?.toInt() ?: 0))
-                        MacroChip(stringResource(R.string.macro_fat, macros.macros.fatG?.toInt() ?: 0))
-                        MacroChip(stringResource(R.string.macro_carbs, macros.macros.carbsG?.toInt() ?: 0))
-                    }
-                    Text(
-                        stringResource(R.string.detail_re_estimate),
-                        style = MaterialTheme.typography.labelLarge,
-                        color = Primary,
-                        modifier = Modifier
-                            .clip(PillShape)
-                            .clickable(onClick = onEstimate)
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
-                    )
-                }
+                Text(
+                    stringResource(
+                        if (macros.perServing) R.string.detail_macros_per_serving
+                        else R.string.detail_macros_whole_recipe,
+                        macros.matched,
+                        macros.total,
+                    ),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
         }
         ClayButton(
             text = stringResource(R.string.chat_title),
             icon = Icons.AutoMirrored.Filled.Chat,
             onClick = onOpenChat,
+            container = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = Primary,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
+}
+
+/**
+ * Hand the recipe to something better at open questions than a phone-sized model.
+ *
+ * Sharing goes through the system chooser, so the user picks the destination —
+ * the app never sends the recipe anywhere on its own.
+ */
+@Composable
+private fun ExportSheet(markdown: String, json: String, onDone: () -> Unit) {
+    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .padding(bottom = 32.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            stringResource(R.string.export_title),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            stringResource(R.string.export_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        ClayButton(
+            text = stringResource(R.string.export_share),
+            icon = Icons.Filled.IosShare,
+            onClick = {
+                val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(android.content.Intent.EXTRA_TEXT, markdown)
+                }
+                context.startActivity(
+                    android.content.Intent.createChooser(send, context.getString(R.string.export_share))
+                )
+                onDone()
+            },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        ClayButton(
+            text = stringResource(R.string.export_copy_markdown),
+            icon = Icons.Filled.ContentCopy,
+            onClick = {
+                clipboard.setText(androidx.compose.ui.text.AnnotatedString(markdown))
+                onDone()
+            },
+            container = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = Primary,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        ClayButton(
+            text = stringResource(R.string.export_copy_json),
+            icon = Icons.Filled.DataObject,
+            onClick = {
+                clipboard.setText(androidx.compose.ui.text.AnnotatedString(json))
+                onDone()
+            },
             container = MaterialTheme.colorScheme.surfaceContainerLow,
             contentColor = Primary,
             modifier = Modifier.fillMaxWidth(),

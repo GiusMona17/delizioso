@@ -17,8 +17,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Segment
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -62,6 +64,7 @@ fun ImportScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val recent by viewModel.recentImports.collectAsStateWithLifecycle()
     var url by rememberSaveable { mutableStateOf("") }
+    var pastedText by rememberSaveable { mutableStateOf("") }
     val clipboard = LocalClipboardManager.current
 
     LaunchedEffect(state) {
@@ -140,6 +143,13 @@ fun ImportScreen(
                 )
             }
 
+            PasteTextCard(
+                text = pastedText,
+                onTextChange = { pastedText = it },
+                onPaste = { clipboard.getText()?.text?.let { pastedText = it } },
+                onStructure = { viewModel.importText(pastedText) },
+            )
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
@@ -179,6 +189,66 @@ fun ImportScreen(
                 }
             }
             Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+/**
+ * Second way in: paste the recipe itself rather than a link.
+ *
+ * Covers everything a link can't reach — a screenshot's text, a message from a
+ * friend, a site that blocks scraping — and it never touches the network.
+ */
+@Composable
+private fun PasteTextCard(
+    text: String,
+    onTextChange: (String) -> Unit,
+    onPaste: () -> Unit,
+    onStructure: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clayCard(container = MaterialTheme.colorScheme.surfaceContainer, cornerRadius = 32.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            stringResource(R.string.import_paste_title),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            stringResource(R.string.import_paste_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        ClayTextField(
+            value = text,
+            onValueChange = onTextChange,
+            placeholder = stringResource(R.string.import_paste_placeholder),
+            singleLine = false,
+            minLines = 5,
+            cornerRadius = 24.dp,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
+            ClayButton(
+                text = stringResource(R.string.action_paste),
+                icon = Icons.Filled.ContentPaste,
+                onClick = onPaste,
+                container = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = Primary,
+                modifier = Modifier.weight(1f),
+            )
+            ClayButton(
+                text = stringResource(R.string.import_paste_structure),
+                icon = Icons.Filled.Segment,
+                onClick = onStructure,
+                enabled = text.isNotBlank(),
+                modifier = Modifier.weight(1f),
+            )
         }
     }
 }
