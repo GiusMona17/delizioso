@@ -96,7 +96,6 @@ import com.delizioso.app.ui.components.ClaySegmentedTabs
 import com.delizioso.app.ui.components.ClayTagChip
 import com.delizioso.app.ui.components.PhotoPickerArea
 import com.delizioso.app.ui.theme.PillShape
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.theme.clayBevel
 import kotlinx.coroutines.CancellationException
@@ -339,7 +338,7 @@ fun RecipeDetailScreen(
                         contentDescription = stringResource(R.string.detail_favourite),
                         onClick = { viewModel.toggleFavorite(d.recipe.isFavorite) },
                         container = MaterialTheme.colorScheme.surfaceContainerLowest,
-                        tint = if (d.recipe.isFavorite) MaterialTheme.colorScheme.error else Primary,
+                        tint = if (d.recipe.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -376,7 +375,7 @@ fun RecipeDetailScreen(
                             addedToList = true
                         },
                         container = MaterialTheme.colorScheme.surfaceContainerLow,
-                        contentColor = Primary,
+                        contentColor = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.fillMaxWidth(),
                     )
                 } else {
@@ -390,7 +389,7 @@ fun RecipeDetailScreen(
                         icon = Icons.Filled.Edit,
                         onClick = onEdit,
                         container = MaterialTheme.colorScheme.surfaceContainerLow,
-                        contentColor = Primary,
+                        contentColor = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                     )
                     ClayButton(
@@ -398,7 +397,7 @@ fun RecipeDetailScreen(
                         icon = Icons.Filled.IosShare,
                         onClick = { showExport = true },
                         container = MaterialTheme.colorScheme.surfaceContainerLow,
-                        contentColor = Primary,
+                        contentColor = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -527,7 +526,7 @@ private fun StepperButton(icon: androidx.compose.ui.graphics.vector.ImageVector,
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = description, tint = Primary, modifier = Modifier.size(16.dp))
+        Icon(icon, contentDescription = description, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(16.dp))
     }
 }
 
@@ -588,7 +587,7 @@ private fun StepList(details: RecipeWithDetails, factor: Double) {
                         .clayBevel(PillShape),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text("${index + 1}", style = MaterialTheme.typography.labelLarge, color = Primary)
+                    Text("${index + 1}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                 }
                 Text(
                     Quantities.scaleInText(step.text, factor),
@@ -628,7 +627,7 @@ private fun SourceSection(details: RecipeWithDetails) {
                     }
                 },
                 container = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentColor = Primary,
+                contentColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.fillMaxWidth(),
             )
         }
@@ -720,7 +719,7 @@ private fun MacrosPanel(
             icon = Icons.AutoMirrored.Filled.Chat,
             onClick = onOpenChat,
             container = MaterialTheme.colorScheme.surfaceContainerLow,
-            contentColor = Primary,
+            contentColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.fillMaxWidth(),
         )
     }
@@ -776,7 +775,7 @@ private fun ExportSheet(markdown: String, json: String, onDone: () -> Unit) {
                 onDone()
             },
             container = MaterialTheme.colorScheme.surfaceContainerLow,
-            contentColor = Primary,
+            contentColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.fillMaxWidth(),
         )
         ClayButton(
@@ -787,7 +786,7 @@ private fun ExportSheet(markdown: String, json: String, onDone: () -> Unit) {
                 onDone()
             },
             container = MaterialTheme.colorScheme.surfaceContainerLow,
-            contentColor = Primary,
+            contentColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.fillMaxWidth(),
         )
     }

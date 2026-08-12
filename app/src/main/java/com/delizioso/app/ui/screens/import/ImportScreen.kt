@@ -46,7 +46,6 @@ import com.delizioso.app.ui.components.ClaySectionHeader
 import com.delizioso.app.ui.components.ClayTextField
 import com.delizioso.app.ui.components.ClayTopBar
 import com.delizioso.app.ui.theme.PillShape
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.theme.clayBevel
 import androidx.compose.ui.res.stringResource
@@ -239,7 +238,7 @@ private fun PasteTextCard(
                 icon = Icons.Filled.ContentPaste,
                 onClick = onPaste,
                 container = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentColor = Primary,
+                contentColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f),
             )
             ClayButton(
@@ -260,7 +259,7 @@ private fun BusyRow(text: String) {
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 20.dp),
     ) {
-        CircularProgressIndicator(color = Primary, strokeWidth = 3.dp, modifier = Modifier.padding(vertical = 12.dp))
+        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, strokeWidth = 3.dp, modifier = Modifier.padding(vertical = 12.dp))
         Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

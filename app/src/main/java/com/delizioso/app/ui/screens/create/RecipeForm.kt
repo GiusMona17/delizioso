@@ -33,6 +33,7 @@ import com.delizioso.app.ui.components.EditableLineRow
 import com.delizioso.app.ui.components.FormSectionCard
 import com.delizioso.app.ui.components.StepNumberPod
 import com.delizioso.app.ui.theme.PillShape
+import com.delizioso.app.ui.theme.ClayShadow
 import com.delizioso.app.ui.theme.clayBevel
 import androidx.compose.ui.res.stringResource
 import com.delizioso.app.R
@@ -261,8 +262,8 @@ fun CategoryPicker(
                         )
                         .clayBevel(
                             PillShape,
-                            light = Color(0x99FFFFFF),
-                            dark = if (isSelected) Color(0x33006E20) else Color(0x14000000),
+                            light = ClayShadow.highlight,
+                            dark = if (isSelected) ClayShadow.innerAccent else ClayShadow.insetDark,
                         )
                         .clickable(role = Role.Checkbox) { onToggle(category) }
                         .padding(horizontal = 16.dp, vertical = 8.dp),

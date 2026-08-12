@@ -40,7 +40,6 @@ import com.delizioso.app.ui.components.ClayFilterChip
 import com.delizioso.app.ui.components.ClayRecipeCard
 import com.delizioso.app.ui.components.ClayTextField
 import com.delizioso.app.ui.components.ClayTopBar
-import com.delizioso.app.ui.theme.Primary
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
@@ -131,7 +130,7 @@ fun LibraryScreen(
                         Icon(
                             Icons.Filled.Tune,
                             contentDescription = null,
-                            tint = Primary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(end = 10.dp).size(22.dp),
                         )
                     },

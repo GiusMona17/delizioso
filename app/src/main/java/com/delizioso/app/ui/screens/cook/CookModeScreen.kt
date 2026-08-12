@@ -59,8 +59,8 @@ import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayRoundButton
 import com.delizioso.app.ui.components.ClayStepPod
 import com.delizioso.app.ui.theme.PillShape
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
+import com.delizioso.app.ui.theme.ClayShadow
 import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayInset
 import com.delizioso.app.ui.theme.clayOuter
@@ -104,7 +104,7 @@ fun CookModeScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clayBevel(RoundedCornerShape(0.dp), light = androidx.compose.ui.graphics.Color(0x99FFFFFF), dark = androidx.compose.ui.graphics.Color(0x1A006E20))
+                .clayBevel(RoundedCornerShape(0.dp), light = ClayShadow.highlight, dark = ClayShadow.accentSoft)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -118,7 +118,7 @@ fun CookModeScreen(
             Text(
                 stringResource(R.string.cook_title),
                 style = MaterialTheme.typography.headlineLarge,
-                color = Primary,
+                color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f),
             )
@@ -206,12 +206,12 @@ fun CookModeScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Filled.Restaurant, contentDescription = null, tint = Primary)
+                    Icon(Icons.Filled.Restaurant, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.width(10.dp))
                     Text(
                         stringResource(R.string.cook_ingredients),
                         style = MaterialTheme.typography.headlineLarge,
-                        color = Primary,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.weight(1f),
                     )
                     ClayRoundButton(
@@ -278,7 +278,7 @@ private fun StepProgressBar(progress: Float, modifier: Modifier = Modifier) {
                 .height(14.dp)
                 .clip(PillShape)
                 .background(MaterialTheme.colorScheme.primaryContainer)
-                .clayBevel(PillShape, light = androidx.compose.ui.graphics.Color(0x99FFFFFF), dark = androidx.compose.ui.graphics.Color(0x33006E20)),
+                .clayBevel(PillShape, light = ClayShadow.highlight, dark = ClayShadow.innerAccent),
         )
     }
 }
@@ -300,7 +300,7 @@ private fun StepCard(
         modifier = Modifier
             .fillMaxWidth()
             .then(
-                if (active) Modifier.clayOuter(shape = RoundedCornerShape(28.dp), elevation = 24.dp, dark = Primary.copy(alpha = 0.25f))
+                if (active) Modifier.clayOuter(shape = RoundedCornerShape(28.dp), elevation = 24.dp, dark = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f))
                 else Modifier
             )
             .clip(RoundedCornerShape(28.dp))
@@ -319,7 +319,7 @@ private fun StepCard(
                 stringResource(R.string.cook_step_label, index + 1),
                 style = MaterialTheme.typography.headlineMedium,
                 color = when {
-                    active -> Primary
+                    active -> MaterialTheme.colorScheme.primary
                     done -> MaterialTheme.colorScheme.onSurfaceVariant
                     else -> MaterialTheme.colorScheme.onSurfaceVariant
                 },
@@ -364,7 +364,7 @@ private fun InlineTimer(totalSeconds: Int) {
         Icon(
             Icons.Filled.HourglassEmpty,
             contentDescription = null,
-            tint = Primary,
+            tint = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(start = 14.dp).size(22.dp),
         )
         Text(

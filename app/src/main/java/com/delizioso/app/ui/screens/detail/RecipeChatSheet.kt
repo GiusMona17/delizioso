@@ -35,7 +35,6 @@ import com.delizioso.app.data.ai.RecipeChat
 import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayRoundButton
 import com.delizioso.app.ui.components.ClayTextField
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
 import androidx.compose.ui.res.stringResource
 import com.delizioso.app.R
@@ -78,7 +77,7 @@ fun RecipeChatSheet(
             Text(
                 stringResource(R.string.chat_title),
                 style = MaterialTheme.typography.headlineLarge,
-                color = Primary,
+                color = MaterialTheme.colorScheme.primary,
             )
             Text(
                 recipeTitle,
@@ -112,7 +111,7 @@ fun RecipeChatSheet(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                CircularProgressIndicator(color = Primary, strokeWidth = 3.dp, modifier = Modifier.size(18.dp))
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, strokeWidth = 3.dp, modifier = Modifier.size(18.dp))
                                 Text(
                                     if (state.preparingModel) {
                                         stringResource(R.string.chat_setup)

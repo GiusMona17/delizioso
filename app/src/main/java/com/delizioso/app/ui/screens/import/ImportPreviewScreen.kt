@@ -37,7 +37,6 @@ import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayTopBar
 import com.delizioso.app.ui.components.PhotoPickerArea
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.screens.create.IngredientsCard
 import com.delizioso.app.ui.screens.create.InstructionsCard
@@ -181,7 +180,7 @@ fun ImportPreviewScreen(
                         contentColor = if (imperial) {
                             MaterialTheme.colorScheme.onPrimaryContainer
                         } else {
-                            Primary
+                            MaterialTheme.colorScheme.primary
                         },
                         modifier = Modifier.fillMaxWidth(),
                     )

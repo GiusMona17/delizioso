@@ -62,9 +62,9 @@ import com.delizioso.app.ui.components.ClayTopBar
 import com.delizioso.app.ui.components.RecipeImage
 import com.delizioso.app.ui.components.mealSlotIcon
 import com.delizioso.app.ui.theme.PillShape
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.Secondary
 import com.delizioso.app.ui.theme.clayCard
+import com.delizioso.app.ui.theme.ClayShadow
 import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayOuter
 import java.time.LocalDate
@@ -130,7 +130,7 @@ fun PlannerScreen(
                             ClayAddPanel(
                                 text = stringResource(R.string.planner_add_recipe, stringResource(MealSlot.labelRes(slot)).lowercase()),
                                 onClick = { pickerSlot = slot },
-                                accent = if (slot == MealSlot.SNACK) Secondary else Primary,
+                                accent = if (slot == MealSlot.SNACK) Secondary else MaterialTheme.colorScheme.primary,
                             )
                         }
                     } else {
@@ -146,7 +146,7 @@ fun PlannerScreen(
                             Text(
                                 stringResource(R.string.planner_add_more),
                                 style = MaterialTheme.typography.labelLarge,
-                                color = Primary,
+                                color = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier
                                     .clip(PillShape)
                                     .clickable { pickerSlot = slot }
@@ -243,7 +243,7 @@ private fun DayPill(
             .clayOuter(shape = PillShape, elevation = if (selected) 14.dp else 8.dp)
             .clip(PillShape)
             .background(if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainer)
-            .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = if (selected) Color(0x33006E20) else Color(0x14000000))
+            .clayBevel(PillShape, light = ClayShadow.highlight, dark = if (selected) ClayShadow.innerAccent else ClayShadow.insetDark)
             .clickable(onClick = onClick)
             .padding(horizontal = 14.dp, vertical = 10.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -260,7 +260,7 @@ private fun DayPill(
             color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
         )
         Row(horizontalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.height(8.dp)) {
-            if (planned) Dot(Primary)
+            if (planned) Dot(MaterialTheme.colorScheme.primary)
             if (cooked) Dot(Secondary)
         }
     }
@@ -294,7 +294,7 @@ private fun ViewToggle(label: String, icon: androidx.compose.ui.graphics.vector.
                 .clayOuter(shape = PillShape, elevation = 10.dp)
                 .clip(PillShape)
                 .background(MaterialTheme.colorScheme.primaryContainer)
-                .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = Color(0x33006E20))
+                .clayBevel(PillShape, light = ClayShadow.highlight, dark = ClayShadow.innerAccent)
                 .clickable(onClick = onClick)
                 .padding(horizontal = 22.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -382,7 +382,7 @@ private fun MonthCalendar(
                 Text(
                     "${first.month.getDisplayName(TextStyle.FULL, Locale.getDefault())} ${first.year}",
                     style = MaterialTheme.typography.headlineMedium,
-                    color = Primary,
+                    color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f),
                 )
@@ -431,7 +431,7 @@ private fun MonthCalendar(
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                 horizontalArrangement = Arrangement.Center,
             ) {
-                LegendEntry(Primary, stringResource(R.string.planner_legend_planned))
+                LegendEntry(MaterialTheme.colorScheme.primary, stringResource(R.string.planner_legend_planned))
                 Spacer(Modifier.size(24.dp))
                 LegendEntry(Secondary, stringResource(R.string.planner_legend_cooked))
             }
@@ -455,7 +455,7 @@ private fun CalendarCell(
                 .size(44.dp)
                 .clip(PillShape)
                 .background(if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest)
-                .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = Color(0x14000000))
+                .clayBevel(PillShape, light = ClayShadow.highlight, dark = ClayShadow.insetDark)
                 .clickable(onClick = onClick),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -466,7 +466,7 @@ private fun CalendarCell(
                 color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(3.dp), modifier = Modifier.height(8.dp)) {
-                if (planned) Dot(Primary)
+                if (planned) Dot(MaterialTheme.colorScheme.primary)
                 if (cooked) Dot(Secondary)
             }
         }

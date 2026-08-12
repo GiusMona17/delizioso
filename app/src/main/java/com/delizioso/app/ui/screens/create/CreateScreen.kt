@@ -47,7 +47,6 @@ import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayRoundButton
 import com.delizioso.app.ui.components.ClayTopBar
 import com.delizioso.app.ui.theme.CardImageRadius
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -111,7 +110,7 @@ fun CreateScreen(
                     onClick = viewModel::scanCookbook,
                     enabled = state.photoPath != null && state.busy == null,
                     container = MaterialTheme.colorScheme.surfaceContainerLow,
-                    contentColor = Primary,
+                    contentColor = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.fillMaxWidth(),
                 )
             }

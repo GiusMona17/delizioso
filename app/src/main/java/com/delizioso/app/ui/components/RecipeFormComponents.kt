@@ -22,7 +22,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.delizioso.app.ui.theme.PillShape
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.theme.clayBevel
 import androidx.compose.ui.res.stringResource
@@ -112,7 +111,7 @@ fun FormSectionCard(
                         .clickable(role = Role.Button, onClick = onAdd),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.form_add_row), tint = Primary, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.form_add_row), tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                 }
             }
         }

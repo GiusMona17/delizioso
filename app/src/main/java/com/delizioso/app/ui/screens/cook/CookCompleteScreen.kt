@@ -38,7 +38,6 @@ import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayOutlinedButton
 import com.delizioso.app.ui.components.RecipeImage
 import com.delizioso.app.ui.theme.PillShape
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayOuter
 import androidx.compose.ui.res.stringResource
 import com.delizioso.app.R
@@ -67,7 +66,7 @@ fun CookCompleteScreen(
         Box(
             modifier = Modifier
                 .size(220.dp)
-                .clayOuter(shape = PillShape, dark = Primary.copy(alpha = 0.25f), elevation = 32.dp)
+                .clayOuter(shape = PillShape, dark = MaterialTheme.colorScheme.primary.copy(alpha = 0.25f), elevation = 32.dp)
                 .clip(PillShape),
         ) {
             RecipeImage(recipe?.imageUri, placeholderIconSize = 64.dp, modifier = Modifier.fillMaxSize())
@@ -75,7 +74,7 @@ fun CookCompleteScreen(
         Text(
             stringResource(R.string.cook_complete_title),
             style = MaterialTheme.typography.displaySmall,
-            color = Primary,
+            color = MaterialTheme.colorScheme.primary,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 32.dp),
         )

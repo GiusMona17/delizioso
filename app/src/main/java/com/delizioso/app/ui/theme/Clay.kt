@@ -37,22 +37,80 @@ import androidx.compose.ui.unit.dp
  *                inset 2px 2px 4px rgba(255,255,255,.6), inset -2px -2px 4px rgba(0,110,32,.2)
  * ```
  */
-object ClayShadow {
-    /** Down-right drop shadow (rgba(0,0,0,0.05)). */
-    val dropDark = Color(0x0D000000)
+/**
+ * The shadow colours the clay is built from.
+ *
+ * Neumorphism cannot simply be inverted for a dark theme: the illusion is "light
+ * falls from the top-left", and in the dark that means a *faint* white edge over
+ * a much deeper black — a flipped light palette reads as grey mush. So both sets
+ * are written out, and [LocalClayShadows] hands the right one to every modifier.
+ */
+data class ClayShadows(
+    /** Down-right drop shadow. */
+    val dropDark: Color,
+    /** Up-left light "shadow" — the neumorphic tell. */
+    val dropLight: Color,
+    /** Inner highlight, top-left. */
+    val innerLight: Color,
+    /** Inner shade, bottom-right. */
+    val innerDark: Color,
+    /** Accent inner shade used on primary buttons. */
+    val innerAccent: Color,
+    /** Stronger top-left highlight, for buttons and bars. */
+    val highlight: Color,
+    /** Faint accent wash used along the edge of bars and chips. */
+    val accentSoft: Color,
+    /** The carved-out look of inputs and tracks. */
+    val insetDark: Color,
+    val insetLight: Color,
+    /** Drop shadow under a small raised control. */
+    val buttonDark: Color,
+    val buttonDarkPressed: Color,
+) {
+    companion object {
+        val Light = ClayShadows(
+            dropDark = Color(0x0D000000),
+            dropLight = Color(0xCCFFFFFF),
+            innerLight = Color(0x66FFFFFF),
+            innerDark = Color(0x0D000000),
+            innerAccent = Color(0x33006E20),
+            highlight = Color(0x99FFFFFF),
+            accentSoft = Color(0x1A006E20),
+            insetDark = Color(0x14000000),
+            insetLight = Color(0xCCFFFFFF),
+            buttonDark = Color(0x1A000000),
+            buttonDarkPressed = Color(0x40000000),
+        )
 
-    /** Up-left light "shadow" — the neumorphic tell (rgba(255,255,255,0.8)). */
-    val dropLight = Color(0xCCFFFFFF)
+        /**
+         * Dark clay: the black shadow does nearly all the work, and the highlight
+         * is a whisper. Using the light alphas here would wash the surface out.
+         */
+        val Dark = ClayShadows(
+            dropDark = Color(0x73000000),
+            dropLight = Color(0x0DFFFFFF),
+            innerLight = Color(0x14FFFFFF),
+            innerDark = Color(0x59000000),
+            innerAccent = Color(0x4D8BE58F),
+            highlight = Color(0x1AFFFFFF),
+            // The bars bevel all four edges, which on a dark ground reads as a
+            // drawn frame rather than a lit edge unless it is kept very faint.
+            accentSoft = Color(0x148BE58F),
+            insetDark = Color(0x66000000),
+            insetLight = Color(0x14FFFFFF),
+            buttonDark = Color(0x8C000000),
+            buttonDarkPressed = Color(0xA6000000),
+        )
+    }
+}
 
-    /** Inner highlight, top-left (white 40%). */
-    val innerLight = Color(0x66FFFFFF)
+val LocalClayShadows = androidx.compose.runtime.staticCompositionLocalOf { ClayShadows.Light }
 
-    /** Inner shade, bottom-right (black 5%). */
-    val innerDark = Color(0x0D000000)
+/** Shorthand for the shadow set in force, readable from any composable. */
+val ClayShadow: ClayShadows
+    @Composable get() = LocalClayShadows.current
 
-    /** Mint inner shade used on primary buttons (rgba(0,110,32,0.2)). */
-    val innerMint = Color(0x33006E20)
-
+object ClayMetrics {
     val surfaceOffset = 8.dp
     val surfaceBlur = 16.dp
     val buttonOffset = 4.dp
@@ -65,10 +123,11 @@ object ClayShadow {
  * The paired outer shadows that lift an element off the canvas.
  * Draws behind the content, so apply it *before* `clip`/`background`.
  */
+@Composable
 fun Modifier.clayOuter(
     shape: Shape = RoundedCornerShape(24.dp),
     /** Blur radius; the offset defaults to half of it, as in the mockups' 8px/16px pairing. */
-    elevation: Dp = ClayShadow.surfaceBlur,
+    elevation: Dp = ClayMetrics.surfaceBlur,
     dark: Color = ClayShadow.dropDark,
     light: Color = ClayShadow.dropLight,
     offset: Dp = elevation / 2,
@@ -84,6 +143,7 @@ fun Modifier.clayOuter(
  * The tight inner bevel that gives a raised element volume: a light hit along the
  * top-left inner edge and a soft shade along the bottom-right.
  */
+@Composable
 fun Modifier.clayBevel(
     shape: Shape = RoundedCornerShape(24.dp),
     offset: Dp = 2.dp,
@@ -116,13 +176,16 @@ fun Modifier.clayInset(
     container: Color,
     cornerRadius: Dp = 16.dp,
     shape: Shape = RoundedCornerShape(cornerRadius),
-): Modifier = this
-    .clip(shape)
-    .background(container)
-    .drawBehind {
-        drawInnerShadow(shape, Color(0x14000000), 4.dp.toPx(), 4.dp.toPx(), 8.dp.toPx())
-        drawInnerShadow(shape, Color(0xCCFFFFFF), -4.dp.toPx(), -4.dp.toPx(), 8.dp.toPx())
-    }
+): Modifier {
+    val shadows = ClayShadow
+    return this
+        .clip(shape)
+        .background(container)
+        .drawBehind {
+            drawInnerShadow(shape, shadows.insetDark, 4.dp.toPx(), 4.dp.toPx(), 8.dp.toPx())
+            drawInnerShadow(shape, shadows.insetLight, -4.dp.toPx(), -4.dp.toPx(), 8.dp.toPx())
+        }
+}
 
 /**
  * Primary pill button: paired outer shadows with a mint-tinted inner shade.
@@ -133,20 +196,28 @@ fun Modifier.clayButton(
     container: Color,
     pressed: Boolean = false,
     shape: Shape = PillShape,
-): Modifier = if (pressed) {
-    this
-        .clip(shape)
-        .background(container)
-        .drawBehind {
-            drawInnerShadow(shape, ClayShadow.innerMint, 4.dp.toPx(), 4.dp.toPx(), 8.dp.toPx())
-            drawInnerShadow(shape, Color(0x99FFFFFF), -4.dp.toPx(), -4.dp.toPx(), 8.dp.toPx())
-        }
-} else {
-    this
-        .clayOuter(shape, elevation = ClayShadow.buttonBlur, dark = Color(0x1A000000), offset = ClayShadow.buttonOffset)
-        .clip(shape)
-        .background(container)
-        .clayBevel(shape, light = Color(0x99FFFFFF), dark = ClayShadow.innerMint)
+): Modifier {
+    val shadows = ClayShadow
+    return if (pressed) {
+        this
+            .clip(shape)
+            .background(container)
+            .drawBehind {
+                drawInnerShadow(shape, shadows.innerAccent, 4.dp.toPx(), 4.dp.toPx(), 8.dp.toPx())
+                drawInnerShadow(shape, shadows.highlight, -4.dp.toPx(), -4.dp.toPx(), 8.dp.toPx())
+            }
+    } else {
+        this
+            .clayOuter(
+                shape,
+                elevation = ClayMetrics.buttonBlur,
+                dark = shadows.buttonDark,
+                offset = ClayMetrics.buttonOffset,
+            )
+            .clip(shape)
+            .background(container)
+            .clayBevel(shape, light = shadows.highlight, dark = shadows.innerAccent)
+    }
 }
 
 // ---- Drawing primitives ----------------------------------------------------

@@ -54,7 +54,6 @@ import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayLabelledField
 import com.delizioso.app.ui.components.ClayTopBar
 import com.delizioso.app.ui.theme.PillShape
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.theme.clayBevel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -226,7 +225,7 @@ fun ProfileScreen(
             item {
                 SettingsCard(title = stringResource(R.string.profile_ai_section)) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = Primary, modifier = Modifier.size(22.dp))
+                        Icon(Icons.Filled.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
                         Column(Modifier.weight(1f).padding(horizontal = 14.dp)) {
                             Text(stringResource(R.string.profile_ai_title), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                             Text(
@@ -240,7 +239,7 @@ fun ProfileScreen(
                             onCheckedChange = viewModel::setAiConsent,
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
-                                checkedTrackColor = Primary,
+                                checkedTrackColor = MaterialTheme.colorScheme.primary,
                             ),
                         )
                     }
@@ -288,7 +287,7 @@ fun ProfileScreen(
                             },
                             style = MaterialTheme.typography.bodyLarge,
                             fontWeight = FontWeight.SemiBold,
-                            color = if (gemmaBytes > 0L) Primary else MaterialTheme.colorScheme.onSurface,
+                            color = if (gemmaBytes > 0L) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
                         )
                         if (gemmaBytes == 0L) {
                             Text(
@@ -411,7 +410,7 @@ private fun BackupControls(
                 // Some file providers hand zips out as octet-stream, so accept both.
                 onClick = { importPicker.launch(arrayOf("application/zip", "application/octet-stream")) },
                 container = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentColor = Primary,
+                contentColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f),
             )
         }
@@ -419,7 +418,7 @@ private fun BackupControls(
 }
 
 @Composable
-private fun StatusLine(text: String, color: androidx.compose.ui.graphics.Color = Primary) {
+private fun StatusLine(text: String, color: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.primary) {
     Text(text, style = MaterialTheme.typography.labelMedium, color = color)
 }
 
@@ -452,6 +451,6 @@ private fun RoundStepper(
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
-        Icon(icon, contentDescription = description, tint = Primary, modifier = Modifier.size(18.dp))
+        Icon(icon, contentDescription = description, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
     }
 }

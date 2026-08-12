@@ -102,7 +102,83 @@ private val lightColorScheme = lightColorScheme(
     surfaceContainerLowest = SurfaceLowest,
 )
 
-// DESIGN.md ships only a light palette; reuse the light tokens until a dark one is specified.
-private val darkColorScheme: ColorScheme = lightColorScheme
+/**
+ * Culinary Clay after dark.
+ *
+ * Not an inversion: the surfaces stay warm and stop well short of black, because
+ * the claymorphism needs room for a shadow *below* the container and a highlight
+ * *above* it. On true black the shadow has nowhere to go and every card flattens
+ * into the background. Mint lightens to stay legible on a dark ground, and peach
+ * and olive are desaturated so they read as accents rather than glow.
+ */
+val DarkBackground = Color(0xFF141513)
+val DarkSurfaceLowest = Color(0xFF0F100E)
+val DarkSurfaceLow = Color(0xFF1B1D1A)
+val DarkSurfaceContainer = Color(0xFF1F211E)
+val DarkSurfaceHigh = Color(0xFF262825)
+val DarkSurfaceHighest = Color(0xFF2E302C)
+val DarkSurfaceVariant = Color(0xFF3F443D)
+val DarkOnSurface = Color(0xFFE3E3DE)
+val DarkOnSurfaceVariant = Color(0xFFC2C9BD)
+val DarkOutline = Color(0xFF8C9488)
+val DarkOutlineVariant = Color(0xFF424940)
 
-fun appColorScheme(): ColorScheme = lightColorScheme
+val DarkPrimary = Color(0xFF8BE58F)
+val DarkOnPrimary = Color(0xFF00390D)
+val DarkPrimaryContainer = Color(0xFF005316)
+val DarkOnPrimaryContainer = Color(0xFFA6F2A6)
+
+val DarkSecondary = Color(0xFFE3C0A0)
+val DarkOnSecondary = Color(0xFF422C16)
+val DarkSecondaryContainer = Color(0xFF5A422A)
+val DarkOnSecondaryContainer = Color(0xFFFFDCBE)
+
+val DarkTertiary = Color(0xFFCAC99F)
+val DarkOnTertiary = Color(0xFF323215)
+val DarkTertiaryContainer = Color(0xFF484828)
+val DarkOnTertiaryContainer = Color(0xFFE6E5B9)
+
+val DarkError = Color(0xFFFFB4AB)
+val DarkOnError = Color(0xFF690005)
+val DarkErrorContainer = Color(0xFF93000A)
+val DarkOnErrorContainer = Color(0xFFFFDAD6)
+
+private val darkColorScheme: ColorScheme = darkColorScheme(
+    primary = DarkPrimary,
+    onPrimary = DarkOnPrimary,
+    primaryContainer = DarkPrimaryContainer,
+    onPrimaryContainer = DarkOnPrimaryContainer,
+    inversePrimary = Primary,
+    secondary = DarkSecondary,
+    onSecondary = DarkOnSecondary,
+    secondaryContainer = DarkSecondaryContainer,
+    onSecondaryContainer = DarkOnSecondaryContainer,
+    tertiary = DarkTertiary,
+    onTertiary = DarkOnTertiary,
+    tertiaryContainer = DarkTertiaryContainer,
+    onTertiaryContainer = DarkOnTertiaryContainer,
+    error = DarkError,
+    onError = DarkOnError,
+    errorContainer = DarkErrorContainer,
+    onErrorContainer = DarkOnErrorContainer,
+    background = DarkBackground,
+    onBackground = DarkOnSurface,
+    surface = DarkBackground,
+    onSurface = DarkOnSurface,
+    surfaceVariant = DarkSurfaceVariant,
+    onSurfaceVariant = DarkOnSurfaceVariant,
+    surfaceTint = DarkPrimary,
+    inverseSurface = InverseOnSurface,
+    inverseOnSurface = InverseSurface,
+    outline = DarkOutline,
+    outlineVariant = DarkOutlineVariant,
+    surfaceBright = DarkSurfaceHighest,
+    surfaceDim = DarkSurfaceLowest,
+    surfaceContainer = DarkSurfaceContainer,
+    surfaceContainerHigh = DarkSurfaceHigh,
+    surfaceContainerHighest = DarkSurfaceHighest,
+    surfaceContainerLow = DarkSurfaceLow,
+    surfaceContainerLowest = DarkSurfaceLowest,
+)
+
+fun appColorScheme(dark: Boolean): ColorScheme = if (dark) darkColorScheme else lightColorScheme

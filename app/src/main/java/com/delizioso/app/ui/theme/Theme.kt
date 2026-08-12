@@ -3,22 +3,28 @@ package com.delizioso.app.ui.theme
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 
 /**
  * Delizioso! theme — Culinary Clay design system.
  *
- * DESIGN.md ships only a light palette; `darkTheme` is accepted for future use
- * but currently resolves to the light scheme (documented limitation).
+ * The clay shadows travel with the colour scheme: neumorphism is drawn, not
+ * tinted, so a dark palette needs its own shadow set rather than an inverted one.
+ * [LocalClayShadows] carries it to every `clay*` modifier.
  */
 @Composable
 fun DeliziosoTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    MaterialTheme(
-        colorScheme = appColorScheme(),
-        typography = AppTypography,
-        shapes = ClayShapes,
-        content = content,
-    )
+    CompositionLocalProvider(
+        LocalClayShadows provides if (darkTheme) ClayShadows.Dark else ClayShadows.Light
+    ) {
+        MaterialTheme(
+            colorScheme = appColorScheme(darkTheme),
+            typography = AppTypography,
+            shapes = ClayShapes,
+            content = content,
+        )
+    }
 }

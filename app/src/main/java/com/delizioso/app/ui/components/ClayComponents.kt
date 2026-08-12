@@ -51,9 +51,9 @@ import androidx.compose.ui.unit.dp
 import com.delizioso.app.data.local.RecipeWithDetails
 import com.delizioso.app.ui.theme.CardImageRadius
 import com.delizioso.app.ui.theme.PillShape
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayButton
 import com.delizioso.app.ui.theme.clayCard
+import com.delizioso.app.ui.theme.ClayShadow
 import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayInset
 import com.delizioso.app.ui.theme.clayOuter
@@ -81,7 +81,7 @@ fun ClayTopBar(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clayBevel(RoundedCornerShape(0.dp), light = Color(0x99FFFFFF), dark = Color(0x1A006E20))
+            .clayBevel(RoundedCornerShape(0.dp), light = ClayShadow.highlight, dark = ClayShadow.accentSoft)
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -93,7 +93,7 @@ fun ClayTopBar(
         Text(
             text = title,
             style = MaterialTheme.typography.displaySmall,
-            color = Primary,
+            color = MaterialTheme.colorScheme.primary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
@@ -115,7 +115,7 @@ fun ClayRoundButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     container: Color = MaterialTheme.colorScheme.surfaceContainer,
-    tint: Color = Primary,
+    tint: Color = MaterialTheme.colorScheme.primary,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
@@ -126,7 +126,7 @@ fun ClayRoundButton(
             .clayOuter(shape = PillShape, elevation = 12.dp)
             .clip(PillShape)
             .background(container)
-            .clayBevel(PillShape, light = if (pressed) Color(0x66FFFFFF) else Color(0x7AFFFFFF), dark = if (pressed) Color(0x40000000) else Color(0x26000000))
+            .clayBevel(PillShape, light = if (pressed) ClayShadow.innerLight else ClayShadow.highlight, dark = if (pressed) ClayShadow.buttonDarkPressed else ClayShadow.buttonDark)
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick),
         contentAlignment = Alignment.Center,
     ) {
@@ -184,17 +184,17 @@ fun ClayOutlinedButton(
             .clayOuter(shape = PillShape, elevation = 10.dp)
             .clip(PillShape)
             .background(MaterialTheme.colorScheme.surfaceContainerLowest)
-            .border(1.dp, Primary.copy(alpha = 0.35f), PillShape)
+            .border(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f), PillShape)
             .clickable(role = Role.Button, onClick = onClick)
             .padding(vertical = 16.dp, horizontal = 28.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (icon != null) {
-            Icon(icon, contentDescription = null, tint = Primary, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
             Spacer(Modifier.width(8.dp))
         }
-        Text(text, style = MaterialTheme.typography.labelLarge, color = Primary)
+        Text(text, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
     }
 }
 
@@ -247,7 +247,7 @@ fun ClayTextField(
                 // box instead leaves dead space that swallows taps rather than
                 // focusing the field.
                 minLines = minLines,
-                cursorBrush = SolidColor(Primary),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 keyboardOptions = keyboardOptions,
                 interactionSource = interactionSource,
                 decorationBox = { innerTextField ->
@@ -342,7 +342,7 @@ fun ClayFilterChip(
             .clayOuter(shape = PillShape, elevation = if (selected) 10.dp else 8.dp)
             .clip(PillShape)
             .background(container)
-            .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = if (selected) Color(0x33006E20) else Color(0x14000000))
+            .clayBevel(PillShape, light = ClayShadow.highlight, dark = if (selected) ClayShadow.innerAccent else ClayShadow.insetDark)
             .clickable(interactionSource = interactionSource, indication = null, role = Role.Button, onClick = onClick)
             .padding(horizontal = 24.dp, vertical = 10.dp),
     ) {
@@ -409,7 +409,7 @@ fun ClaySegmentedTabs(
                                 .clayOuter(shape = PillShape, elevation = 8.dp)
                                 .clip(PillShape)
                                 .background(MaterialTheme.colorScheme.primaryContainer)
-                                .clayBevel(PillShape, light = Color(0x99FFFFFF), dark = Color(0x33006E20))
+                                .clayBevel(PillShape, light = ClayShadow.highlight, dark = ClayShadow.innerAccent)
                         } else {
                             Modifier.clip(PillShape)
                         }
@@ -444,13 +444,13 @@ fun ClayCheckbox(
             .size(26.dp)
             .clip(shape)
             .background(if (checked) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clayBevel(shape, light = Color(0x33000000), dark = Color(0x66FFFFFF))
-            .border(1.5.dp, if (checked) Primary else MaterialTheme.colorScheme.outlineVariant, shape)
+            .clayBevel(shape, light = Color(0x33000000), dark = ClayShadow.innerLight)
+            .border(1.5.dp, if (checked) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, shape)
             .clickable(role = Role.Checkbox) { onCheckedChange(!checked) },
         contentAlignment = Alignment.Center,
     ) {
         if (checked) {
-            Icon(Icons.Filled.Check, contentDescription = null, tint = Primary, modifier = Modifier.size(18.dp))
+            Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
         }
     }
 }
@@ -467,13 +467,13 @@ fun ClayStepPod(
             .size(36.dp)
             .clip(PillShape)
             .background(if (done) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest)
-            .clayBevel(PillShape, light = Color(0x26000000), dark = Color(0x66FFFFFF))
-            .border(2.dp, if (done) Primary else MaterialTheme.colorScheme.outlineVariant, PillShape)
+            .clayBevel(PillShape, light = ClayShadow.buttonDark, dark = ClayShadow.innerLight)
+            .border(2.dp, if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, PillShape)
             .clickable(role = Role.Checkbox, onClick = onToggle),
         contentAlignment = Alignment.Center,
     ) {
         if (done) {
-            Icon(Icons.Filled.Check, contentDescription = null, tint = Primary, modifier = Modifier.size(20.dp))
+            Icon(Icons.Filled.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
         }
     }
 }
@@ -520,7 +520,7 @@ fun ClayRecipeCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
                 ) {
-                    Icon(Icons.Filled.Schedule, contentDescription = null, tint = Primary, modifier = Modifier.size(14.dp))
+                    Icon(Icons.Filled.Schedule, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(14.dp))
                     Text(stringResource(R.string.time_min, minutes), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurface)
                 }
             }
@@ -700,7 +700,7 @@ fun ClayEmptyState(
                 .clayBevel(PillShape),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(icon, contentDescription = null, tint = Primary, modifier = Modifier.size(44.dp))
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(44.dp))
         }
         Spacer(Modifier.height(20.dp))
         Text(title, style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.onSurface)
@@ -733,7 +733,7 @@ fun ClaySectionHeader(
             Text(
                 actionText,
                 style = MaterialTheme.typography.labelLarge,
-                color = Primary,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .clip(PillShape)
                     .clickable(role = Role.Button, onClick = onAction)
@@ -773,7 +773,7 @@ fun ClayAddPanel(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    accent: Color = Primary,
+    accent: Color = MaterialTheme.colorScheme.primary,
 ) {
     Column(
         modifier = modifier

@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.delizioso.app.R
 import com.delizioso.app.ui.theme.PillShape
+import com.delizioso.app.ui.theme.ClayShadow
 import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayOuter
 
@@ -89,7 +90,7 @@ fun ClayDock(
             .clayOuter(shape = PillShape, elevation = 24.dp)
             .clip(PillShape)
             .background(MaterialTheme.colorScheme.surfaceContainer)
-            .clayBevel(PillShape, light = Color(0x40FFFFFF), dark = Color(0x14000000))
+            .clayBevel(PillShape, light = Color(0x40FFFFFF), dark = ClayShadow.insetDark)
             .padding(8.dp),
         horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -125,7 +126,7 @@ private fun DockItemView(
                     Modifier
                         .clip(PillShape)
                         .background(MaterialTheme.colorScheme.primaryContainer)
-                        .clayBevel(PillShape, light = Color(0x66FFFFFF), dark = Color(0x33006E20))
+                        .clayBevel(PillShape, light = ClayShadow.innerLight, dark = ClayShadow.innerAccent)
                 } else {
                     Modifier.clip(PillShape)
                 }

@@ -45,8 +45,8 @@ import com.delizioso.app.ui.components.ClayRoundButton
 import com.delizioso.app.ui.components.ClaySegmentedTabs
 import com.delizioso.app.ui.components.ClayTextField
 import com.delizioso.app.ui.theme.PillShape
-import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
+import com.delizioso.app.ui.theme.ClayShadow
 import com.delizioso.app.ui.theme.clayBevel
 import androidx.compose.ui.res.stringResource
 import com.delizioso.app.R
@@ -82,7 +82,7 @@ fun GroceryScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clayBevel(androidx.compose.foundation.shape.RoundedCornerShape(0.dp), light = androidx.compose.ui.graphics.Color(0x99FFFFFF), dark = androidx.compose.ui.graphics.Color(0x1A006E20))
+                .clayBevel(androidx.compose.foundation.shape.RoundedCornerShape(0.dp), light = ClayShadow.highlight, dark = ClayShadow.accentSoft)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -95,7 +95,7 @@ fun GroceryScreen(
             Text(
                 stringResource(R.string.grocery_title),
                 style = MaterialTheme.typography.headlineLarge,
-                color = Primary,
+                color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.weight(1f),
             )
