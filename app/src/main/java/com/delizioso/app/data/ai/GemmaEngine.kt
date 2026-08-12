@@ -3,6 +3,7 @@ package com.delizioso.app.data.ai
 import android.content.Context
 import android.net.Uri
 import com.google.mediapipe.tasks.genai.llminference.LlmInference
+import com.google.mediapipe.tasks.genai.llminference.LlmInferenceSession
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
@@ -74,8 +75,22 @@ class GemmaEngine(
             lock.lock()
             try {
                 val model = engine ?: load(maxTokens).also { engine = it }
-                model.generateResponse(prompt)
-                    ?: throw AiUnavailableException("The model returned no answer")
+                // Sampling lives on the session, not the engine. Left at its default
+                // a 1B model wanders and can lock into a repetition loop
+                // ("2nd:2nd:2nd…"), so decode greedily: this job wants the most
+                // likely token, not a creative one.
+                val session = LlmInferenceSession.createFromOptions(
+                    model,
+                    LlmInferenceSession.LlmInferenceSessionOptions.builder()
+                        .setTemperature(0.1f)
+                        .setTopK(1)
+                        .setRandomSeed(1)
+                        .build(),
+                )
+                session.use {
+                    it.addQueryChunk(prompt)
+                    it.generateResponse() ?: throw AiUnavailableException("The model returned no answer")
+                }
             } catch (e: AiUnavailableException) {
                 throw e
             } catch (e: Exception) {
@@ -94,6 +109,8 @@ class GemmaEngine(
         val options = LlmInference.LlmInferenceOptions.builder()
             .setModelPath(file.absolutePath)
             .setMaxTokens(maxTokens)
+            // Ceiling for whatever the session asks for; must not be below it.
+            .setMaxTopK(64)
             .build()
         loadedFrom = file.absolutePath
         return LlmInference.createFromOptions(appContext, options)

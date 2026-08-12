@@ -34,6 +34,7 @@ class GemmaRewriter(
     ): StructuredRecipe {
         val prompt = buildPrompt(recipe, targetLanguage)
         val raw = engine.generate(prompt)
+        android.util.Log.d("GemmaRewrite", "DIAG len=${raw.length} raw=<<<$raw>>>")
         return parse(raw, recipe)
     }
 
