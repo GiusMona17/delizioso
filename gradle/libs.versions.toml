@@ -13,6 +13,7 @@ okhttp = "4.12.0"
 jsoup = "1.18.3"
 kotlinxSerialization = "1.8.1"
 coil = "2.7.0"
+mediapipeGenai = "0.10.27"
 mlkitGenai = "1.0.0-beta2"
 mlkitTextRecognition = "19.0.1"
 junit = "4.13.2"
@@ -41,6 +42,7 @@ okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhtt
 jsoup = { group = "org.jsoup", name = "jsoup", version.ref = "jsoup" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+mediapipe-tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "mediapipeGenai" }
 mlkit-genai-prompt ={ group = "com.google.mlkit", name = "genai-prompt", version.ref = "mlkitGenai" }
 # Unbundled OCR via Google Play services (carries the public TextRecognizerOptions API;
 # the bundled com.google.mlkit:text-recognition artifact only ships model assets).

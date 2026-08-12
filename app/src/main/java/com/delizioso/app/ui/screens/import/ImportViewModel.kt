@@ -11,6 +11,7 @@ import com.delizioso.app.DeliziosoApplication
 import com.delizioso.app.data.ImageStore
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.AiUnavailableException
+import com.delizioso.app.data.ai.GemmaRewriter
 import com.delizioso.app.data.ai.NanoInference
 import com.delizioso.app.data.ai.NanoStructurer
 import com.delizioso.app.data.import.ImportContent
@@ -37,6 +38,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import com.delizioso.app.R
 
+/** State of the optional Gemma rewrite. */
+sealed interface RewriteState {
+    data object Idle : RewriteState
+    data object Running : RewriteState
+    data class Failed(val message: String) : RewriteState
+}
+
 sealed interface ImportUiState {
     data object Idle : ImportUiState
     data object Fetching : ImportUiState
@@ -61,7 +69,38 @@ class ImportViewModel(
     private val repository: RecipeRepository,
     private val preferences: UserPreferences,
     private val appContext: Context,
+    private val rewriter: GemmaRewriter,
 ) : ViewModel() {
+
+    /** Progress of the optional "tidy up with Gemma" pass. */
+    private val _rewrite = MutableStateFlow<RewriteState>(RewriteState.Idle)
+    val rewrite: StateFlow<RewriteState> = _rewrite.asStateFlow()
+
+    fun canRewrite(): Boolean = rewriter.isAvailable()
+
+    /**
+     * Rewrites the recipe currently under review — translation, metric units,
+     * fuller steps — and hands the result back so the form can adopt it.
+     */
+    fun rewriteCurrent(recipe: StructuredRecipe, onRewritten: (StructuredRecipe) -> Unit) {
+        if (_rewrite.value is RewriteState.Running) return
+        viewModelScope.launch {
+            _rewrite.value = RewriteState.Running
+            try {
+                val improved = rewriter.rewrite(recipe)
+                _rewrite.value = RewriteState.Idle
+                onRewritten(improved)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _rewrite.value = RewriteState.Failed(e.message ?: "Rewrite failed")
+            }
+        }
+    }
+
+    fun clearRewriteError() {
+        _rewrite.value = RewriteState.Idle
+    }
 
     private val _state = MutableStateFlow<ImportUiState>(ImportUiState.Idle)
     val state: StateFlow<ImportUiState> = _state.asStateFlow()
@@ -241,6 +280,7 @@ class ImportViewModel(
                     repository = app.container.recipeRepository,
                     preferences = app.container.preferences,
                     appContext = app,
+                    rewriter = app.container.gemmaRewriter,
                 )
             }
         }

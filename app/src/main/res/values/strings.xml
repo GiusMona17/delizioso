@@ -256,4 +256,17 @@
     <string name="grocery_aisle_frozen">Frozen</string>
     <string name="grocery_aisle_pantry">Pantry</string>
     <string name="grocery_aisle_other">Other</string>
+    <string name="gemma_card_title">Advanced AI model (Gemma)</string>
+    <string name="gemma_card_body">Optional. Gemini Nano can only answer 256 tokens at a time, which is not enough to translate a recipe or convert cups into grams. Install a Gemma .task file and the "Tidy up" button appears when a recipe needs it.</string>
+    <string name="gemma_pick">Choose model file</string>
+    <string name="gemma_replace">Replace model</string>
+    <string name="gemma_remove">Remove</string>
+    <string name="gemma_installed">Installed — %1$s</string>
+    <string name="gemma_none">No model installed</string>
+    <string name="gemma_installing">Copying the model… this takes a minute</string>
+    <string name="gemma_hint">Download a Gemma .task from Hugging Face or Kaggle (licence acceptance required), then pick it here.</string>
+    <string name="rewrite_button">Tidy up with AI</string>
+    <string name="rewrite_running">Rewriting the recipe…</string>
+    <string name="rewrite_imperial_hint">This recipe uses cups/ounces. Tidy up converts them to grams and millilitres and translates the steps.</string>
+    <string name="rewrite_failed">The rewrite did not work: %1$s</string>
 </resources>

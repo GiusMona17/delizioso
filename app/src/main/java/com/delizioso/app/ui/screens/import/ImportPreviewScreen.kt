@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -30,10 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.delizioso.app.data.ImperialUnits
 import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayTopBar
 import com.delizioso.app.ui.components.PhotoPickerArea
+import com.delizioso.app.ui.theme.Primary
 import com.delizioso.app.ui.theme.clayCard
 import com.delizioso.app.ui.screens.create.IngredientsCard
 import com.delizioso.app.ui.screens.create.InstructionsCard
@@ -56,8 +59,11 @@ fun ImportPreviewScreen(
     // this screen must keep rendering until the caller has navigated away.
     var ready by remember { mutableStateOf<ImportUiState.Ready?>(null) }
     val pickedPhoto by viewModel.pickedPhoto.collectAsStateWithLifecycle()
+    val rewriteState by viewModel.rewrite.collectAsStateWithLifecycle()
     val form = rememberRecipeFormState()
     val scope = rememberCoroutineScope()
+    // Touches the filesystem, so read it once rather than on every recomposition.
+    val canRewrite = remember { viewModel.canRewrite() }
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let(viewModel::onPhotoPicked)
     }
@@ -127,6 +133,52 @@ fun ImportPreviewScreen(
                     container = MaterialTheme.colorScheme.secondaryContainer,
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 )
+            }
+            if (canRewrite) {
+                item {
+                    val draft = form.toStructuredRecipe()
+                    val imperial = ImperialUnits.isPresentIn(draft)
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (imperial) {
+                            Text(
+                                stringResource(R.string.rewrite_imperial_hint),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        (rewriteState as? RewriteState.Failed)?.let { failed ->
+                            Text(
+                                stringResource(R.string.rewrite_failed, failed.message),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.error,
+                            )
+                        }
+                        ClayButton(
+                            text = stringResource(
+                                if (rewriteState is RewriteState.Running) R.string.rewrite_running
+                                else R.string.rewrite_button
+                            ),
+                            icon = Icons.Filled.AutoAwesome,
+                            enabled = rewriteState !is RewriteState.Running && form.isValid,
+                            onClick = {
+                                viewModel.clearRewriteError()
+                                viewModel.rewriteCurrent(draft, form::applyDraft)
+                            },
+                            // Highlighted only when the recipe actually needs converting.
+                            container = if (imperial) {
+                                MaterialTheme.colorScheme.primaryContainer
+                            } else {
+                                MaterialTheme.colorScheme.surfaceContainerLow
+                            },
+                            contentColor = if (imperial) {
+                                MaterialTheme.colorScheme.onPrimaryContainer
+                            } else {
+                                Primary
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
             }
             item { RecipeIdentityFields(form) }
             item { IngredientsCard(form) }

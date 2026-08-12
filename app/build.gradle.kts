@@ -83,6 +83,7 @@ dependencies {
 
     implementation(libs.coil.compose)
 
+    implementation(libs.mediapipe.tasks.genai)
     implementation(libs.mlkit.genai.prompt)
     implementation(libs.gms.text.recognition)
 

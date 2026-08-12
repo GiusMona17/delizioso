@@ -4,6 +4,8 @@ import android.app.Application
 import android.content.Context
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.NanoAdvisor
+import com.delizioso.app.data.ai.GemmaEngine
+import com.delizioso.app.data.ai.GemmaRewriter
 import com.delizioso.app.data.ai.NanoChat
 import com.delizioso.app.data.ai.NanoStructurer
 import com.delizioso.app.data.ai.OcrTextExtractor
@@ -33,6 +35,9 @@ class AppContainer(context: Context) {
     val nanoChat: NanoChat = NanoChat(
         consentProvider = { preferences.aiConsentGiven.first() }
     )
+    /** Optional, user-supplied Gemma model — powers the manual "tidy up" rewrite. */
+    val gemmaEngine: GemmaEngine = GemmaEngine(context.applicationContext)
+    val gemmaRewriter: GemmaRewriter = GemmaRewriter(gemmaEngine)
     val ocrTextExtractor: OcrTextExtractor = OcrTextExtractor()
 
     val importRegistry: RecipeImporterRegistry = RecipeImporterRegistry(

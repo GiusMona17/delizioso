@@ -256,4 +256,17 @@
     <string name="grocery_aisle_frozen">Surgelati</string>
     <string name="grocery_aisle_pantry">Dispensa</string>
     <string name="grocery_aisle_other">Altro</string>
+    <string name="gemma_card_title">Modello IA avanzato (Gemma)</string>
+    <string name="gemma_card_body">Opzionale. Gemini Nano può rispondere solo 256 token alla volta, troppo pochi per tradurre una ricetta o convertire le cup in grammi. Installa un file .task di Gemma e comparirà il pulsante "Sistema" quando serve.</string>
+    <string name="gemma_pick">Scegli il file del modello</string>
+    <string name="gemma_replace">Sostituisci modello</string>
+    <string name="gemma_remove">Rimuovi</string>
+    <string name="gemma_installed">Installato — %1$s</string>
+    <string name="gemma_none">Nessun modello installato</string>
+    <string name="gemma_installing">Copio il modello… ci vuole un minuto</string>
+    <string name="gemma_hint">Scarica un .task di Gemma da Hugging Face o Kaggle (serve accettare la licenza), poi selezionalo qui.</string>
+    <string name="rewrite_button">Sistema con l\'IA</string>
+    <string name="rewrite_running">Riscrivo la ricetta…</string>
+    <string name="rewrite_imperial_hint">Questa ricetta usa cup/once. "Sistema" le converte in grammi e millilitri e traduce i passaggi.</string>
+    <string name="rewrite_failed">La riscrittura non ha funzionato: %1$s</string>
 </resources>
