@@ -10,6 +10,7 @@ import com.delizioso.app.data.import.StructuredRecipe
 import com.delizioso.app.data.search.MealDbMapper
 import com.delizioso.app.data.search.TheMealDbClient
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +53,15 @@ class OnlineSearchViewModel(
      */
     private var loadedMeals: Map<String, JsonObject> = emptyMap()
 
+    /**
+     * The in-flight search or lookup, if any.
+     *
+     * All three entry points share this one job because they all write to the
+     * same [_state]: whichever the user triggered last must win, so starting one
+     * cancels whatever came before it, regardless of which kind it was.
+     */
+    private var searchJob: Job? = null
+
     init {
         // Failure is not fatal: the picker falls back to free text.
         viewModelScope.launch {
@@ -62,7 +72,8 @@ class OnlineSearchViewModel(
     fun searchByName(query: String) {
         if (query.isBlank()) return
         _chosenIngredients.value = emptyList()
-        viewModelScope.launch {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
             _state.value = SearchUiState.Loading
             _state.value = try {
                 val meals = client.searchByName(query)
@@ -106,7 +117,8 @@ class OnlineSearchViewModel(
         // Ingredient-filter results carry no recipe, so a stale name-search cache
         // must not be consulted for them.
         loadedMeals = emptyMap()
-        viewModelScope.launch {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
             _state.value = SearchUiState.Loading
             _state.value = try {
                 val perIngredient = chosen
@@ -130,7 +142,8 @@ class OnlineSearchViewModel(
      * needs the extra `lookup` round-trip.
      */
     fun openResult(id: String, onReady: (StructuredRecipe, RawImport) -> Unit) {
-        viewModelScope.launch {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
             _state.value = SearchUiState.Loading
             try {
                 val meal = loadedMeals[id] ?: client.lookup(id)
