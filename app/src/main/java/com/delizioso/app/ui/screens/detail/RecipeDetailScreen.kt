@@ -763,6 +763,7 @@ private fun sourceLabel(platform: String): String = when (platform) {
     Platform.TIKTOK -> stringResource(R.string.source_tiktok)
     Platform.YOUTUBE -> stringResource(R.string.source_youtube)
     Platform.FACEBOOK -> stringResource(R.string.source_facebook)
+    Platform.MEALDB -> stringResource(R.string.source_mealdb)
     else -> stringResource(R.string.import_platform_web)
 }
 

@@ -212,6 +212,7 @@
     <string name="source_facebook">Facebook</string>
     <string name="source_tiktok">TikTok</string>
     <string name="source_youtube">YouTube</string>
+    <string name="source_mealdb">TheMealDB</string>
     <string name="source_web">il web</string>
     <string name="source_scan">una scansione</string>
 

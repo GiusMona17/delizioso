@@ -136,9 +136,16 @@ fun DeliziosoApp(
             }
             composable(Routes.IMPORT_PREVIEW) {
                 val parentEntry = navController.getBackStackEntry(Routes.IMPORT)
+                val importViewModel: ImportViewModel =
+                    viewModel(viewModelStoreOwner = parentEntry, factory = ImportViewModel.Factory)
                 ImportPreviewScreen(
-                    viewModel = viewModel(viewModelStoreOwner = parentEntry, factory = ImportViewModel.Factory),
-                    onBack = { navController.popBackStack() },
+                    viewModel = importViewModel,
+                    // Ready is also the Import screen's "open the preview" trigger,
+                    // so leaving it set would bounce straight back in here.
+                    onBack = {
+                        importViewModel.discard()
+                        navController.popBackStack()
+                    },
                     onSaved = { id ->
                         navController.navigate(Routes.recipeDetail(id)) {
                             popUpTo(Routes.IMPORT)

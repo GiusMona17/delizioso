@@ -22,14 +22,9 @@ class TheMealDbImporter(
             ?: throw ImportException("Not a valid TheMealDB link")
         val meal = client.lookup(id)
             ?: throw ImportException("TheMealDB has no recipe with id $id", retryable = true)
-        val recipe = MealDbMapper.toRecipe(meal)
-        return RawImport(
-            platform = platform.key,
-            url = webUrl(id),
-            author = AUTHOR,
-            content = ImportContent.Structured(recipe),
-            thumbnailUrl = recipe.imageUrl,
-        )
+        // The mapper builds the same RawImport for search results; a second copy
+        // here is only a chance for the two paths to drift apart.
+        return MealDbMapper.toRawImport(meal)
     }
 
     companion object {

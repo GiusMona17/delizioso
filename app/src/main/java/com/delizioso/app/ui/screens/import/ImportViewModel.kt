@@ -133,7 +133,23 @@ class ImportViewModel(
     fun importSearchResult(recipe: StructuredRecipe, raw: RawImport) {
         lastRaw = raw
         lastUrl = raw.url
+        // A photo picked for an earlier, abandoned import would otherwise win over
+        // this recipe's own thumbnail in save().
+        _pickedPhoto.value = null
         _state.value = ImportUiState.Ready(recipe = recipe, raw = raw)
+    }
+
+    /**
+     * Abandon the import under review.
+     *
+     * Ready doubles as the preview's navigation trigger, so leaving it set means
+     * returning to the import screen bounces straight back into the preview.
+     */
+    fun discard() {
+        _state.value = ImportUiState.Idle
+        lastRaw = null
+        lastUrl = null
+        _pickedPhoto.value = null
     }
 
     fun importLink(url: String) {

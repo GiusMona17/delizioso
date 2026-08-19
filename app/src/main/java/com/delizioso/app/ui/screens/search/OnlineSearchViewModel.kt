@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.delizioso.app.data.import.ImportException
 import com.delizioso.app.data.import.RawImport
 import com.delizioso.app.data.import.StructuredRecipe
 import com.delizioso.app.data.search.MealDbMapper
@@ -93,8 +94,10 @@ class OnlineSearchViewModel(
                 }
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
+            } catch (e: ImportException) {
                 SearchUiState.Failed(e.message.orEmpty())
+            } catch (e: Exception) {
+                SearchUiState.Failed("")
             }
         }
     }
@@ -128,8 +131,10 @@ class OnlineSearchViewModel(
                 if (shared.isEmpty()) SearchUiState.Empty(chosen) else SearchUiState.Results(shared)
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
+            } catch (e: ImportException) {
                 SearchUiState.Failed(e.message.orEmpty())
+            } catch (e: Exception) {
+                SearchUiState.Failed("")
             }
         }
     }
@@ -144,6 +149,10 @@ class OnlineSearchViewModel(
     fun openResult(id: String, onReady: (StructuredRecipe, RawImport) -> Unit) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
+            // The results are put back before handing off, so returning from the
+            // preview shows the list the user chose from instead of a spinner
+            // nothing will ever resolve.
+            val previous = _state.value
             _state.value = SearchUiState.Loading
             try {
                 val meal = loadedMeals[id] ?: client.lookup(id)
@@ -151,11 +160,14 @@ class OnlineSearchViewModel(
                     _state.value = SearchUiState.Failed("")
                     return@launch
                 }
+                _state.value = previous
                 onReady(MealDbMapper.toRecipe(meal), MealDbMapper.toRawImport(meal))
             } catch (e: CancellationException) {
                 throw e
-            } catch (e: Exception) {
+            } catch (e: ImportException) {
                 _state.value = SearchUiState.Failed(e.message.orEmpty())
+            } catch (e: Exception) {
+                _state.value = SearchUiState.Failed("")
             }
         }
     }

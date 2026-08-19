@@ -2,7 +2,8 @@ package com.delizioso.app.data.search
 
 import com.delizioso.app.data.import.ImportException
 import com.delizioso.app.data.import.ImportHttp
-import com.delizioso.app.data.import.newCallSuspend
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -64,18 +65,28 @@ class TheMealDbClient(
         }
     }
 
-    private suspend fun meals(path: String): List<JsonObject> {
+    /**
+     * Request and read on IO.
+     *
+     * The body must be read on the same dispatcher as the call: OkHttp returns
+     * from `execute()` with only the headers and a buffered prefix, so a large
+     * response — `list.php?i=list` and `filter.php` both are — keeps reading from
+     * the socket inside `string()`, which on the caller's `viewModelScope` means
+     * the main thread. `use` closes the response on the non-2xx path too.
+     */
+    private suspend fun meals(path: String): List<JsonObject> = withContext(Dispatchers.IO) {
         val request = Request.Builder().url(baseUrl.trimEnd('/') + "/" + path).get().build()
-        val response = client.newCallSuspend(request)
-        if (!response.isSuccessful) {
-            throw ImportException("TheMealDB returned HTTP ${response.code}", retryable = true)
+        val body = client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) {
+                throw ImportException("TheMealDB returned HTTP ${response.code}", retryable = true)
+            }
+            response.body?.string().orEmpty()
         }
-        val body = response.body?.string().orEmpty()
         val root = runCatching { json.parseToJsonElement(body) as? JsonObject }.getOrNull()
             ?: throw ImportException("TheMealDB sent something this app could not read", retryable = true)
         // A miss is {"meals":null}, which is not an error.
-        val array = root["meals"] as? JsonArray ?: return emptyList()
-        return array.filterIsInstance<JsonObject>()
+        val array = root["meals"] as? JsonArray ?: return@withContext emptyList()
+        array.filterIsInstance<JsonObject>()
     }
 
     private fun encode(value: String): String = URLEncoder.encode(value, "UTF-8")

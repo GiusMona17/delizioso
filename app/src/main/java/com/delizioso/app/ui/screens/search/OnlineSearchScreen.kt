@@ -36,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.delizioso.app.R
@@ -89,18 +88,6 @@ fun OnlineSearchScreen(
             viewModel.removeIngredient(last)
             viewModel.addIngredient(last)
         }
-    }
-
-    // `openResult` leaves the state on Loading and this screen navigates away, so
-    // coming back from the preview would show a spinner that never resolves.
-    // Repeating the search restores the results the user chose from.
-    var handedOff by rememberSaveable { mutableStateOf(false) }
-    LifecycleResumeEffect(Unit) {
-        if (handedOff) {
-            handedOff = false
-            onRetry()
-        }
-        onPauseOrDispose {}
     }
 
     Column(Modifier.fillMaxSize()) {
@@ -175,7 +162,6 @@ fun OnlineSearchScreen(
                             onClick = {
                                 viewModel.openResult(result.id) { recipe, raw ->
                                     importViewModel.importSearchResult(recipe, raw)
-                                    handedOff = true
                                     onPreview()
                                 }
                             },
