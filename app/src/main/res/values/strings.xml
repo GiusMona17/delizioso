@@ -304,4 +304,18 @@
     <string name="export_prompt_hint">Or hand the original caption to an assistant and paste the JSON it returns into Import.</string>
     <string name="export_copy_prompt">Copy prompt for an AI</string>
     <string name="export_share_prompt">Send prompt to an AI</string>
+    <string name="library_sort">Sort by</string>
+    <string name="library_sort_recent">Last updated</string>
+    <string name="library_sort_name">Name</string>
+    <string name="library_sort_time">Time</string>
+    <string name="edit_ai_title">Reorganise with an AI</string>
+    <string name="edit_ai_body">The description this recipe came from can be handed to an assistant. Paste the JSON it returns back here — the source link and the photo stay.</string>
+    <string name="edit_ai_copy">Copy prompt</string>
+    <string name="edit_ai_send">Send prompt</string>
+    <string name="edit_ai_paste">Paste the JSON</string>
+    <string name="edit_ai_paste_title">Paste the answer</string>
+    <string name="edit_ai_paste_body">Paste the JSON the assistant returned. Only the recipe fields change.</string>
+    <string name="edit_ai_paste_failed">That is not the expected JSON. Paste the whole answer, fences and all.</string>
+    <string name="edit_ai_paste_placeholder">Paste here…</string>
+    <string name="edit_ai_paste_apply">Apply</string>
 </resources>

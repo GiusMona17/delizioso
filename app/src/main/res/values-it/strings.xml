@@ -304,4 +304,18 @@
     <string name="export_prompt_hint">Oppure passa la didascalia originale a un assistente e incolla il JSON che restituisce in Importa.</string>
     <string name="export_copy_prompt">Copia il prompt per un\'IA</string>
     <string name="export_share_prompt">Manda il prompt a un\'IA</string>
+    <string name="library_sort">Ordina per</string>
+    <string name="library_sort_recent">Ultime modificate</string>
+    <string name="library_sort_name">Nome</string>
+    <string name="library_sort_time">Tempo</string>
+    <string name="edit_ai_title">Riorganizza con un\'IA</string>
+    <string name="edit_ai_body">La didascalia da cui arriva questa ricetta può essere passata a un assistente. Incolla qui il JSON che restituisce: link alla fonte e foto restano.</string>
+    <string name="edit_ai_copy">Copia il prompt</string>
+    <string name="edit_ai_send">Manda il prompt</string>
+    <string name="edit_ai_paste">Incolla il JSON</string>
+    <string name="edit_ai_paste_title">Incolla la risposta</string>
+    <string name="edit_ai_paste_body">Incolla il JSON restituito dall\'assistente. Cambiano solo i campi della ricetta.</string>
+    <string name="edit_ai_paste_failed">Non è il JSON atteso. Incolla tutta la risposta, virgolette e apici inclusi.</string>
+    <string name="edit_ai_paste_placeholder">Incolla qui…</string>
+    <string name="edit_ai_paste_apply">Applica</string>
 </resources>

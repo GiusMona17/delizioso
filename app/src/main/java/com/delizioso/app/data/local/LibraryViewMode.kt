@@ -16,3 +16,19 @@ enum class LibraryViewMode(val key: String) {
         fun from(key: String?): LibraryViewMode = entries.firstOrNull { it.key == key } ?: CARDS
     }
 }
+
+/**
+ * The order recipes are listed in.
+ *
+ * [RECENT] is what the library always did — most recently touched first, which is
+ * right for a handful of recipes and useless once you are hunting for a name.
+ */
+enum class LibrarySort(val key: String) {
+    RECENT("recent"),
+    NAME("name"),
+    TIME("time");
+
+    companion object {
+        fun from(key: String?): LibrarySort = entries.firstOrNull { it.key == key } ?: RECENT
+    }
+}

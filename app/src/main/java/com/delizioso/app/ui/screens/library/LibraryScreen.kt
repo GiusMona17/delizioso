@@ -66,6 +66,12 @@ import com.delizioso.app.ui.components.ClayRecipeTile
 import com.delizioso.app.ui.theme.PillShape
 import androidx.compose.material3.Text
 import androidx.compose.foundation.clickable
+import com.delizioso.app.data.local.LibrarySort
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.SortByAlpha
+import androidx.compose.material3.HorizontalDivider
 
 /** "All" plus the pinned Favourites filter, plus every category in use. */
 private const val FILTER_ALL = "All"
@@ -82,7 +88,12 @@ class LibraryViewModel(
     val viewMode: StateFlow<LibraryViewMode> =
         preferences.libraryViewMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LibraryViewMode.CARDS)
 
+    val sort: StateFlow<LibrarySort> =
+        preferences.librarySort.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), LibrarySort.RECENT)
+
     fun setViewMode(mode: LibraryViewMode) = viewModelScope.launch { preferences.setLibraryViewMode(mode) }
+
+    fun setSort(sort: LibrarySort) = viewModelScope.launch { preferences.setLibrarySort(sort) }
 
     fun toggleFavorite(id: Long, current: Boolean) {
         viewModelScope.launch { repository.setFavorite(id, !current) }
@@ -108,6 +119,7 @@ fun LibraryScreen(
 ) {
     val recipes by viewModel.recipes.collectAsStateWithLifecycle()
     val viewMode by viewModel.viewMode.collectAsStateWithLifecycle()
+    val sort by viewModel.sort.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
     var filter by rememberSaveable { mutableStateOf(FILTER_ALL) }
 
@@ -134,6 +146,7 @@ fun LibraryScreen(
                 else -> it.tags.any { tag -> tag.name == filter }
             }
         }
+        .sortedWith(sort.comparator())
 
     Column(modifier = modifier.fillMaxSize()) {
         ClayTopBar(
@@ -163,7 +176,12 @@ fun LibraryScreen(
                     // The slot used to hold a decorative, dead "tune" icon; it now
                     // switches the layout, which is what a control there implies.
                     trailing = {
-                        ViewModePicker(current = viewMode, onSelect = viewModel::setViewMode)
+                        LibraryOptions(
+                            viewMode = viewMode,
+                            sort = sort,
+                            onViewMode = viewModel::setViewMode,
+                            onSort = viewModel::setSort,
+                        )
                     },
                 )
             }
@@ -225,17 +243,23 @@ private fun RecipeWithDetails.matches(query: String): Boolean {
 }
 
 /**
- * Switches the library between its three layouts.
+ * Layout and order, in one menu.
  *
- * Shown as the current layout's own icon, so the control says what you are
- * looking at as well as what you can change it to.
+ * They answer the same question — "how do I want to look through this?" — and the
+ * search field has room for one trailing icon, not two. The icon is the current
+ * layout's own, so it says where you are as well as what it changes.
  */
 @Composable
-private fun ViewModePicker(current: LibraryViewMode, onSelect: (LibraryViewMode) -> Unit) {
+private fun LibraryOptions(
+    viewMode: LibraryViewMode,
+    sort: LibrarySort,
+    onViewMode: (LibraryViewMode) -> Unit,
+    onSort: (LibrarySort) -> Unit,
+) {
     var open by remember { mutableStateOf(false) }
     Box {
         Icon(
-            imageVector = when (current) {
+            imageVector = when (viewMode) {
                 LibraryViewMode.CARDS -> Icons.Filled.ViewAgenda
                 LibraryViewMode.GRID -> Icons.Filled.GridView
                 LibraryViewMode.LIST -> Icons.AutoMirrored.Filled.ViewList
@@ -250,24 +274,69 @@ private fun ViewModePicker(current: LibraryViewMode, onSelect: (LibraryViewMode)
                 .padding(9.dp),
         )
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            ViewModeItem(Icons.Filled.ViewAgenda, R.string.library_view_cards) {
-                onSelect(LibraryViewMode.CARDS); open = false
+            MenuHeading(R.string.library_view_mode)
+            OptionItem(Icons.Filled.ViewAgenda, R.string.library_view_cards, viewMode == LibraryViewMode.CARDS) {
+                onViewMode(LibraryViewMode.CARDS); open = false
             }
-            ViewModeItem(Icons.Filled.GridView, R.string.library_view_grid) {
-                onSelect(LibraryViewMode.GRID); open = false
+            OptionItem(Icons.Filled.GridView, R.string.library_view_grid, viewMode == LibraryViewMode.GRID) {
+                onViewMode(LibraryViewMode.GRID); open = false
             }
-            ViewModeItem(Icons.AutoMirrored.Filled.ViewList, R.string.library_view_list) {
-                onSelect(LibraryViewMode.LIST); open = false
+            OptionItem(Icons.AutoMirrored.Filled.ViewList, R.string.library_view_list, viewMode == LibraryViewMode.LIST) {
+                onViewMode(LibraryViewMode.LIST); open = false
+            }
+            HorizontalDivider()
+            MenuHeading(R.string.library_sort)
+            OptionItem(Icons.Filled.History, R.string.library_sort_recent, sort == LibrarySort.RECENT) {
+                onSort(LibrarySort.RECENT); open = false
+            }
+            OptionItem(Icons.Filled.SortByAlpha, R.string.library_sort_name, sort == LibrarySort.NAME) {
+                onSort(LibrarySort.NAME); open = false
+            }
+            OptionItem(Icons.Filled.Schedule, R.string.library_sort_time, sort == LibrarySort.TIME) {
+                onSort(LibrarySort.TIME); open = false
             }
         }
     }
 }
 
 @Composable
-private fun ViewModeItem(icon: ImageVector, label: Int, onClick: () -> Unit) {
+private fun MenuHeading(label: Int) {
+    Text(
+        stringResource(label),
+        style = MaterialTheme.typography.labelMedium,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(start = 16.dp, top = 10.dp, bottom = 4.dp),
+    )
+}
+
+@Composable
+private fun OptionItem(icon: ImageVector, label: Int, selected: Boolean, onClick: () -> Unit) {
     DropdownMenuItem(
         leadingIcon = { Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp)) },
         text = { Text(stringResource(label)) },
+        trailingIcon = {
+            if (selected) {
+                Icon(
+                    Icons.Filled.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        },
         onClick = onClick,
     )
+}
+
+/**
+ * Recipes with no time at all sort last under [LibrarySort.TIME]: "unknown" is
+ * not "instant", and floating them to the top would bury the quick ones.
+ */
+private fun LibrarySort.comparator(): Comparator<RecipeWithDetails> = when (this) {
+    LibrarySort.RECENT -> compareByDescending { it.recipe.updatedAt }
+    LibrarySort.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.recipe.title }
+    LibrarySort.TIME -> compareBy {
+        val minutes = (it.recipe.prepTimeMinutes ?: 0) + (it.recipe.cookTimeMinutes ?: 0)
+        if (minutes > 0) minutes else Int.MAX_VALUE
+    }
 }
