@@ -4,7 +4,7 @@ Everything known to be open, so it stops living in chat scrollback. One line of
 what, one of why it matters, and — where a decision was already taken — the
 reason, so it is not re-litigated later.
 
-**Last reviewed:** 2026-08-19
+**Last reviewed:** 2026-08-19 (after the online-search branch)
 
 Specs for work that has been designed live in `docs/superpowers/specs/`.
 
@@ -12,13 +12,41 @@ Specs for work that has been designed live in `docs/superpowers/specs/`.
 
 ## In progress
 
-| Item | Where |
-|---|---|
-| Online recipe search (TheMealDB) | `docs/superpowers/specs/2026-08-19-online-recipe-search-design.md` |
+Nothing. Online recipe search is built on the `online-recipe-search` branch —
+spec `docs/superpowers/specs/2026-08-19-online-recipe-search-design.md`, plan
+`docs/superpowers/plans/2026-08-19-online-recipe-search.md`.
 
 ---
 
 ## Defects
+
+**The import preview traps the user when dismissed with the system Back.**
+`ImportScreen` navigates to the preview whenever the import state is `Ready`.
+Leaving the preview via the top-bar arrow now clears that state, but the
+gesture and hardware Back pop the destination without going through it — so the
+import screen recomposes, still sees `Ready`, and bounces straight back into the
+preview. There is no exit from that loop, and from the search screen each cycle
+also costs a network request. A `BackHandler { onBack() }` in
+`ImportPreviewScreen` closes both doors at once. Pre-existing for the link and
+paste paths; online search reaches it too.
+
+**Three importers read the response body on the main thread.**
+`newCallSuspend` runs only `execute()` on `Dispatchers.IO`, so the
+`response.body?.string()` that follows it in `BlogImporter`, `TikTokImporter`
+and `YouTubeImporter` runs on the caller's dispatcher — the main thread, since
+they are called from `viewModelScope`. Any body larger than what Okio already
+buffered throws `NetworkOnMainThreadException`, which the generic catches turn
+into a misleading "import failed". Those same importers also throw on a non-2xx
+response without closing it, leaking the connection. `TheMealDbClient.meals()`
+and `ImageStore.downloadToInternal` show the correct shape.
+
+**Refreshing a TheMealDB recipe always erases the servings.**
+The API has no servings or timings, so the mapper emits null and
+`RecipeRepository.update` writes null. For a recipe imported from search, a
+serving count the user typed in by hand is therefore lost on every Refresh —
+and servings drive step scaling and the planner. Refresh is destructive by
+design and asks first, but for this one source the loss is guaranteed rather
+than possible.
 
 **Ingredient names keep their preposition.**
 "300 g di farina 00" is parsed with the name `di farina 00`. `IngredientParser`
@@ -56,6 +84,13 @@ Built and unit-tested, but never exercised on the device.
   the only defence against losing the library.
 - **Library sort menu** and **re-import-JSON dialog** in the edit screen. Both
   compile and are reasoned about; neither has been seen working.
+- **Online search by ingredient**, and **the offline failure card**. The phone
+  disconnected part-way through the device checks. Search by name was confirmed
+  end to end — find, preview, save, and Refresh on the saved recipe — but the
+  ingredient picker, the multi-ingredient intersection and the no-network path
+  have only been read, never run. The ingredient picker is the one to try first:
+  it is fed by the largest response the app requests, which is exactly where the
+  main-thread body read above would have bitten.
 
 ---
 
@@ -72,6 +107,14 @@ caveat could be dropped for those recipes.
 When a library search finds nothing, offer to import from a link or search
 online, rather than only saying there are no matches. Pattern borrowed from the
 sibling project.
+
+**Small things the online-search reviews left on the table.**
+`openResult` captures whatever state it finds, so a second tile tap inside one
+frame can restore `Loading` on return from the preview. Retry re-runs with
+whatever is currently in the name field rather than the query that failed. The
+search screen's input column does not scroll, so around six ingredient chips
+start squeezing the results grid. None is worth a commit on its own; fix them
+next time that file is open.
 
 **`updatedAt` doubles as "last touched".**
 Refreshing a recipe from its source bumps `updatedAt`, so it jumps to the top
