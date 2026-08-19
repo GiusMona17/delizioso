@@ -42,6 +42,15 @@ class UnitConverterTest {
         assertEquals("220 g brown sugar", UnitConverter.convertLine("1 cup brown sugar"))
     }
 
+    @Test
+    fun `loose vegetables convert to grams rather than millilitres`() {
+        assertEquals("90 g broccoli florets", UnitConverter.convertLine("1 cup broccoli florets"))
+        assertEquals("180 g broccoli", UnitConverter.convertLine("2 cups broccoli"))
+        assertEquals("30 g fresh spinach", UnitConverter.convertLine("1 cup fresh spinach"))
+        assertEquals("70 g sliced mushrooms", UnitConverter.convertLine("1 cup sliced mushrooms"))
+        assertEquals("130 g chopped carrots", UnitConverter.convertLine("1 cup chopped carrots"))
+    }
+
     /** A spoonful of a solid is a weight too — "2 tbsp sugar" is 25 g, not 30 ml. */
     @Test
     fun `spoons of a dry staple also become grams`() {

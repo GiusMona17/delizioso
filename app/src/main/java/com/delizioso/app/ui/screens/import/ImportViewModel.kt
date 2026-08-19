@@ -54,6 +54,7 @@ sealed interface ImportUiState {
         val raw: RawImport,
         val structuringFailed: Boolean = false,
     ) : ImportUiState
+    data class DuplicateFound(val recipeId: Long, val url: String) : ImportUiState
     data class Error(val message: String, val retryable: Boolean) : ImportUiState
     data object AiConsentNeeded : ImportUiState
 }
@@ -152,10 +153,18 @@ class ImportViewModel(
         _pickedPhoto.value = null
     }
 
-    fun importLink(url: String) {
+    fun importLink(url: String, force: Boolean = false) {
         if (url.isBlank()) return
-        lastUrl = url.trim()
+        val trimmed = url.trim()
+        lastUrl = trimmed
         viewModelScope.launch {
+            if (!force) {
+                val existingId = repository.findBySourceUrl(trimmed)
+                if (existingId != null) {
+                    _state.value = ImportUiState.DuplicateFound(recipeId = existingId, url = trimmed)
+                    return@launch
+                }
+            }
             _state.value = ImportUiState.Fetching
             try {
                 val raw = registry.import(lastUrl!!)

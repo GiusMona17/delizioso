@@ -333,4 +333,8 @@
     <string name="search_failed">Ricerca non riuscita: %1$s</string>
     <string name="search_failed_unknown">La ricerca non ha funzionato. Controlla la connessione e riprova.</string>
     <string name="search_no_ingredient_list">Non è stato possibile caricare i suggerimenti. Scrivi il nome in inglese.</string>
+    <string name="import_duplicate_title">Ricetta già salvata</string>
+    <string name="import_duplicate_body">Questo link è già presente nella tua raccolta. Vuoi visualizzare la ricetta esistente o importarla di nuovo?</string>
+    <string name="import_duplicate_open">Apri ricetta</string>
+    <string name="import_duplicate_reimport">Importa di nuovo</string>
 </resources>

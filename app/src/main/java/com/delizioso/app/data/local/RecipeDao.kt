@@ -82,6 +82,9 @@ interface RecipeDao {
     @Query("SELECT * FROM recipes WHERE id = :id")
     suspend fun recipeById(id: Long): RecipeEntity?
 
+    @Query("SELECT recipeId FROM sources WHERE url = :url LIMIT 1")
+    suspend fun findRecipeIdBySourceUrl(url: String): Long?
+
     /**
      * Apply an edit: ingredients, steps and categories are positioned child rows,
      * so they are replaced wholesale rather than diffed. Atomic — a half-applied

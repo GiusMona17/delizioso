@@ -18,29 +18,11 @@ Nothing.
 
 ## Defects
 
-**Ingredient names keep their preposition.**
-"300 g di farina 00" is parsed with the name `di farina 00`. `IngredientParser`
-splits quantity and unit but does not drop a leading article or preposition, so
-Italian ingredients read oddly in the list and are harder to match against the
-nutrition table. Affects both display and macro coverage.
-
-**Broccoli and other loose vegetables convert to millilitres.**
-`UnitConverter` only converts a cup to grams for ingredients in its density
-table; everything else becomes millilitres, which is true but useless for
-florets — "240 ml broccoli". Fix is to extend `GRAMS_PER_CUP`, not to change the
-rule.
-
 **Machine translation of ingredient names is literal.**
 "chicken breasts" becomes "seno di pollo" rather than "petto di pollo". This is
 NMT quality, not a bug in our code. A fix means an exception table for
 ingredients, the way `UnitNames` handles units — a much longer road, and only
 worth it if the wrong wordings turn out to be common.
-
-**Re-importing the same link creates a duplicate.**
-Nothing checks the source URL before saving, so the same reel imported twice
-produces two recipes. A lookup on `sources.url` before save, offering to open the
-existing recipe instead, would close it. Deliberately skipped once; recorded here
-so the choice stays visible.
 
 ---
 

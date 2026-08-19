@@ -333,4 +333,8 @@
     <string name="search_failed">Search failed: %1$s</string>
     <string name="search_failed_unknown">The search did not work. Check your connection and try again.</string>
     <string name="search_no_ingredient_list">Ingredient suggestions could not be loaded. Type the English name instead.</string>
+    <string name="import_duplicate_title">Recipe already saved</string>
+    <string name="import_duplicate_body">This link is already in your library. Would you like to view the existing recipe or import it again?</string>
+    <string name="import_duplicate_open">Open recipe</string>
+    <string name="import_duplicate_reimport">Import again</string>
 </resources>

@@ -38,4 +38,44 @@ class IngredientParserTest {
         assertNull(ing.unit)
         assertEquals("a pinch of love", ing.name)
     }
+
+    @Test
+    fun `strips leading italian and english prepositions from name`() {
+        val ing1 = IngredientParser.split("300 g di farina 00")
+        assertEquals("300", ing1.quantity)
+        assertEquals("g", ing1.unit)
+        assertEquals("farina 00", ing1.name)
+
+        val ing2 = IngredientParser.split("2 spicchi d'aglio")
+        assertEquals("2", ing2.quantity)
+        assertEquals("spicchi", ing2.unit)
+        assertEquals("aglio", ing2.name)
+
+        val ing3 = IngredientParser.split("1 cucchiaio d’olio extravergine")
+        assertEquals("1", ing3.quantity)
+        assertEquals("cucchiaio", ing3.unit)
+        assertEquals("olio extravergine", ing3.name)
+
+        val ing4 = IngredientParser.split("2 cups of flour")
+        assertEquals("2", ing4.quantity)
+        assertEquals("cups", ing4.unit)
+        assertEquals("flour", ing4.name)
+
+        val ing5 = IngredientParser.split("1 pizzico di sale")
+        assertEquals("1", ing5.quantity)
+        assertEquals("pizzico", ing5.unit)
+        assertEquals("sale", ing5.name)
+    }
+
+    @Test
+    fun `does not strip words starting with d that are part of the name`() {
+        val ing1 = IngredientParser.split("1 sprig fresh dill")
+        assertEquals("1", ing1.quantity)
+        assertEquals("dill", ing1.name.substringAfterLast(" "))
+
+        val ing2 = IngredientParser.split("100 g dates")
+        assertEquals("100", ing2.quantity)
+        assertEquals("g", ing2.unit)
+        assertEquals("dates", ing2.name)
+    }
 }

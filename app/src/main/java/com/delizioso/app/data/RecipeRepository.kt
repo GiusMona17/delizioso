@@ -23,6 +23,8 @@ class RecipeRepository(private val dao: RecipeDao) {
     suspend fun save(details: RecipeWithDetails, tagNames: List<String> = emptyList()): Long =
         dao.insertWithDetails(details, tagNames)
 
+    suspend fun findBySourceUrl(url: String): Long? = dao.findRecipeIdBySourceUrl(url)
+
     suspend fun setFavorite(id: Long, favorite: Boolean) = dao.setFavorite(id, favorite)
 
     /**

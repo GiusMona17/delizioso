@@ -22,9 +22,11 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Segment
 import androidx.compose.material.icons.filled.TravelExplore
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -78,6 +80,27 @@ fun ImportScreen(
         url = link
         viewModel.importLink(link)
         onSharedLinkHandled()
+    }
+
+    (state as? ImportUiState.DuplicateFound)?.let { dup ->
+        AlertDialog(
+            onDismissRequest = { viewModel.discard() },
+            title = { Text(stringResource(R.string.import_duplicate_title)) },
+            text = { Text(stringResource(R.string.import_duplicate_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.discard()
+                    onRecipeClick(dup.recipeId)
+                }) {
+                    Text(stringResource(R.string.import_duplicate_open))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.importLink(dup.url, force = true) }) {
+                    Text(stringResource(R.string.import_duplicate_reimport))
+                }
+            },
+        )
     }
 
     val busy = state is ImportUiState.Fetching || state is ImportUiState.Structuring
