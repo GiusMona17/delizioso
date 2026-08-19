@@ -2,6 +2,8 @@ package com.delizioso.app
 
 import android.app.Application
 import android.content.Context
+import coil.ImageLoader
+import coil.ImageLoaderFactory
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.GemmaEngine
 import com.delizioso.app.data.ai.NanoChat
@@ -11,6 +13,7 @@ import com.delizioso.app.data.backup.BackupManager
 import com.delizioso.app.data.ai.NanoStructurer
 import com.delizioso.app.data.ai.OcrTextExtractor
 import com.delizioso.app.data.import.BlogImporter
+import com.delizioso.app.data.import.ImportHttp
 import com.delizioso.app.data.import.FacebookImporter
 import com.delizioso.app.data.import.InstagramImporter
 import com.delizioso.app.data.import.RecipeImporterRegistry
@@ -60,7 +63,7 @@ class AppContainer(context: Context) {
     )
 }
 
-class DeliziosoApplication : Application() {
+class DeliziosoApplication : Application(), ImageLoaderFactory {
 
     lateinit var container: AppContainer
         private set
@@ -69,4 +72,14 @@ class DeliziosoApplication : Application() {
         super.onCreate()
         container = AppContainer(this)
     }
+
+    /**
+     * Coil otherwise builds its own HTTP client, so remote thumbnails went out
+     * without the browser User-Agent every other request in the app carries —
+     * which some recipe sites answer with a 403 for hotlinked images.
+     */
+    override fun newImageLoader(): ImageLoader = ImageLoader.Builder(this)
+        .okHttpClient(ImportHttp.client)
+        .crossfade(true)
+        .build()
 }
