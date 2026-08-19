@@ -31,6 +31,11 @@ object PastedRecipeParser {
     private const val MIN_STEP_WORDS = 3
 
     fun parse(text: String): StructuredRecipe {
+        // JSON from an external assistant comes back through this same field, so
+        // the user has one place to paste rather than two.
+        if (RecipeJsonImporter.looksLikeJson(text)) {
+            RecipeJsonImporter.parse(text)?.let { return it }
+        }
         CaptionRecipeParser.parse(text)?.let { return it }
 
         val lines = text.lines()

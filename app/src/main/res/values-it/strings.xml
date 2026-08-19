@@ -290,4 +290,18 @@
     <string name="theme_system">Automatico</string>
     <string name="theme_light">Chiaro</string>
     <string name="theme_dark">Scuro</string>
+    <string name="library_view_mode">Cambia vista</string>
+    <string name="library_view_cards">Schede grandi</string>
+    <string name="library_view_grid">Griglia</string>
+    <string name="library_view_list">Elenco</string>
+    <string name="detail_refresh">Aggiorna</string>
+    <string name="detail_refreshing">Aggiorno…</string>
+    <string name="detail_refresh_title">Recuperare di nuovo la ricetta?</string>
+    <string name="detail_refresh_body">Ingredienti e passaggi saranno sostituiti con quanto dice ora la fonte. Foto, preferito e voci del pianificatore restano. Le modifiche fatte a mano andranno perse.</string>
+    <string name="detail_refresh_done">Aggiornata dalla fonte.</string>
+    <string name="detail_refresh_failed">Impossibile leggere la fonte</string>
+    <string name="detail_refresh_error">Aggiornamento non riuscito: %1$s</string>
+    <string name="export_prompt_hint">Oppure passa la didascalia originale a un assistente e incolla il JSON che restituisce in Importa.</string>
+    <string name="export_copy_prompt">Copia il prompt per un\'IA</string>
+    <string name="export_share_prompt">Manda il prompt a un\'IA</string>
 </resources>

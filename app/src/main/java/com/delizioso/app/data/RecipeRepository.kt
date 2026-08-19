@@ -50,6 +50,8 @@ class RecipeRepository(private val dao: RecipeDao) {
         )
     }
 
+    suspend fun updateSourceText(id: Long, rawText: String?) = dao.updateSourceText(id, rawText)
+
     suspend fun currentImage(id: Long): String? = dao.imageUriOf(id)
 
     suspend fun setImage(id: Long, imageUri: String?) = dao.updateImage(id, imageUri)

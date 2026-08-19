@@ -27,6 +27,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ContentCopy
@@ -37,11 +38,14 @@ import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -78,6 +82,9 @@ import com.delizioso.app.data.toStructuredRecipe
 import com.delizioso.app.data.ai.ChatMessage
 import com.delizioso.app.data.ai.RecipeChat
 import com.delizioso.app.data.export.RecipeExport
+import com.delizioso.app.data.export.RecipePrompt
+import com.delizioso.app.data.import.ImportContent
+import com.delizioso.app.data.import.SourceRefresher
 import com.delizioso.app.data.nutrition.MacroCalculator
 import com.delizioso.app.data.ai.NanoInference
 import com.delizioso.app.data.import.StructuredRecipe
@@ -111,6 +118,14 @@ import kotlinx.coroutines.launch
 import androidx.compose.ui.res.stringResource
 import com.delizioso.app.R
 
+/** Progress of re-reading a recipe from the link it was imported from. */
+sealed interface RefreshState {
+    data object Idle : RefreshState
+    data object Running : RefreshState
+    data object Done : RefreshState
+    data class Failed(val message: String) : RefreshState
+}
+
 /** A conversation about one recipe; [streaming] is the answer being typed out. */
 data class ChatState(
     val messages: List<ChatMessage> = emptyList(),
@@ -129,8 +144,45 @@ class RecipeDetailViewModel(
     private val repository: RecipeRepository,
     private val chatModel: RecipeChat,
     private val preferences: UserPreferences,
+    private val refresher: SourceRefresher,
     private val recipeId: Long,
 ) : ViewModel() {
+
+    /** Progress of "fetch this recipe from its source again". */
+    private val _refresh = MutableStateFlow<RefreshState>(RefreshState.Idle)
+    val refresh: StateFlow<RefreshState> = _refresh.asStateFlow()
+
+    fun clearRefreshState() { _refresh.value = RefreshState.Idle }
+
+    /**
+     * Re-reads the source and replaces the recipe with what it says now.
+     *
+     * Destructive by design — that is the point, it undoes a bad parse or a bad
+     * edit — so the screen asks first. The photo is the repository's to keep.
+     */
+    fun refreshFromSource() {
+        val d = details.value ?: return
+        val url = d.source?.url.orEmpty()
+        viewModelScope.launch {
+            _refresh.value = RefreshState.Running
+            try {
+                val fresh = refresher.refetch(url)
+                repository.update(
+                    recipeId,
+                    fresh.recipe,
+                    fresh.recipe.categories.ifEmpty { d.tags.map { it.name } },
+                )
+                fresh.rawText?.let { repository.updateSourceText(recipeId, it) }
+                _refresh.value = RefreshState.Done
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _refresh.value = RefreshState.Failed(
+                    e.message ?: resources.getString(R.string.detail_refresh_failed)
+                )
+            }
+        }
+    }
 
     val details: StateFlow<RecipeWithDetails?> =
         repository.byId(recipeId).stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
@@ -238,6 +290,7 @@ class RecipeDetailViewModel(
                     resources = app.resources,
                     repository = app.container.recipeRepository,
                     chatModel = app.container.recipeChat,
+                    refresher = app.container.sourceRefresher,
                     preferences = app.container.preferences,
                     recipeId = recipeId,
                 )
@@ -262,6 +315,7 @@ fun RecipeDetailScreen(
 ) {
     val details by viewModel.details.collectAsStateWithLifecycle()
     val chat by viewModel.chat.collectAsStateWithLifecycle()
+    val refreshState by viewModel.refresh.collectAsStateWithLifecycle()
 
     var tab by rememberSaveable { mutableStateOf(TAB_INGREDIENTS) }
     var servings by rememberSaveable { mutableStateOf(0) }
@@ -269,6 +323,7 @@ fun RecipeDetailScreen(
     var addedToList by remember { mutableStateOf(false) }
     var showChat by remember { mutableStateOf(false) }
     var showExport by remember { mutableStateOf(false) }
+    var showRefreshConfirm by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { viewModel.onPhotoPicked(context, it) }
@@ -382,7 +437,11 @@ fun RecipeDetailScreen(
                     StepList(d, factor)
                 }
                 MacrosPanel(macros = macros, onOpenChat = { showChat = true })
-                SourceSection(d)
+                SourceSection(
+                    details = d,
+                    refreshState = refreshState,
+                    onRefresh = { showRefreshConfirm = true },
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     ClayButton(
                         text = stringResource(R.string.detail_edit),
@@ -440,6 +499,27 @@ fun RecipeDetailScreen(
         }
     }
 
+    if (showRefreshConfirm) {
+        // A refresh throws away whatever is on screen — including edits the user
+        // made by hand — so it asks before it does, not after.
+        AlertDialog(
+            onDismissRequest = { showRefreshConfirm = false },
+            title = { Text(stringResource(R.string.detail_refresh_title)) },
+            text = { Text(stringResource(R.string.detail_refresh_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    showRefreshConfirm = false
+                    viewModel.refreshFromSource()
+                }) { Text(stringResource(R.string.detail_refresh)) }
+            },
+            dismissButton = {
+                TextButton(onClick = { showRefreshConfirm = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
+    }
+
     if (showExport) {
         ModalBottomSheet(
             onDismissRequest = { showExport = false },
@@ -449,6 +529,9 @@ fun RecipeDetailScreen(
             ExportSheet(
                 markdown = RecipeExport.toMarkdown(d, macros),
                 json = RecipeExport.toJson(d, macros),
+                // Only offered when the original caption was kept: the prompt is
+                // for restructuring that text, not the tidy recipe beside it.
+                caption = d.source?.rawText?.takeIf { it.isNotBlank() },
                 onDone = { showExport = false },
             )
         }
@@ -608,28 +691,59 @@ private fun StepList(details: RecipeWithDetails, factor: Double) {
  * app when installed rather than in a stripped-down web view.
  */
 @Composable
-private fun SourceSection(details: RecipeWithDetails) {
+private fun SourceSection(
+    details: RecipeWithDetails,
+    refreshState: RefreshState,
+    onRefresh: () -> Unit,
+) {
     val source = details.source ?: return
     val context = LocalContext.current
     val url = source.url?.takeIf { it.startsWith("http") }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (url != null) {
-            ClayButton(
-                text = stringResource(R.string.detail_open_source, sourceLabel(source.platform)),
-                icon = Icons.Filled.OpenInNew,
-                onClick = {
-                    val view = android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url))
-                    // No handler at all (no browser, link stripped): say so rather
-                    // than crash on an unresolved intent.
-                    runCatching { context.startActivity(view) }.onFailure {
-                        Toast.makeText(context, R.string.detail_open_source_failed, Toast.LENGTH_SHORT).show()
-                    }
-                },
-                container = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentColor = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.fillMaxWidth(),
-            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                ClayButton(
+                    text = stringResource(R.string.detail_open_source, sourceLabel(source.platform)),
+                    icon = Icons.Filled.OpenInNew,
+                    onClick = {
+                        val view = android.content.Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url))
+                        // No handler at all (no browser, link stripped): say so rather
+                        // than crash on an unresolved intent.
+                        runCatching { context.startActivity(view) }.onFailure {
+                            Toast.makeText(context, R.string.detail_open_source_failed, Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    container = MaterialTheme.colorScheme.surfaceContainerLow,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f),
+                )
+                ClayButton(
+                    text = stringResource(
+                        if (refreshState is RefreshState.Running) R.string.detail_refreshing
+                        else R.string.detail_refresh
+                    ),
+                    icon = Icons.Filled.Refresh,
+                    enabled = refreshState !is RefreshState.Running,
+                    onClick = onRefresh,
+                    container = MaterialTheme.colorScheme.surfaceContainerLow,
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+            when (val s = refreshState) {
+                is RefreshState.Failed -> Text(
+                    stringResource(R.string.detail_refresh_error, s.message),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
+                is RefreshState.Done -> Text(
+                    stringResource(R.string.detail_refresh_done),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                else -> Unit
+            }
         }
         val caption = listOfNotNull(source.author, url).joinToString(" · ")
         if (caption.isNotBlank()) {
@@ -732,7 +846,7 @@ private fun MacrosPanel(
  * the app never sends the recipe anywhere on its own.
  */
 @Composable
-private fun ExportSheet(markdown: String, json: String, onDone: () -> Unit) {
+private fun ExportSheet(markdown: String, json: String, caption: String?, onDone: () -> Unit) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
     Column(
@@ -789,6 +903,43 @@ private fun ExportSheet(markdown: String, json: String, onDone: () -> Unit) {
             contentColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.fillMaxWidth(),
         )
+        if (caption != null) {
+            val language = java.util.Locale.getDefault().getDisplayLanguage(java.util.Locale.ENGLISH)
+            val prompt = RecipePrompt.forCaption(caption, language)
+            Text(
+                stringResource(R.string.export_prompt_hint),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            ClayButton(
+                text = stringResource(R.string.export_copy_prompt),
+                icon = Icons.Filled.AutoAwesome,
+                onClick = {
+                    clipboard.setText(androidx.compose.ui.text.AnnotatedString(prompt))
+                    onDone()
+                },
+                container = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            ClayButton(
+                text = stringResource(R.string.export_share_prompt),
+                icon = Icons.Filled.IosShare,
+                onClick = {
+                    val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_TEXT, prompt)
+                    }
+                    context.startActivity(
+                        android.content.Intent.createChooser(send, context.getString(R.string.export_share_prompt))
+                    )
+                    onDone()
+                },
+                container = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
     }
 }
 

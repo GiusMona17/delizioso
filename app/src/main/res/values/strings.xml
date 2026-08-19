@@ -290,4 +290,18 @@
     <string name="theme_system">Automatic</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="library_view_mode">Change layout</string>
+    <string name="library_view_cards">Large cards</string>
+    <string name="library_view_grid">Grid</string>
+    <string name="library_view_list">List</string>
+    <string name="detail_refresh">Refresh</string>
+    <string name="detail_refreshing">Refreshing…</string>
+    <string name="detail_refresh_title">Fetch this recipe again?</string>
+    <string name="detail_refresh_body">The ingredients and steps will be replaced with whatever the source says now. Your photo, favourite and planner entries are kept. Any edits you made by hand will be lost.</string>
+    <string name="detail_refresh_done">Refreshed from the source.</string>
+    <string name="detail_refresh_failed">Could not read the source</string>
+    <string name="detail_refresh_error">Refresh failed: %1$s</string>
+    <string name="export_prompt_hint">Or hand the original caption to an assistant and paste the JSON it returns into Import.</string>
+    <string name="export_copy_prompt">Copy prompt for an AI</string>
+    <string name="export_share_prompt">Send prompt to an AI</string>
 </resources>

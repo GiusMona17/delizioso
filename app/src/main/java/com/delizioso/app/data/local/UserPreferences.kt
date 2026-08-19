@@ -23,6 +23,7 @@ class UserPreferences(private val context: Context) {
         val GROCERY_CHECKED = stringSetPreferencesKey("grocery_checked")
         val GROCERY_CUSTOM = stringSetPreferencesKey("grocery_custom_items")
         val THEME_MODE = stringPreferencesKey("theme_mode")
+        val LIBRARY_VIEW = stringPreferencesKey("library_view_mode")
     }
 
     /** Whether the user accepted the on-device AI (Gemini Nano) terms. */
@@ -44,6 +45,10 @@ class UserPreferences(private val context: Context) {
     val themeMode: Flow<ThemeMode> =
         context.userDataStore.data.map { ThemeMode.from(it[Keys.THEME_MODE]) }
 
+    /** How the library lays recipes out; remembered between sessions. */
+    val libraryViewMode: Flow<LibraryViewMode> =
+        context.userDataStore.data.map { LibraryViewMode.from(it[Keys.LIBRARY_VIEW]) }
+
     /** YouTube Data API v3 key (personal-use; may be left blank until configured). */
     val youTubeApiKey: Flow<String> =
         context.userDataStore.data.map { it[Keys.YOUTUBE_API_KEY] ?: "" }
@@ -62,6 +67,10 @@ class UserPreferences(private val context: Context) {
 
     suspend fun setThemeMode(mode: ThemeMode) {
         context.userDataStore.edit { it[Keys.THEME_MODE] = mode.key }
+    }
+
+    suspend fun setLibraryViewMode(mode: LibraryViewMode) {
+        context.userDataStore.edit { it[Keys.LIBRARY_VIEW] = mode.key }
     }
 
     suspend fun setYouTubeApiKey(key: String) {

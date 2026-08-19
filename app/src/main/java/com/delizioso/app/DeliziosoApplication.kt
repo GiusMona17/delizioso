@@ -14,6 +14,7 @@ import com.delizioso.app.data.import.BlogImporter
 import com.delizioso.app.data.import.FacebookImporter
 import com.delizioso.app.data.import.InstagramImporter
 import com.delizioso.app.data.import.RecipeImporterRegistry
+import com.delizioso.app.data.import.SourceRefresher
 import com.delizioso.app.data.import.TikTokImporter
 import com.delizioso.app.data.import.WebViewCaptionExtractor
 import com.delizioso.app.data.import.YouTubeImporter
@@ -38,6 +39,7 @@ class AppContainer(context: Context) {
     val recipeChat: RecipeChat = RecipeChat(nanoChat, gemmaEngine)
     val recipeTranslator: RecipeTranslator = RecipeTranslator()
     val backupManager: BackupManager = BackupManager(context.applicationContext, recipeRepository)
+    val sourceRefresher: SourceRefresher by lazy { SourceRefresher(importRegistry, nanoStructurer) }
     val ocrTextExtractor: OcrTextExtractor = OcrTextExtractor()
 
     val importRegistry: RecipeImporterRegistry = RecipeImporterRegistry(

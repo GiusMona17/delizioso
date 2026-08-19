@@ -109,6 +109,10 @@ interface RecipeDao {
     @Query("UPDATE recipes SET imageUri = :imageUri, updatedAt = :updatedAt WHERE id = :id")
     suspend fun updateImage(id: Long, imageUri: String?, updatedAt: Long = System.currentTimeMillis())
 
+    /** The caption a refresh just re-read, so the AI prompt quotes current text. */
+    @Query("UPDATE sources SET rawText = :rawText, fetchedAt = :fetchedAt WHERE recipeId = :recipeId")
+    suspend fun updateSourceText(recipeId: Long, rawText: String?, fetchedAt: Long = System.currentTimeMillis())
+
     @Query("SELECT imageUri FROM recipes WHERE id = :id")
     suspend fun imageUriOf(id: Long): String?
 
