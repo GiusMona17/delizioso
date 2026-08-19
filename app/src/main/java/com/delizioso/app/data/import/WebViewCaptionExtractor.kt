@@ -251,12 +251,16 @@ class WebViewCaptionExtractor(
                 var userEl = captionEl.querySelector('.CaptionUsername')
                           || captionEl.querySelector('[class*="Username"]');
                 author = userEl ? (userEl.innerText || '').trim() : '';
-                var clone = captionEl.cloneNode(true);
-                var strip = clone.querySelectorAll('.CaptionUsername, [class*="Username"], .CaptionComments, [class*="Comments"]');
+                // Strip from the LIVE node, never a clone: innerText derives its line
+                // breaks from layout, and a detached clone has none — cloning
+                // returned the whole recipe as a single unbroken line, which left
+                // the heading parser nothing to split on. The page is thrown away
+                // with the WebView moments later, so mutating it costs nothing.
+                var strip = captionEl.querySelectorAll('.CaptionUsername, [class*="Username"], .CaptionComments, [class*="Comments"]');
                 for (var s = 0; s < strip.length; s++) {
                   if (strip[s].parentNode) strip[s].parentNode.removeChild(strip[s]);
                 }
-                text = (clone.innerText || '').trim();
+                text = (captionEl.innerText || '').trim();
               }
               // Facebook has no .Caption: there the recipe lives in og:title.
               if (!text) text = cleanCaption(ogTitleValue);
@@ -276,7 +280,19 @@ class WebViewCaptionExtractor(
                       || document.querySelector('meta[name="twitter:image"]');
                 if (og && og.content) { best = og.content; src = 'og'; bestArea = Number.MAX_SAFE_INTEGER; }
               }
-              // 3) Largest rendered <img> (avatars are small and round). Lazy images
+              // 3) Instagram's embed names its cover image, and the src attribute is
+              //    in the markup before the file has loaded — the size-based scan
+              //    below cannot see it yet at onPageFinished, which is why reels
+              //    were importing without a photo.
+              if (!best) {
+                var media = document.querySelector('img.EmbeddedMediaImage')
+                         || document.querySelector('img[class*="EmbeddedMedia"]');
+                var mediaSrc = media ? (media.currentSrc || media.src || media.getAttribute('data-src') || '') : '';
+                if (mediaSrc && mediaSrc.indexOf('data:') !== 0) {
+                  best = mediaSrc; src = 'embed'; bestArea = Number.MAX_SAFE_INTEGER;
+                }
+              }
+              // 4) Largest rendered <img> (avatars are small and round). Lazy images
               //    may not be loaded yet, so fall back to their layout size.
               if (!best) {
                 var imgs = document.querySelectorAll('img');

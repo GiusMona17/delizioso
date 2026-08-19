@@ -12,13 +12,22 @@ package com.delizioso.app.data.import
  */
 object CaptionRecipeParser {
 
+    /**
+     * A heading may carry one qualifying word before the keyword — captions
+     * really write "Mini procedimento", "Full ingredients", "Quick method" — but
+     * not a whole sentence, or "Aggiungi gli ingredienti" would be read as the
+     * start of a section and split the recipe in the wrong place. The length
+     * cap is the other half of that guard: a heading is a label, not prose.
+     */
+    private const val MAX_HEADING_LENGTH = 40
+
     private val INGREDIENT_HEADING = Regex(
-        """^\s*[^\p{L}\d]{0,3}\s*(ingredient(s|i)?|ingredienti|occorrente|serve|servono)\b.*$""",
+        """^\s*[^\p{L}\d]{0,3}\s*(?:\p{L}+\s+)?(ingredient(s|i)?|ingredienti|occorrente|serve|servono)\b.*$""",
         RegexOption.IGNORE_CASE,
     )
 
     private val STEP_HEADING = Regex(
-        """^\s*[^\p{L}\d]{0,3}\s*(instruction(s)?|direction(s)?|method|steps?|preparation|preparazione|procedimento|esecuzione|how to make)\b.*$""",
+        """^\s*[^\p{L}\d]{0,3}\s*(?:\p{L}+\s+)?(instruction(s)?|direction(s)?|method|steps?|preparation|preparazione|procedimento|esecuzione|how to make)\b.*$""",
         RegexOption.IGNORE_CASE,
     )
 
@@ -30,7 +39,7 @@ object CaptionRecipeParser {
 
     /** "Follow for more", "full recipe below", "link in bio" — never recipe content. */
     private val CALL_TO_ACTION = Regex(
-        """(full recipe|follow|link in bio|comment|save this|share this|ricetta completa|seguimi|salva)""",
+        """(full recipe|follow|link in bio|comment|save this|share this|ricetta completa|seguimi|salva|condivid)""",
         RegexOption.IGNORE_CASE,
     )
 
@@ -48,8 +57,8 @@ object CaptionRecipeParser {
      */
     fun parse(text: String): StructuredRecipe? {
         val lines = text.lines().map { it.trim() }.filter { it.isNotEmpty() }
-        val ingredientsAt = lines.indexOfFirst { INGREDIENT_HEADING.matches(it) }
-        val stepsAt = lines.indexOfFirst { STEP_HEADING.matches(it) }
+        val ingredientsAt = lines.indexOfFirst { it.isHeading(INGREDIENT_HEADING) }
+        val stepsAt = lines.indexOfFirst { it.isHeading(STEP_HEADING) }
         if (ingredientsAt == -1 || stepsAt == -1 || stepsAt <= ingredientsAt) return null
 
         val ingredients = lines
@@ -78,6 +87,17 @@ object CaptionRecipeParser {
         lines.take(ingredientsAt)
             .firstOrNull { it.isContent() && it.length in 3..80 && !it.startsWith("@") }
             ?.stripMarker()
+
+    /**
+     * A heading is a label: short, and it does not end a sentence. The full stop
+     * is what separates the real "Ingredienti" from the promo line "Nuovi
+     * ingredienti." two paragraphs above it, which otherwise opened the section
+     * in the wrong place and swallowed the blurb as ingredients.
+     */
+    private fun String.isHeading(keyword: Regex): Boolean =
+        length <= MAX_HEADING_LENGTH &&
+            !endsWith(".") && !endsWith("!") && !endsWith("?") &&
+            keyword.matches(this)
 
     private fun String.isContent(): Boolean =
         isNotBlank() &&

@@ -98,4 +98,100 @@ class CaptionRecipeParserTest {
         // Ingredients declared but no method — not enough to be confident.
         assertNull(CaptionRecipeParser.parse("Ingredients:\n- flour\n- water"))
     }
+
+    /**
+     * From a real reel: the caption labels its sections "Ingredienti" and "Mini
+     * procedimento". Anchoring the keyword to the start of the line missed the
+     * qualified heading, so the whole recipe fell through to the model and was
+     * imported as an empty shell.
+     */
+    @Test
+    fun `a heading with a qualifying word is still a heading`() {
+        val caption = """
+            Benvenuti in UDON LAB.
+
+            Ingredienti
+
+            200 g udon
+            2 cucchiai tahina
+
+            Mini procedimento
+
+            Cuoci gli udon.
+            Mescola tahina e soia.
+        """.trimIndent()
+
+        val recipe = CaptionRecipeParser.parse(caption)!!
+        assertEquals(listOf("200 g udon", "2 cucchiai tahina"), recipe.ingredients.map { it.rawText })
+        assertEquals(listOf("Cuoci gli udon.", "Mescola tahina e soia."), recipe.steps)
+    }
+
+    /** "Full ingredients" / "Quick method" are headings in English captions too. */
+    @Test
+    fun `qualified headings work in english`() {
+        val caption = """
+            Honey chicken
+
+            Full ingredients
+
+            700 g chicken
+
+            Quick method
+
+            Fry the chicken.
+        """.trimIndent()
+        val recipe = CaptionRecipeParser.parse(caption)!!
+        assertEquals(listOf("700 g chicken"), recipe.ingredients.map { it.rawText })
+        assertEquals(listOf("Fry the chicken."), recipe.steps)
+    }
+
+    /** A sentence that merely mentions the word must not open a section. */
+    @Test
+    fun `a prose line mentioning the keyword is not a heading`() {
+        val caption = """
+            Torta
+
+            Ingredienti
+
+            200 g farina
+
+            Procedimento
+
+            Aggiungi gli ingredienti nella ciotola e mescola bene.
+            Inforna per 30 minuti.
+        """.trimIndent()
+        val recipe = CaptionRecipeParser.parse(caption)!!
+        assertEquals(listOf("200 g farina"), recipe.ingredients.map { it.rawText })
+        assertEquals(2, recipe.steps.size)
+    }
+
+    /**
+     * From the same real reel: the blurb says "Nuovi ingredienti." long before the
+     * actual "Ingredienti" heading. Allowing a qualifying word made that promo
+     * line look like a heading, and the section opened in the wrong place.
+     */
+    @Test
+    fun `a promo sentence ending in a full stop is not a heading`() {
+        val caption = """
+            Benvenuti in UDON LAB.
+
+            Nuove salse.
+
+            Nuovi ingredienti.
+
+            Sempre veloci.
+
+            Ingredienti
+
+            200 g udon
+
+            Mini procedimento
+
+            Cuoci gli udon.
+        """.trimIndent()
+
+        val recipe = CaptionRecipeParser.parse(caption)!!
+        assertEquals(listOf("200 g udon"), recipe.ingredients.map { it.rawText })
+        assertEquals(listOf("Cuoci gli udon."), recipe.steps)
+    }
 }
