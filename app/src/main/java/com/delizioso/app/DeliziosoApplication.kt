@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import coil.ImageLoader
 import coil.ImageLoaderFactory
+import okhttp3.OkHttpClient
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.GemmaEngine
 import com.delizioso.app.data.ai.NanoChat
@@ -74,12 +75,24 @@ class DeliziosoApplication : Application(), ImageLoaderFactory {
     }
 
     /**
-     * Coil otherwise builds its own HTTP client, so remote thumbnails went out
-     * without the browser User-Agent every other request in the app carries —
-     * which some recipe sites answer with a 403 for hotlinked images.
+     * Provides a dedicated HTTP client for image loading with the browser User-Agent.
+     * This ensures remote thumbnails carry the same User-Agent as other requests in the app —
+     * stopping recipe sites from answering 403 for hotlinked images —
+     * while remaining independent of the import client's configuration (timeouts, interceptors, etc.).
+     * Built lazily on first image load.
      */
     override fun newImageLoader(): ImageLoader = ImageLoader.Builder(this)
-        .okHttpClient(ImportHttp.client)
+        .okHttpClient {
+            OkHttpClient.Builder()
+                .addInterceptor { chain ->
+                    chain.proceed(
+                        chain.request().newBuilder()
+                            .header("User-Agent", ImportHttp.BROWSER_USER_AGENT)
+                            .build()
+                    )
+                }
+                .build()
+        }
         .crossfade(true)
         .build()
 }

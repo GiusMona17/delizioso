@@ -9,6 +9,9 @@ import java.util.concurrent.TimeUnit
 
 /** Shared HTTP client with a mobile browser fingerprint (best resilience vs. bot blocks). */
 object ImportHttp {
+    const val BROWSER_USER_AGENT = "Mozilla/5.0 (Linux; Android 15; Pixel 10) AppleWebKit/537.36 " +
+        "(KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"
+
     val client: OkHttpClient = OkHttpClient.Builder()
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(20, TimeUnit.SECONDS)
@@ -16,11 +19,7 @@ object ImportHttp {
         .addInterceptor { chain ->
             chain.proceed(
                 chain.request().newBuilder()
-                    .header(
-                        "User-Agent",
-                        "Mozilla/5.0 (Linux; Android 15; Pixel 10) AppleWebKit/537.36 " +
-                            "(KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36"
-                    )
+                    .header("User-Agent", BROWSER_USER_AGENT)
                     .header("Accept-Language", "en")
                     .build()
             )
