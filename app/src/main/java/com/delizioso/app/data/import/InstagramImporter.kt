@@ -19,7 +19,7 @@ class InstagramImporter(
         return RawImport(
             platform = platform.key,
             url = rawUrl,
-            author = null,
+            author = extracted.author,
             content = ImportContent.RawText(text = extracted.caption),
             thumbnailUrl = extracted.imageUrl,
         )

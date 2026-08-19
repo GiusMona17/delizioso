@@ -284,13 +284,37 @@ class ImportViewModel(
 }
 
 /**
- * Title for the editable shell: the first non-blank line of the cleaned caption
- * (the recipe name). Multi-line captions carry the whole recipe — "Name\n\nMarinade\n• 700g…"
- * or "Name | INGREDIENTI: … | PROCEDIMENTO: …" — which must not become the title.
- * Falls back to the og:title's first line when the caption is blank.
+ * Title for the editable shell: the opening of the cleaned caption.
+ *
+ * A reel has no title, only a caption, so its first line is the best the app can
+ * offer — a starting point the user edits, not a claim. Multi-line captions carry
+ * the whole recipe ("Name\n\nMarinade\n- 700g..."), which must not become the
+ * title, and captions that open with promo prose are cut at the first sentence so
+ * the field holds a name rather than a paragraph.
  */
 internal fun shellTitle(text: String, title: String?): String {
-    val fromText = text.lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty()
-    if (fromText.isNotBlank()) return fromText.take(120)
-    return title.orEmpty().lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty().take(120)
+    val fromText = firstSentence(text)
+    if (fromText.isNotBlank()) return fromText
+    return firstSentence(title.orEmpty())
 }
+
+/** First non-blank line, truncated at its first sentence break. */
+private fun firstSentence(text: String): String {
+    val line = text.lineSequence().firstOrNull { it.isNotBlank() }?.trim().orEmpty()
+    if (line.isEmpty()) return ""
+    // Only cut where a sentence really ends and more follows: "Ragu 2.0" and
+    // "Dr. Pepper cake" have to survive intact.
+    val end = SENTENCE_END.find(line)?.range?.first
+    val head = if (end != null && end >= MIN_TITLE_LENGTH) line.substring(0, end + 1) else line
+    return head.trim().take(120)
+}
+
+/** A terminator followed by whitespace and a capital: a real sentence boundary. */
+private val SENTENCE_END = Regex("""[.!?](?=\s+\p{Lu})""")
+
+/**
+ * A break this early in the line is an abbreviation, not the end of a name:
+ * "Torta Dr. Pepper" must survive whole, while "Benvenuti in UDON LAB. Il nuovo
+ * format..." is a promo sentence worth cutting.
+ */
+private const val MIN_TITLE_LENGTH = 12

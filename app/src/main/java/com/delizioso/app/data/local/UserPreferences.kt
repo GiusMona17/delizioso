@@ -22,6 +22,7 @@ class UserPreferences(private val context: Context) {
         val YOUTUBE_API_KEY = stringPreferencesKey("youtube_api_key")
         val GROCERY_CHECKED = stringSetPreferencesKey("grocery_checked")
         val GROCERY_CUSTOM = stringSetPreferencesKey("grocery_custom_items")
+        val THEME_MODE = stringPreferencesKey("theme_mode")
     }
 
     /** Whether the user accepted the on-device AI (Gemini Nano) terms. */
@@ -34,6 +35,14 @@ class UserPreferences(private val context: Context) {
     /** Default servings used when scaling/planning. */
     val defaultServings: Flow<Int> =
         context.userDataStore.data.map { it[Keys.DEFAULT_SERVINGS] ?: 2 }
+
+    /**
+     * Which palette to paint: [ThemeMode.SYSTEM] follows the phone, the other two
+     * override it. Kept here rather than in Compose state so the choice survives
+     * a restart and applies before the first frame.
+     */
+    val themeMode: Flow<ThemeMode> =
+        context.userDataStore.data.map { ThemeMode.from(it[Keys.THEME_MODE]) }
 
     /** YouTube Data API v3 key (personal-use; may be left blank until configured). */
     val youTubeApiKey: Flow<String> =
@@ -49,6 +58,10 @@ class UserPreferences(private val context: Context) {
 
     suspend fun setDefaultServings(servings: Int) {
         context.userDataStore.edit { it[Keys.DEFAULT_SERVINGS] = servings }
+    }
+
+    suspend fun setThemeMode(mode: ThemeMode) {
+        context.userDataStore.edit { it[Keys.THEME_MODE] = mode.key }
     }
 
     suspend fun setYouTubeApiKey(key: String) {

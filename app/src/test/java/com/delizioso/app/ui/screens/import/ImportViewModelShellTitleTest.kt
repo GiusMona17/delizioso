@@ -35,4 +35,25 @@ class ImportViewModelShellTitleTest {
     fun `both blank gives empty title`() {
         assertEquals("", shellTitle("", null))
     }
+
+    /**
+     * Reels have no title, only a caption, and many open with promo prose before
+     * the dish is ever named. The field should hold a name, not a paragraph.
+     */
+    @Test
+    fun `a caption opening with prose is cut at the first sentence`() {
+        val promo = "Benvenuti in UDON LAB. Il nuovo format dove l'ingrediente decide il piatto.\n\n700 g farina"
+        assertEquals("Benvenuti in UDON LAB.", shellTitle(promo, null))
+    }
+
+    @Test
+    fun `a name containing a full stop is not cut`() {
+        assertEquals("Ragu 2.0 della nonna", shellTitle("Ragu 2.0 della nonna", null))
+        assertEquals("Torta Dr. Pepper", shellTitle("Torta Dr. Pepper", null))
+    }
+
+    @Test
+    fun `a single-sentence name keeps its full stop`() {
+        assertEquals("Pasta alla norma.", shellTitle("Pasta alla norma.", null))
+    }
 }

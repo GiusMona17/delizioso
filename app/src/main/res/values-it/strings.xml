@@ -286,4 +286,8 @@
     <string name="backup_failed">Backup non riuscito: %1$s</string>
     <string name="cook_photo_add">Fotografa il piatto</string>
     <string name="cook_photo_replace">Scatta una nuova foto</string>
+    <string name="theme_section">Aspetto</string>
+    <string name="theme_system">Automatico</string>
+    <string name="theme_light">Chiaro</string>
+    <string name="theme_dark">Scuro</string>
 </resources>

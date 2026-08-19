@@ -5,9 +5,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.delizioso.app.data.local.ThemeMode
 import com.delizioso.app.ui.DeliziosoApp
 import com.delizioso.app.ui.theme.DeliziosoTheme
 
@@ -20,8 +23,20 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         sharedLink = SharedLink.fromIntent(intent)
         enableEdgeToEdge()
+        val preferences = (application as DeliziosoApplication).container.preferences
         setContent {
-            DeliziosoTheme {
+            // Collected at the root so the choice reaches every screen, and starts
+            // from the system setting rather than flashing the wrong palette while
+            // DataStore reads.
+            val mode by preferences.themeMode.collectAsStateWithLifecycle(
+                initialValue = ThemeMode.SYSTEM
+            )
+            val dark = when (mode) {
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+            }
+            DeliziosoTheme(darkTheme = dark) {
                 DeliziosoApp(
                     sharedLink = sharedLink,
                     onSharedLinkHandled = { sharedLink = null },

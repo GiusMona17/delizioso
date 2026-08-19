@@ -49,9 +49,11 @@ import com.delizioso.app.DeliziosoApplication
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.GemmaEngine
 import com.delizioso.app.data.backup.BackupManager
+import com.delizioso.app.data.local.ThemeMode
 import com.delizioso.app.data.local.UserPreferences
 import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayLabelledField
+import com.delizioso.app.ui.components.ClaySegmentedTabs
 import com.delizioso.app.ui.components.ClayTopBar
 import com.delizioso.app.ui.theme.PillShape
 import com.delizioso.app.ui.theme.clayCard
@@ -107,6 +109,11 @@ class ProfileViewModel(
 
     val youTubeApiKey: StateFlow<String> =
         preferences.youTubeApiKey.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), "")
+
+    val themeMode: StateFlow<ThemeMode> =
+        preferences.themeMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThemeMode.SYSTEM)
+
+    fun setThemeMode(mode: ThemeMode) = viewModelScope.launch { preferences.setThemeMode(mode) }
 
     val recipeCount: StateFlow<Int> =
         repository.count().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
@@ -173,6 +180,7 @@ fun ProfileScreen(
     val storedKey by viewModel.youTubeApiKey.collectAsStateWithLifecycle()
     val recipeCount by viewModel.recipeCount.collectAsStateWithLifecycle()
     val backupState by viewModel.backup.collectAsStateWithLifecycle()
+    val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
 
     var apiKey by rememberSaveable { mutableStateOf("") }
     var apiKeyLoaded by rememberSaveable { mutableStateOf(false) }
@@ -318,6 +326,23 @@ fun ProfileScreen(
                             }
                         }
                     }
+                }
+            }
+
+            item {
+                SettingsCard(title = stringResource(R.string.theme_section)) {
+                    // Three states rather than a switch: "follow the phone" is a
+                    // real choice, not the absence of one.
+                    val modes = listOf(ThemeMode.SYSTEM, ThemeMode.LIGHT, ThemeMode.DARK)
+                    ClaySegmentedTabs(
+                        options = listOf(
+                            stringResource(R.string.theme_system),
+                            stringResource(R.string.theme_light),
+                            stringResource(R.string.theme_dark),
+                        ),
+                        selectedIndex = modes.indexOf(themeMode).coerceAtLeast(0),
+                        onSelect = { viewModel.setThemeMode(modes[it]) },
+                    )
                 }
             }
 

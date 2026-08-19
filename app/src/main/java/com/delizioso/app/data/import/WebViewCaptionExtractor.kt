@@ -47,6 +47,8 @@ class WebViewCaptionExtractor(
         val imageUrl: String?,
         /** Page-level og:title (useful when the caption is behind a login wall). */
         val title: String? = null,
+        /** The account that posted it, when the embed names one. */
+        val author: String? = null,
         /** True when only a login/consent wall rendered — no recipe caption. */
         val wallDetected: Boolean = false,
     )
@@ -104,6 +106,7 @@ class WebViewCaptionExtractor(
                                     val image = parts.getOrNull(1)?.trim()?.ifBlank { null }
                                     val imageSource = parts.getOrNull(2)?.trim()
                                     val title = parts.getOrNull(3)?.trim()?.ifBlank { null }
+                                    val author = parts.getOrNull(4)?.trim()?.ifBlank { null }
                                     android.util.Log.d(
                                         "WebViewExtract",
                                         "page=$pageUrl caption=${caption.take(40)} image=${image ?: "NULL"} src=${imageSource ?: "-"} title=${title?.take(40) ?: "-"}"
@@ -118,7 +121,11 @@ class WebViewCaptionExtractor(
                                     if (caption.isNotBlank()) {
                                         // Wall text still counts as a (poor) caption; flag it so the
                                         // caller can fall back to title+thumbnail instead of AI parsing.
-                                        if (!cont.isCompleted) cont.resume(Extracted(caption, image, title, wallDetected = looksLikeWall))
+                                        if (!cont.isCompleted) {
+                                            cont.resume(
+                                                Extracted(caption, image, title, author, wallDetected = looksLikeWall)
+                                            )
+                                        }
                                     } else if (!cont.isCompleted) {
                                         cont.resumeWithException(ImportException("Caption did not render (page may be blocked)", retryable = true))
                                     }
@@ -232,12 +239,29 @@ class WebViewCaptionExtractor(
               }
               var ogt = document.querySelector('meta[property="og:title"]');
               var ogTitleValue = (ogt && ogt.content) ? ogt.content : '';
-              var text = cleanCaption(ogTitleValue);
+              // Instagram's /embed/captioned/ page carries the real caption in
+              // .Caption, prefixed by the account name in .CaptionUsername, while
+              // its og:title is only the account. Reading og:title first therefore
+              // put the author's name where the dish name belongs.
+              var author = '';
+              var text = '';
+              var captionEl = document.querySelector('.Caption')
+                           || document.querySelector('[class*="Caption"]');
+              if (captionEl) {
+                var userEl = captionEl.querySelector('.CaptionUsername')
+                          || captionEl.querySelector('[class*="Username"]');
+                author = userEl ? (userEl.innerText || '').trim() : '';
+                var clone = captionEl.cloneNode(true);
+                var strip = clone.querySelectorAll('.CaptionUsername, [class*="Username"], .CaptionComments, [class*="Comments"]');
+                for (var s = 0; s < strip.length; s++) {
+                  if (strip[s].parentNode) strip[s].parentNode.removeChild(strip[s]);
+                }
+                text = (clone.innerText || '').trim();
+              }
+              // Facebook has no .Caption: there the recipe lives in og:title.
+              if (!text) text = cleanCaption(ogTitleValue);
               if (!text) {
-                var cap = document.querySelector('.Caption')
-                     || document.querySelector('[class*="Caption"]')
-                     || document.querySelector('article')
-                     || document.body;
+                var cap = document.querySelector('article') || document.body;
                 text = cap ? cap.innerText.trim() : '';
               }
               var best = null, bestArea = 0, src = null;
@@ -272,7 +296,7 @@ class WebViewCaptionExtractor(
                 }
               }
               var t = ogTitleValue || null;
-              return text + '' + (best || '') + '' + (src || '') + '' + (t || '');
+              return text + '' + (best || '') + '' + (src || '') + '' + (t || '') + '' + (author || '');
             })()
         """
 
