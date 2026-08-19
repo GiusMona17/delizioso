@@ -12,6 +12,8 @@ class YouTubeImporter(
     private val apiKeyProvider: suspend () -> String,
     private val client: OkHttpClient = ImportHttp.client,
     private val json: Json = Json { ignoreUnknownKeys = true },
+    /** Injectable for tests (MockWebServer); production default is the YouTube Data API endpoint. */
+    private val apiBaseUrl: String = "https://www.googleapis.com/youtube/v3/videos",
 ) : RecipeImporter {
 
     override val platform: Platform = Platform.YOUTUBE
@@ -23,12 +25,14 @@ class YouTubeImporter(
         if (apiKey.isBlank()) {
             throw ImportException("YouTube API key is not configured (add one in Settings)", retryable = false)
         }
-        val url = "https://www.googleapis.com/youtube/v3/videos?part=snippet&id=$videoId&key=$apiKey"
+        val url = "$apiBaseUrl?part=snippet&id=$videoId&key=$apiKey"
         val request = Request.Builder().url(url).get().build()
-        val response = client.newCallSuspend(request)
-        val body = response.body?.string().orEmpty()
-        if (!response.isSuccessful) {
-            throw ImportException("YouTube API error ${response.code}: ${body.take(200)}", retryable = true)
+        val body = client.executeSuspend(request) { response ->
+            val content = response.body?.string().orEmpty()
+            if (!response.isSuccessful) {
+                throw ImportException("YouTube API error ${response.code}: ${content.take(200)}", retryable = true)
+            }
+            content
         }
         val snippet = json.decodeFromString<YouTubeApiResponse>(body).items.firstOrNull()?.snippet
             ?: throw ImportException("Video not found or unavailable", retryable = true)

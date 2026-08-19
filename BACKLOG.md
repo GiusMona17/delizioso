@@ -4,7 +4,7 @@ Everything known to be open, so it stops living in chat scrollback. One line of
 what, one of why it matters, and — where a decision was already taken — the
 reason, so it is not re-litigated later.
 
-**Last reviewed:** 2026-08-19 (after the online-search branch)
+**Last reviewed:** 2026-08-20 (after Tier 1 stability fixes)
 
 Specs for work that has been designed live in `docs/superpowers/specs/`.
 
@@ -12,41 +12,11 @@ Specs for work that has been designed live in `docs/superpowers/specs/`.
 
 ## In progress
 
-Nothing. Online recipe search is built on the `online-recipe-search` branch —
-spec `docs/superpowers/specs/2026-08-19-online-recipe-search-design.md`, plan
-`docs/superpowers/plans/2026-08-19-online-recipe-search.md`.
+Nothing.
 
 ---
 
 ## Defects
-
-**The import preview traps the user when dismissed with the system Back.**
-`ImportScreen` navigates to the preview whenever the import state is `Ready`.
-Leaving the preview via the top-bar arrow now clears that state, but the
-gesture and hardware Back pop the destination without going through it — so the
-import screen recomposes, still sees `Ready`, and bounces straight back into the
-preview. There is no exit from that loop, and from the search screen each cycle
-also costs a network request. A `BackHandler { onBack() }` in
-`ImportPreviewScreen` closes both doors at once. Pre-existing for the link and
-paste paths; online search reaches it too.
-
-**Three importers read the response body on the main thread.**
-`newCallSuspend` runs only `execute()` on `Dispatchers.IO`, so the
-`response.body?.string()` that follows it in `BlogImporter`, `TikTokImporter`
-and `YouTubeImporter` runs on the caller's dispatcher — the main thread, since
-they are called from `viewModelScope`. Any body larger than what Okio already
-buffered throws `NetworkOnMainThreadException`, which the generic catches turn
-into a misleading "import failed". Those same importers also throw on a non-2xx
-response without closing it, leaking the connection. `TheMealDbClient.meals()`
-and `ImageStore.downloadToInternal` show the correct shape.
-
-**Refreshing a TheMealDB recipe always erases the servings.**
-The API has no servings or timings, so the mapper emits null and
-`RecipeRepository.update` writes null. For a recipe imported from search, a
-serving count the user typed in by hand is therefore lost on every Refresh —
-and servings drive step scaling and the planner. Refresh is destructive by
-design and asks first, but for this one source the loss is guaranteed rather
-than possible.
 
 **Ingredient names keep their preposition.**
 "300 g di farina 00" is parsed with the name `di farina 00`. `IngredientParser`

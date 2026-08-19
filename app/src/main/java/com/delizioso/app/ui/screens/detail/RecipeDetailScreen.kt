@@ -167,9 +167,14 @@ class RecipeDetailViewModel(
             _refresh.value = RefreshState.Running
             try {
                 val fresh = refresher.refetch(url)
+                val preserved = fresh.recipe.copy(
+                    servings = fresh.recipe.servings ?: d.recipe.servings,
+                    prepTimeMinutes = fresh.recipe.prepTimeMinutes ?: d.recipe.prepTimeMinutes,
+                    cookTimeMinutes = fresh.recipe.cookTimeMinutes ?: d.recipe.cookTimeMinutes,
+                )
                 repository.update(
                     recipeId,
-                    fresh.recipe,
+                    preserved,
                     fresh.recipe.categories.ifEmpty { d.tags.map { it.name } },
                 )
                 fresh.rawText?.let { repository.updateSourceText(recipeId, it) }

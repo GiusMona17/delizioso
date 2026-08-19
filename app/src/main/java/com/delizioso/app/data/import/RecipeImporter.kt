@@ -33,6 +33,9 @@ interface RecipeImporter {
     suspend fun fetch(rawUrl: String): RawImport
 }
 
-/** Blocking OkHttp call wrapped as suspend, off the main thread. */
-internal suspend fun OkHttpClient.newCallSuspend(request: Request): Response =
-    withContext(Dispatchers.IO) { newCall(request).execute() }
+/** Blocking OkHttp call wrapped as suspend, off the main thread, closing response cleanly. */
+internal suspend fun <T> OkHttpClient.executeSuspend(request: Request, block: (Response) -> T): T =
+    withContext(Dispatchers.IO) {
+        newCall(request).execute().use(block)
+    }
+

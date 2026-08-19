@@ -23,11 +23,12 @@ class BlogImporter(
 
     override suspend fun fetch(rawUrl: String): RawImport {
         val request = Request.Builder().url(rawUrl).get().build()
-        val response = client.newCallSuspend(request)
-        if (!response.isSuccessful) {
-            throw ImportException("The site returned HTTP ${response.code}", retryable = true)
+        val html = client.executeSuspend(request) { response ->
+            if (!response.isSuccessful) {
+                throw ImportException("The site returned HTTP ${response.code}", retryable = true)
+            }
+            response.body?.string().orEmpty()
         }
-        val html = response.body?.string().orEmpty()
         if (html.isBlank()) throw ImportException("Empty page from $rawUrl", retryable = true)
 
         val structured = RecipeJsonLdParser.parse(html, json)

@@ -23,11 +23,12 @@ class TikTokImporter(
         val encoded = URLEncoder.encode(rawUrl, "UTF-8")
         val url = "$oEmbedBase/oembed?url=$encoded"
         val request = Request.Builder().url(url).get().build()
-        val response = client.newCallSuspend(request)
-        if (!response.isSuccessful) {
-            throw ImportException("TikTok oEmbed returned HTTP ${response.code}", retryable = true)
+        val body = client.executeSuspend(request) { response ->
+            if (!response.isSuccessful) {
+                throw ImportException("TikTok oEmbed returned HTTP ${response.code}", retryable = true)
+            }
+            response.body?.string().orEmpty()
         }
-        val body = response.body?.string().orEmpty()
         val data = json.decodeFromString<TikTokOEmbed>(body)
         val caption = data.title?.trim().orEmpty().takeIf { it.isNotBlank() }
             ?: throw ImportException("No caption found — video may require login", retryable = true)

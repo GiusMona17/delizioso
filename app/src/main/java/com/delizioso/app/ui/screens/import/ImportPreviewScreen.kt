@@ -1,5 +1,6 @@
 package com.delizioso.app.ui.screens.import
 
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -53,6 +54,8 @@ fun ImportPreviewScreen(
     onBack: () -> Unit,
     onSaved: (Long) -> Unit,
 ) {
+    BackHandler(onBack = onBack)
+
     val state by viewModel.state.collectAsStateWithLifecycle()
     // Hold on to the imported recipe: saving resets the view model to Idle, and
     // this screen must keep rendering until the caller has navigated away.
