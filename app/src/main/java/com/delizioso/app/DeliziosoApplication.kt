@@ -15,6 +15,7 @@ import com.delizioso.app.data.import.FacebookImporter
 import com.delizioso.app.data.import.InstagramImporter
 import com.delizioso.app.data.import.RecipeImporterRegistry
 import com.delizioso.app.data.import.SourceRefresher
+import com.delizioso.app.data.import.TheMealDbImporter
 import com.delizioso.app.data.import.TikTokImporter
 import com.delizioso.app.data.import.WebViewCaptionExtractor
 import com.delizioso.app.data.import.YouTubeImporter
@@ -52,6 +53,7 @@ class AppContainer(context: Context) {
                 }
             ),
             BlogImporter(),
+            TheMealDbImporter(),
             InstagramImporter(WebViewCaptionExtractor(context)),
             FacebookImporter(WebViewCaptionExtractor(context)),
         )

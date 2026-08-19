@@ -117,7 +117,7 @@ data class RecipeTagCrossRef(
 )
 data class SourceEntity(
     @PrimaryKey val recipeId: Long,
-    /** MANUAL | INSTAGRAM | FACEBOOK | TIKTOK | YOUTUBE | BLOG | OCR. */
+    /** MANUAL | INSTAGRAM | FACEBOOK | TIKTOK | YOUTUBE | BLOG | OCR | MEALDB. */
     val platform: String,
     val url: String? = null,
     /** @author handle, channel name or site name. */
@@ -135,4 +135,5 @@ object Platform {
     const val YOUTUBE = "YOUTUBE"
     const val BLOG = "BLOG"
     const val OCR = "OCR"
+    const val MEALDB = "MEALDB"
 }

@@ -6,6 +6,7 @@ enum class Platform(val key: String) {
     TIKTOK("TIKTOK"),
     YOUTUBE("YOUTUBE"),
     BLOG("BLOG"),
+    MEALDB("MEALDB"),
 }
 
 /**
@@ -37,6 +38,9 @@ object PlatformDetector {
     private val youtube = Regex(
         """^(?:https?://)?(?:www\.|m\.)?(?:youtube\.com/watch\?v=|youtube\.com/shorts/|youtu\.be/)([\w-]{11})"""
     )
+    private val mealDb = Regex(
+        """^(?:https?://)?(?:www\.)?themealdb\.com/meal/(\d+)"""
+    )
 
     fun detect(rawUrl: String): Platform? {
         val url = rawUrl.trim()
@@ -45,6 +49,7 @@ object PlatformDetector {
             facebook.find(url) != null || facebookShort.find(url) != null -> Platform.FACEBOOK
             tiktok.find(url) != null -> Platform.TIKTOK
             youtube.find(url) != null -> Platform.YOUTUBE
+            mealDb.find(url) != null -> Platform.MEALDB
             url.startsWith("http://") || url.startsWith("https://") -> Platform.BLOG
             else -> null
         }
@@ -55,6 +60,8 @@ object PlatformDetector {
             ?: instagramShort.find(rawUrl.trim())?.groupValues?.get(1)
 
     fun youtubeId(rawUrl: String): String? = youtube.find(rawUrl.trim())?.groupValues?.get(1)
+
+    fun mealDbId(rawUrl: String): String? = mealDb.find(rawUrl.trim())?.groupValues?.get(1)
 
     fun tiktokVideoId(rawUrl: String): String? = tiktokVideo.find(rawUrl.trim())?.groupValues?.get(1)
 }
