@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material.icons.filled.Segment
+import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -56,6 +57,7 @@ fun ImportScreen(
     onPreview: () -> Unit,
     onRecipeClick: (Long) -> Unit,
     onProfileClick: () -> Unit,
+    onSearchOnline: () -> Unit,
     sharedLink: String? = null,
     onSharedLinkHandled: () -> Unit = {},
     viewModel: ImportViewModel = viewModel(factory = ImportViewModel.Factory),
@@ -148,6 +150,8 @@ fun ImportScreen(
                 onPaste = { clipboard.getText()?.text?.let { pastedText = it } },
                 onStructure = { viewModel.importText(pastedText) },
             )
+
+            SearchOnlineCard(onSearchOnline = onSearchOnline)
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -249,6 +253,36 @@ private fun PasteTextCard(
                 modifier = Modifier.weight(1f),
             )
         }
+    }
+}
+
+/** Third way in: no link and no text at all — search TheMealDB's catalogue. */
+@Composable
+private fun SearchOnlineCard(onSearchOnline: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clayCard(container = MaterialTheme.colorScheme.surfaceContainer, cornerRadius = 32.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text(
+            stringResource(R.string.import_search_title),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            stringResource(R.string.import_search_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        ClayButton(
+            text = stringResource(R.string.import_search_open),
+            icon = Icons.Filled.TravelExplore,
+            onClick = onSearchOnline,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

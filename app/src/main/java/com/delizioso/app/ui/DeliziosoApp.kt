@@ -31,6 +31,7 @@ import com.delizioso.app.ui.screens.import.ImportViewModel
 import com.delizioso.app.ui.screens.library.LibraryScreen
 import com.delizioso.app.ui.screens.planner.PlannerScreen
 import com.delizioso.app.ui.screens.profile.ProfileScreen
+import com.delizioso.app.ui.screens.search.OnlineSearchScreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -128,6 +129,7 @@ fun DeliziosoApp(
                     onPreview = { navController.navigate(Routes.IMPORT_PREVIEW) },
                     onRecipeClick = { id -> navController.navigate(Routes.recipeDetail(id)) },
                     onProfileClick = { navController.navigate(Routes.PROFILE) },
+                    onSearchOnline = { navController.navigate(Routes.IMPORT_SEARCH) },
                     sharedLink = sharedLink,
                     onSharedLinkHandled = onSharedLinkHandled,
                 )
@@ -142,6 +144,16 @@ fun DeliziosoApp(
                             popUpTo(Routes.IMPORT)
                         }
                     },
+                )
+            }
+            composable(Routes.IMPORT_SEARCH) {
+                // Same view model instance the preview reads, or the preview
+                // would open on an empty import.
+                val parentEntry = navController.getBackStackEntry(Routes.IMPORT)
+                OnlineSearchScreen(
+                    importViewModel = viewModel(viewModelStoreOwner = parentEntry, factory = ImportViewModel.Factory),
+                    onBack = { navController.popBackStack() },
+                    onPreview = { navController.navigate(Routes.IMPORT_PREVIEW) },
                 )
             }
             composable(
