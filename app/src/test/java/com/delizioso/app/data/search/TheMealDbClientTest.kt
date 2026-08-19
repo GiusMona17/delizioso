@@ -76,4 +76,47 @@ class TheMealDbClientTest {
             // Expected
         }
     }
+
+    @Test
+    fun `ingredient names come back sorted and without blanks`() = runTest {
+        respond("""{"meals":[{"strIngredient":"Salmon"},{"strIngredient":" "},{"strIngredient":"Beef"}]}""")
+        assertEquals(listOf("Beef", "Salmon"), client().ingredientNames())
+    }
+
+    /** TheMealDB wants underscores where the ingredient name has spaces. */
+    @Test
+    fun `filtering by ingredient sends underscores and maps the tile fields`() = runTest {
+        respond("""{"meals":[{"idMeal":"7","strMeal":"Chicken Pie","strMealThumb":"https://x/y.jpg"}]}""")
+        val results = client().mealsWithIngredient("chicken breast")
+        assertEquals(listOf(TheMealDbClient.SearchResult("7", "Chicken Pie", "https://x/y.jpg")), results)
+        val path = server.takeRequest().path!!
+        assertEquals("/filter.php", path.substringBefore("?"))
+        assertTrue(path.contains("i=chicken_breast"))
+    }
+
+    @Test
+    fun `intersecting keeps only meals present for every ingredient`() {
+        val a = TheMealDbClient.SearchResult("1", "A", null)
+        val b = TheMealDbClient.SearchResult("2", "B", null)
+        val c = TheMealDbClient.SearchResult("3", "C", null)
+        assertEquals(
+            listOf(b),
+            TheMealDbClient.intersect(listOf(listOf(a, b), listOf(b, c))),
+        )
+    }
+
+    @Test
+    fun `intersecting one list returns it unchanged, and no lists returns nothing`() {
+        val a = TheMealDbClient.SearchResult("1", "A", null)
+        assertEquals(listOf(a), TheMealDbClient.intersect(listOf(listOf(a))))
+        assertTrue(TheMealDbClient.intersect(emptyList()).isEmpty())
+    }
+
+    /** Three ingredients often match nothing in a ~300 recipe catalogue. */
+    @Test
+    fun `an empty intersection is empty, not the first list`() {
+        val a = TheMealDbClient.SearchResult("1", "A", null)
+        val b = TheMealDbClient.SearchResult("2", "B", null)
+        assertTrue(TheMealDbClient.intersect(listOf(listOf(a), listOf(b))).isEmpty())
+    }
 }
