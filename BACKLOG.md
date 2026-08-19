@@ -1,0 +1,127 @@
+# Delizioso! — Backlog
+
+Everything known to be open, so it stops living in chat scrollback. One line of
+what, one of why it matters, and — where a decision was already taken — the
+reason, so it is not re-litigated later.
+
+**Last reviewed:** 2026-08-19
+
+Specs for work that has been designed live in `docs/superpowers/specs/`.
+
+---
+
+## In progress
+
+| Item | Where |
+|---|---|
+| Online recipe search (TheMealDB) | `docs/superpowers/specs/2026-08-19-online-recipe-search-design.md` |
+
+---
+
+## Defects
+
+**Ingredient names keep their preposition.**
+"300 g di farina 00" is parsed with the name `di farina 00`. `IngredientParser`
+splits quantity and unit but does not drop a leading article or preposition, so
+Italian ingredients read oddly in the list and are harder to match against the
+nutrition table. Affects both display and macro coverage.
+
+**Broccoli and other loose vegetables convert to millilitres.**
+`UnitConverter` only converts a cup to grams for ingredients in its density
+table; everything else becomes millilitres, which is true but useless for
+florets — "240 ml broccoli". Fix is to extend `GRAMS_PER_CUP`, not to change the
+rule.
+
+**Machine translation of ingredient names is literal.**
+"chicken breasts" becomes "seno di pollo" rather than "petto di pollo". This is
+NMT quality, not a bug in our code. A fix means an exception table for
+ingredients, the way `UnitNames` handles units — a much longer road, and only
+worth it if the wrong wordings turn out to be common.
+
+**Re-importing the same link creates a duplicate.**
+Nothing checks the source URL before saving, so the same reel imported twice
+produces two recipes. A lookup on `sources.url` before save, offering to open the
+existing recipe instead, would close it. Deliberately skipped once; recorded here
+so the choice stays visible.
+
+---
+
+## Unverified
+
+Built and unit-tested, but never exercised on the device.
+
+- **Backup export and restore round trip.** The zip format is covered by tests
+  (`LibraryBackupTest`), but the system file picker flow has not been driven
+  end to end. The single most important thing to confirm by hand, since it is
+  the only defence against losing the library.
+- **Library sort menu** and **re-import-JSON dialog** in the edit screen. Both
+  compile and are reasoned about; neither has been seen working.
+
+---
+
+## Improvements
+
+**Map `nutrition` from JSON-LD.**
+GialloZafferano and most recipe sites publish `calories`, `fatContent`,
+`carbohydrateContent` and more in their JSON-LD. `RecipeJsonLdParser` ignores all
+of it and the app falls back to its own lookup table. Where the site states the
+figures they are better than our estimate, and the "from N of M ingredients"
+caveat could be dropped for those recipes.
+
+**Empty-search card with an action.**
+When a library search finds nothing, offer to import from a link or search
+online, rather than only saying there are no matches. Pattern borrowed from the
+sibling project.
+
+**`updatedAt` doubles as "last touched".**
+Refreshing a recipe from its source bumps `updatedAt`, so it jumps to the top
+under the "Last updated" sort. Correct by the letter, mildly surprising in
+practice. Only worth addressing if it becomes annoying.
+
+---
+
+## Decisions taken (do not revisit without new information)
+
+**Extraction stays deterministic; the model only handles language.**
+Measured across the session: the heading parser beat Gemini Nano on captions, and
+code beats a 1B model at arithmetic. The LLM earns its place in the chat, and
+ML Kit — a purpose-built translator — handles translation.
+
+**Macros are calculated, not generated.**
+A small model produces confident, unverifiable calorie counts. The lookup table
+gives numbers that can be traced and corrected, and the app says how many
+ingredients it recognised.
+
+**Chaquopy + `recipe-scrapers` — rejected.**
+Proposed as a precision layer for GialloZafferano. Checked directly: that site
+publishes complete JSON-LD which the existing parser already reads, so the layer
+adds nothing there. It also optimises the case that already works — recipe
+websites — while our failures are social captions, which it does not touch. The
+dependency tree (`extruct` → `lxml`, `rdflib`) needs C extensions inside
+Chaquopy, plus a CPython runtime per ABI in the APK.
+
+**Edamam — rejected.** Returns links, not instructions, so recipes could not be
+saved. That is the entire point of the app.
+
+**Spoonacular — open, and yours to decide.**
+The only provider with true multi-ingredient search, but a ~150 point daily quota
+and terms that limit how long results may be stored — which sits badly with a
+local-first library kept forever. Not needed unless TheMealDB's ~300 recipes
+prove too thin.
+
+**No automatic translation of imported recipes.**
+Translation stays a deliberate button press, as it is everywhere else in the app.
+
+**No rate limiting.** Personal use, a handful of requests a day. Would be
+theatre.
+
+---
+
+## Notes
+
+- **TheMealDB test key `1`** is public and free for the core endpoints.
+  Multi-ingredient filtering and "latest meals" sit behind a one-off paid tier we
+  do not need — the intersection is done client-side instead.
+- **The `macros*` columns were dropped** from `recipes` in migration 3→4. Macros
+  are derived on display so they can never be stale.
+- **Gemma is chat-only.** Import, conversion and translation never touch it.
