@@ -124,6 +124,18 @@ class ImportViewModel(
         )
     }
 
+    /**
+     * Show a recipe found through online search in the preview.
+     *
+     * The search screen owns finding it; from here on it is an import like any
+     * other, which is why this only sets the state the preview already reads.
+     */
+    fun importSearchResult(recipe: StructuredRecipe, raw: RawImport) {
+        lastRaw = raw
+        lastUrl = raw.url
+        _state.value = ImportUiState.Ready(recipe = recipe, raw = raw)
+    }
+
     fun importLink(url: String) {
         if (url.isBlank()) return
         lastUrl = url.trim()

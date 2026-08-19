@@ -1,8 +1,12 @@
 package com.delizioso.app.data.search
 
 import com.delizioso.app.data.Categories
+import com.delizioso.app.data.import.ImportContent
 import com.delizioso.app.data.import.IngredientParser
+import com.delizioso.app.data.import.Platform
+import com.delizioso.app.data.import.RawImport
 import com.delizioso.app.data.import.StructuredRecipe
+import com.delizioso.app.data.import.TheMealDbImporter
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 
@@ -34,6 +38,25 @@ object MealDbMapper {
             listOfNotNull(meal.str("strCategory"), meal.str("strArea"))
         ),
     )
+
+    /**
+     * The meal as the import flow expects it, source URL and all.
+     *
+     * Search results travel to the preview screen as a [RawImport] so that saving,
+     * photo caching and the source link behave exactly as they do for a pasted
+     * link — one path, not two.
+     */
+    fun toRawImport(meal: JsonObject): RawImport {
+        val recipe = toRecipe(meal)
+        val id = mealId(meal)
+        return RawImport(
+            platform = Platform.MEALDB.key,
+            url = id?.let(TheMealDbImporter::webUrl),
+            author = TheMealDbImporter.AUTHOR,
+            content = ImportContent.Structured(recipe),
+            thumbnailUrl = recipe.imageUrl,
+        )
+    }
 
     private fun ingredients(meal: JsonObject) = (1..INGREDIENT_SLOTS)
         .mapNotNull { slot ->
