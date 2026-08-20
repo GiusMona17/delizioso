@@ -4,7 +4,7 @@ Everything known to be open, so it stops living in chat scrollback. One line of
 what, one of why it matters, and — where a decision was already taken — the
 reason, so it is not re-litigated later.
 
-**Last reviewed:** 2026-08-20 (after Tier 1 stability fixes)
+**Last reviewed:** 2026-08-20 (after Modular Recipe Sources Registry & Settings integration)
 
 Specs for work that has been designed live in `docs/superpowers/specs/`.
 
