@@ -205,13 +205,33 @@
     <string name="profile_api_key_label">API key</string>
 
     <!-- Sources -->
+    <string name="sources_title">Recipe Sources</string>
+    <string name="sources_enable_all">Enable all</string>
+    <string name="sources_disable_all">Disable all</string>
+    <string name="sources_cat_search">Search Databases</string>
+    <string name="sources_cat_italian">Italian Recipe Portals</string>
+    <string name="sources_cat_intl">International Sites</string>
+    <string name="sources_cat_social">Social Media &amp; Video</string>
+    <string name="sources_cat_generic">Generic Web (Schema.org)</string>
+    <string name="profile_sources_title">Recipe Sources</string>
+    <string name="profile_sources_subtitle">Manage active portals and scrapers</string>
+    <string name="import_source_disabled">This recipe source is disabled in Settings</string>
     <string name="source_created">Created by you</string>
     <string name="source_from">From %1$s</string>
     <string name="source_delizioso">Delizioso</string>
+    <string name="source_the_meal_db">TheMealDB</string>
+    <string name="source_giallo_zafferano">GialloZafferano</string>
+    <string name="source_cookist">Cookist</string>
+    <string name="source_cucchiaio">Il Cucchiaio d\'Argento</string>
+    <string name="source_ricette_bimby">Ricette per Bimby</string>
+    <string name="source_all_recipes">AllRecipes</string>
+    <string name="source_bbc_good_food">BBC Good Food</string>
+    <string name="source_serious_eats">Serious Eats</string>
     <string name="source_instagram">Instagram</string>
     <string name="source_facebook">Facebook</string>
     <string name="source_tiktok">TikTok</string>
     <string name="source_youtube">YouTube</string>
+    <string name="source_generic_web">Generic Web (JSON-LD / Microdata)</string>
     <string name="source_mealdb">TheMealDB</string>
     <string name="source_web">the web</string>
     <string name="source_scan">a scan</string>

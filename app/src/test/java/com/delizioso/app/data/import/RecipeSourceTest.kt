@@ -31,4 +31,14 @@ class RecipeSourceTest {
         assertTrue(active.contains(RecipeSource.GIALLO_ZAFFERANO))
         assertTrue(active.contains(RecipeSource.GENERIC_WEB))
     }
+
+    @Test
+    fun `displayNameRes returns valid resource for all categories and sources`() {
+        RecipeSourceCategory.values().forEach { category ->
+            assertTrue(category.displayNameRes != 0)
+        }
+        RecipeSource.values().forEach { source ->
+            assertTrue(source.displayNameRes != 0)
+        }
+    }
 }

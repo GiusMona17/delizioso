@@ -31,6 +31,7 @@ import com.delizioso.app.ui.screens.import.ImportViewModel
 import com.delizioso.app.ui.screens.library.LibraryScreen
 import com.delizioso.app.ui.screens.planner.PlannerScreen
 import com.delizioso.app.ui.screens.profile.ProfileScreen
+import com.delizioso.app.ui.screens.profile.RecipeSourcesScreen
 import com.delizioso.app.ui.screens.search.OnlineSearchScreen
 import kotlinx.coroutines.launch
 
@@ -176,7 +177,12 @@ fun DeliziosoApp(
                     onSaved = { navController.popBackStack() },
                 )
             }
-            composable(Routes.PROFILE) { ProfileScreen() }
+            composable(Routes.PROFILE) {
+                ProfileScreen(onOpenRecipeSources = { navController.navigate(Routes.RECIPE_SOURCES) })
+            }
+            composable(Routes.RECIPE_SOURCES) {
+                RecipeSourcesScreen(onBack = { navController.popBackStack() })
+            }
             composable(Routes.CREATE) {
                 CreateScreen(
                     onBack = { navController.popBackStack() },
