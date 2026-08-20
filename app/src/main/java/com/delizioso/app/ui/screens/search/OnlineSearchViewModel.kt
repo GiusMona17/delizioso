@@ -12,6 +12,7 @@ import com.delizioso.app.data.import.RecipeImporterRegistry
 import com.delizioso.app.data.import.RecipeSource
 import com.delizioso.app.data.import.StructuredRecipe
 import com.delizioso.app.data.local.UserPreferences
+import com.delizioso.app.data.search.IngredientDictionary
 import com.delizioso.app.data.search.MealDbMapper
 import com.delizioso.app.data.search.OnlineSearchResult
 import com.delizioso.app.data.search.RecipeSearchProvider
@@ -61,9 +62,7 @@ class OnlineSearchViewModel(
     private var lastSearchedName: String? = null
 
     init {
-        viewModelScope.launch {
-            _ingredientNames.value = runCatching { mealDbClient.ingredientNames() }.getOrDefault(emptyList())
-        }
+        _ingredientNames.value = IngredientDictionary.ALL_ITALIAN_INGREDIENTS
     }
 
     fun searchByName(query: String) {
@@ -82,7 +81,12 @@ class OnlineSearchViewModel(
                 } else {
                     val searchJobs = activeProviders.map { provider ->
                         async {
-                            runCatching { provider.searchByName(trimmed) }.getOrDefault(emptyList())
+                            val queryForProvider = if (provider.source == RecipeSource.THE_MEAL_DB) {
+                                IngredientDictionary.toEnglish(trimmed)
+                            } else {
+                                trimmed
+                            }
+                            runCatching { provider.searchByName(queryForProvider) }.getOrDefault(emptyList())
                         }
                     }
                     val allResults = searchJobs.awaitAll().flatten()
@@ -137,9 +141,10 @@ class OnlineSearchViewModel(
                 } else {
                     val results = mutableListOf<OnlineSearchResult>()
 
-                    // 1. TheMealDB intersection search
+                    // 1. TheMealDB intersection search (English converted)
                     if (RecipeSource.THE_MEAL_DB in enabled) {
-                        val perIngredient = chosen
+                        val englishIngredients = chosen.map { IngredientDictionary.toEnglish(it) }
+                        val perIngredient = englishIngredients
                             .map { name -> async { mealDbClient.mealsWithIngredient(name) } }
                             .awaitAll()
                         val shared = TheMealDbClient.intersect(perIngredient)
@@ -155,13 +160,13 @@ class OnlineSearchViewModel(
                         )
                     }
 
-                    // 2. Web search providers (GialloZafferano, Cookist) with combined ingredients
+                    // 2. Italian web search providers (GialloZafferano, Cookist) with Italian ingredients
                     val webProviders = activeProviders.filter { it.source != RecipeSource.THE_MEAL_DB }
                     if (webProviders.isNotEmpty()) {
-                        val combined = chosen.joinToString(" ")
+                        val italianQuery = chosen.joinToString(" ")
                         val webSearches = webProviders.map { provider ->
                             async {
-                                runCatching { provider.searchByName(combined) }.getOrDefault(emptyList())
+                                runCatching { provider.searchByName(italianQuery) }.getOrDefault(emptyList())
                             }
                         }
                         results.addAll(webSearches.awaitAll().flatten())
