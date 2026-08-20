@@ -26,6 +26,7 @@ import com.delizioso.app.data.import.YouTubeImporter
 import com.delizioso.app.data.local.AppDatabase
 import com.delizioso.app.data.local.UserPreferences
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 /** Lightweight manual DI container (no Hilt — keeps the dependency surface small). */
 class AppContainer(context: Context) {
@@ -48,7 +49,7 @@ class AppContainer(context: Context) {
     val ocrTextExtractor: OcrTextExtractor = OcrTextExtractor()
 
     val importRegistry: RecipeImporterRegistry = RecipeImporterRegistry(
-        listOf(
+        importers = listOf(
             TikTokImporter(),
             YouTubeImporter(
                 apiKeyProvider = {
@@ -60,7 +61,8 @@ class AppContainer(context: Context) {
             TheMealDbImporter(),
             InstagramImporter(WebViewCaptionExtractor(context)),
             FacebookImporter(WebViewCaptionExtractor(context)),
-        )
+        ),
+        enabledSourcesProvider = { runBlocking { preferences.enabledSources.first() } }
     )
 }
 

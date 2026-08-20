@@ -42,6 +42,25 @@ object PlatformDetector {
         """^(?:https?://)?(?:www\.)?themealdb\.com/meal/(\d+)"""
     )
 
+    fun sourceFor(rawUrl: String): RecipeSource {
+        val url = rawUrl.trim().lowercase()
+        return when {
+            RecipeSource.GIALLO_ZAFFERANO.domains.any { url.contains(it) } -> RecipeSource.GIALLO_ZAFFERANO
+            RecipeSource.COOKIST.domains.any { url.contains(it) } -> RecipeSource.COOKIST
+            RecipeSource.CUCCHIAIO.domains.any { url.contains(it) } -> RecipeSource.CUCCHIAIO
+            RecipeSource.RICETTE_BIMBY.domains.any { url.contains(it) } -> RecipeSource.RICETTE_BIMBY
+            RecipeSource.ALL_RECIPES.domains.any { url.contains(it) } -> RecipeSource.ALL_RECIPES
+            RecipeSource.BBC_GOOD_FOOD.domains.any { url.contains(it) } -> RecipeSource.BBC_GOOD_FOOD
+            RecipeSource.SERIOUS_EATS.domains.any { url.contains(it) } -> RecipeSource.SERIOUS_EATS
+            RecipeSource.THE_MEAL_DB.domains.any { url.contains(it) } -> RecipeSource.THE_MEAL_DB
+            youtube.find(url) != null -> RecipeSource.YOUTUBE
+            tiktok.find(url) != null -> RecipeSource.TIKTOK
+            instagram.find(url) != null || instagramShort.find(url) != null -> RecipeSource.INSTAGRAM
+            facebook.find(url) != null || facebookShort.find(url) != null -> RecipeSource.FACEBOOK
+            else -> RecipeSource.GENERIC_WEB
+        }
+    }
+
     fun detect(rawUrl: String): Platform? {
         val url = rawUrl.trim()
         return when {
