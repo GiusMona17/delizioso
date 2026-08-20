@@ -64,6 +64,14 @@ data class RawImport(
     val thumbnailUrl: String? = null,
 )
 
+@Serializable
+data class NutritionInfo(
+    val caloriesKcal: Double? = null,
+    val proteinG: Double? = null,
+    val fatG: Double? = null,
+    val carbsG: Double? = null,
+)
+
 /** A structured recipe as extracted from a page or LLM (not yet persisted). */
 data class StructuredRecipe(
     val title: String? = null,
@@ -76,6 +84,7 @@ data class StructuredRecipe(
     val steps: List<String> = emptyList(),
     /** Already validated against [com.delizioso.app.data.Categories]. */
     val categories: List<String> = emptyList(),
+    val nutrition: NutritionInfo? = null,
 ) {
     /** Plain-text rendering (used as fallback input for LLM structuring). */
     fun toPlainText(): String = buildString {

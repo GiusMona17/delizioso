@@ -70,14 +70,18 @@ class OnlineSearchViewModel(
         }
     }
 
+    private var lastSearchedName: String? = null
+
     fun searchByName(query: String) {
         if (query.isBlank()) return
+        val trimmed = query.trim()
+        lastSearchedName = trimmed
         _chosenIngredients.value = emptyList()
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
             _state.value = SearchUiState.Loading
             _state.value = try {
-                val meals = client.searchByName(query)
+                val meals = client.searchByName(trimmed)
                 loadedMeals = meals.mapNotNull { meal ->
                     MealDbMapper.mealId(meal)?.let { it to meal }
                 }.toMap()
@@ -99,6 +103,15 @@ class OnlineSearchViewModel(
             } catch (e: Exception) {
                 SearchUiState.Failed("")
             }
+        }
+    }
+
+    fun retry() {
+        val chosen = _chosenIngredients.value
+        if (chosen.isNotEmpty()) {
+            searchByIngredients()
+        } else {
+            lastSearchedName?.let { searchByName(it) }
         }
     }
 

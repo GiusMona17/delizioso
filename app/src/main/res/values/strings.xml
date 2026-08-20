@@ -337,4 +337,6 @@
     <string name="import_duplicate_body">This link is already in your library. Would you like to view the existing recipe or import it again?</string>
     <string name="import_duplicate_open">Open recipe</string>
     <string name="import_duplicate_reimport">Import again</string>
+    <string name="library_search_online_for">Search online for \"%1$s\"</string>
+    <string name="library_import_from_link">Import recipe from link</string>
 </resources>

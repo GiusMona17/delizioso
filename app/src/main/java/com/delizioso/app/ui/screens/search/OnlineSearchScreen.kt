@@ -10,7 +10,10 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -76,19 +79,7 @@ fun OnlineSearchScreen(
     var nameQuery by rememberSaveable { mutableStateOf("") }
     var ingredientQuery by rememberSaveable { mutableStateOf("") }
 
-    // Retry repeats whatever produced the failure: a name search clears the
-    // chosen ingredients, so an empty list means the last action was by name.
-    val onRetry: () -> Unit = {
-        val last = chosen.lastOrNull()
-        if (last == null) {
-            viewModel.searchByName(nameQuery)
-        } else {
-            // The view model has no "search again": dropping the last ingredient
-            // and putting it back re-runs the same intersection.
-            viewModel.removeIngredient(last)
-            viewModel.addIngredient(last)
-        }
-    }
+    val onRetry: () -> Unit = { viewModel.retry() }
 
     Column(Modifier.fillMaxSize()) {
         ClayTopBar(
@@ -222,33 +213,43 @@ private fun IngredientPicker(
                 enabled = query.isNotBlank(),
                 modifier = Modifier.fillMaxWidth(),
             )
-        } else if (suggestions.isNotEmpty()) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+        } else if (suggestions.isNotEmpty() || chosen.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 140.dp)
+                    .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                suggestions.forEach { name ->
-                    ClayChip(
-                        text = name,
-                        icon = Icons.Filled.Add,
-                        modifier = Modifier.clip(PillShape).clickable { onAdd(name) },
-                    )
+                if (suggestions.isNotEmpty()) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        suggestions.forEach { name ->
+                            ClayChip(
+                                text = name,
+                                icon = Icons.Filled.Add,
+                                modifier = Modifier.clip(PillShape).clickable { onAdd(name) },
+                            )
+                        }
+                    }
                 }
-            }
-        }
-        if (chosen.isNotEmpty()) {
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                chosen.forEach { name ->
-                    ClayChip(
-                        text = name,
-                        icon = Icons.Filled.Close,
-                        container = MaterialTheme.colorScheme.primaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.clip(PillShape).clickable { onRemove(name) },
-                    )
+                if (chosen.isNotEmpty()) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        chosen.forEach { name ->
+                            ClayChip(
+                                text = name,
+                                icon = Icons.Filled.Close,
+                                container = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier.clip(PillShape).clickable { onRemove(name) },
+                            )
+                        }
+                    }
                 }
             }
         }

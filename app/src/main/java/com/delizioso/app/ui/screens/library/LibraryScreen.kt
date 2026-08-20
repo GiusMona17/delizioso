@@ -72,6 +72,17 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.SearchOff
+import androidx.compose.material.icons.filled.TravelExplore
+import com.delizioso.app.ui.components.ClayButton
+import com.delizioso.app.ui.theme.clayCard
+import androidx.compose.ui.draw.shadow
+import androidx.compose.foundation.background
 
 /** "All" plus the pinned Favourites filter, plus every category in use. */
 private const val FILTER_ALL = "All"
@@ -114,6 +125,8 @@ fun LibraryScreen(
     onRecipeClick: (Long) -> Unit,
     onCreateClick: () -> Unit,
     onProfileClick: () -> Unit,
+    onSearchOnline: (String) -> Unit = {},
+    onImportClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: LibraryViewModel = viewModel(factory = LibraryViewModel.Factory),
 ) {
@@ -138,32 +151,38 @@ fun LibraryScreen(
     val activeFilter = if (filter in filters) filter else FILTER_ALL
 
     val visible = recipes
-        .filter { query.isBlank() || it.matches(query) }
-        .filter {
+        .filter { d ->
             when (activeFilter) {
                 FILTER_ALL -> true
-                FILTER_FAVOURITES -> it.recipe.isFavorite
-                else -> it.tags.any { tag -> tag.name == filter }
+                FILTER_FAVOURITES -> d.recipe.isFavorite
+                else -> d.tags.any { it.name == activeFilter }
             }
         }
+        .filter { it.matches(query) }
         .sortedWith(sort.comparator())
 
-    Column(modifier = modifier.fillMaxSize()) {
+    Column(
+        modifier = modifier.fillMaxSize(),
+    ) {
         ClayTopBar(
             onMenu = onCreateClick,
             menuIcon = Icons.Filled.Add,
             menuDescription = stringResource(R.string.library_create_menu),
             onProfile = onProfileClick,
         )
-        // One grid drives all three layouts: cards and list are simply a
-        // single-column grid, which keeps the search field and filter rail in one
-        // place instead of repeated per layout.
+
+        val columns = when (viewMode) {
+            LibraryViewMode.CARDS -> 1
+            LibraryViewMode.GRID -> 2
+            LibraryViewMode.LIST -> 1
+        }
+
         LazyVerticalGrid(
-            columns = GridCells.Fixed(if (viewMode == LibraryViewMode.GRID) 2 else 1),
-            contentPadding = PaddingValues(top = 16.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(if (viewMode == LibraryViewMode.CARDS) 20.dp else 12.dp),
+            columns = GridCells.Fixed(columns),
+            contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
-            modifier = Modifier.fillMaxSize().padding(horizontal = 20.dp),
+            modifier = Modifier.fillMaxSize(),
         ) {
             item(span = { GridItemSpan(maxLineSpan) }) {
                 ClayTextField(
@@ -172,9 +191,6 @@ fun LibraryScreen(
                     placeholder = stringResource(R.string.library_search),
                     leadingIcon = Icons.Filled.Search,
                     cornerRadius = 24.dp,
-                    modifier = Modifier.fillMaxWidth(),
-                    // The slot used to hold a decorative, dead "tune" icon; it now
-                    // switches the layout, which is what a control there implies.
                     trailing = {
                         LibraryOptions(
                             viewMode = viewMode,
@@ -206,15 +222,25 @@ fun LibraryScreen(
             }
             if (visible.isEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    ClayEmptyState(
-                        icon = Icons.Filled.Restaurant,
-                        title = if (recipes.isEmpty()) stringResource(R.string.library_no_recipes) else stringResource(R.string.library_no_matches),
-                        subtitle = if (recipes.isEmpty()) {
-                            stringResource(R.string.library_empty_hint)
-                        } else {
-                            stringResource(R.string.library_no_match_hint)
-                        },
-                    )
+                    if (recipes.isEmpty()) {
+                        ClayEmptyState(
+                            icon = Icons.Filled.Restaurant,
+                            title = stringResource(R.string.library_no_recipes),
+                            subtitle = stringResource(R.string.library_empty_hint),
+                        )
+                    } else if (query.isNotBlank()) {
+                        EmptySearchCard(
+                            query = query,
+                            onSearchOnline = onSearchOnline,
+                            onImportClick = onImportClick,
+                        )
+                    } else {
+                        ClayEmptyState(
+                            icon = Icons.Filled.Restaurant,
+                            title = stringResource(R.string.library_no_matches),
+                            subtitle = stringResource(R.string.library_no_match_hint),
+                        )
+                    }
                 }
             } else {
                 items(visible, key = { it.recipe.id }) { details ->
@@ -338,5 +364,54 @@ private fun LibrarySort.comparator(): Comparator<RecipeWithDetails> = when (this
     LibrarySort.TIME -> compareBy {
         val minutes = (it.recipe.prepTimeMinutes ?: 0) + (it.recipe.cookTimeMinutes ?: 0)
         if (minutes > 0) minutes else Int.MAX_VALUE
+    }
+}
+
+@Composable
+private fun EmptySearchCard(
+    query: String,
+    onSearchOnline: (String) -> Unit,
+    onImportClick: () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clayCard(container = MaterialTheme.colorScheme.surfaceContainerLow)
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Filled.SearchOff,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(48.dp),
+        )
+        Text(
+            stringResource(R.string.library_no_matches),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            stringResource(R.string.library_no_match_hint),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(4.dp))
+        ClayButton(
+            text = stringResource(R.string.library_search_online_for, query.trim()),
+            icon = Icons.Filled.TravelExplore,
+            onClick = { onSearchOnline(query.trim()) },
+            modifier = Modifier.fillMaxWidth(),
+        )
+        ClayButton(
+            text = stringResource(R.string.library_import_from_link),
+            icon = Icons.Filled.Link,
+            onClick = onImportClick,
+            container = MaterialTheme.colorScheme.surfaceContainerHigh,
+            contentColor = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }

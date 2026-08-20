@@ -58,4 +58,36 @@ class RecipeJsonLdParserTest {
     fun `returns null when no recipe node`() {
         assertNull(RecipeJsonLdParser.parse("<html><script type=\"application/ld+json\">{\"@type\":\"Article\"}</script></html>", json))
     }
+
+    @Test
+    fun `parses nutrition from json-ld`() {
+        val htmlWithNutrition = """
+            <html><body>
+            <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "Recipe",
+                "name": "Protein Oats",
+                "recipeIngredient": ["50g oats", "1 scoop protein powder"],
+                "recipeInstructions": "Mix and cook.",
+                "nutrition": {
+                    "@type": "NutritionInformation",
+                    "calories": "380 kcal",
+                    "proteinContent": "32 g",
+                    "fatContent": "6.5 grams",
+                    "carbohydrateContent": "48g"
+                }
+            }
+            </script>
+            </body></html>
+        """.trimIndent()
+
+        val recipe = RecipeJsonLdParser.parse(htmlWithNutrition, json)
+        assertNotNull(recipe)
+        assertNotNull(recipe!!.nutrition)
+        assertEquals(380.0, recipe.nutrition!!.caloriesKcal)
+        assertEquals(32.0, recipe.nutrition!!.proteinG)
+        assertEquals(6.5, recipe.nutrition!!.fatG)
+        assertEquals(48.0, recipe.nutrition!!.carbsG)
+    }
 }

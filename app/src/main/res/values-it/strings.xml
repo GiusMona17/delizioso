@@ -337,4 +337,6 @@
     <string name="import_duplicate_body">Questo link è già presente nella tua raccolta. Vuoi visualizzare la ricetta esistente o importarla di nuovo?</string>
     <string name="import_duplicate_open">Apri ricetta</string>
     <string name="import_duplicate_reimport">Importa di nuovo</string>
+    <string name="library_search_online_for">Cerca online \"%1$s\"</string>
+    <string name="library_import_from_link">Importa ricetta da link</string>
 </resources>

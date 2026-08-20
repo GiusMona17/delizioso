@@ -83,6 +83,8 @@ fun DeliziosoApp(
                     onRecipeClick = { id -> navController.navigate(Routes.recipeDetail(id)) },
                     onCreateClick = { navController.navigate(Routes.CREATE) },
                     onProfileClick = { navController.navigate(Routes.PROFILE) },
+                    onSearchOnline = { navController.navigate(Routes.IMPORT_SEARCH) },
+                    onImportClick = { navController.navigate(Routes.IMPORT) },
                 )
             }
             composable(Routes.PLANNER) {

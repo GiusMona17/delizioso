@@ -76,14 +76,33 @@ object RecipeJsonLdParser {
             .map { IngredientParser.split(it) }
             .mapIndexed { i, ing -> ing.copy(position = i) },
         steps = parseInstructions(obj["recipeInstructions"]),
-        // The site already classified this recipe — map its own words onto our
-        // vocabulary rather than spending an inference on it.
         categories = Categories.canonicalise(
             firstStringList(obj, "recipeCategory") +
                 firstStringList(obj, "recipeCuisine") +
                 firstStringList(obj, "keywords").flatMap { it.split(',') }
         ),
+        nutrition = parseNutrition(obj["nutrition"]),
     )
+
+    private fun parseNutrition(value: JsonElement?): NutritionInfo? {
+        val obj = (value as? JsonObject) ?: return null
+        val calories = parseNumber(firstString(obj, "calories"))
+        val protein = parseNumber(firstString(obj, "proteinContent"))
+        val fat = parseNumber(firstString(obj, "fatContent"))
+        val carbs = parseNumber(firstString(obj, "carbohydrateContent"))
+        if (calories == null && protein == null && fat == null && carbs == null) return null
+        return NutritionInfo(
+            caloriesKcal = calories,
+            proteinG = protein,
+            fatG = fat,
+            carbsG = carbs,
+        )
+    }
+
+    private fun parseNumber(raw: String?): Double? {
+        if (raw.isNullOrBlank()) return null
+        return Regex("""(\d+(?:[.,]\d+)?)""").find(raw)?.groupValues?.get(1)?.replace(',', '.')?.toDoubleOrNull()
+    }
 
     private fun firstString(obj: JsonObject, vararg keys: String): String? {
         for (key in keys) {

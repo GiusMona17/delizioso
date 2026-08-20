@@ -59,7 +59,23 @@ object MacroCalculator {
         "large", "medium", "small", "whole", "intero", "intera",
     )
 
-    fun of(recipe: StructuredRecipe): Macros? = of(recipe.ingredients, recipe.servings)
+    fun of(recipe: StructuredRecipe): Macros? {
+        val n = recipe.nutrition
+        if (n != null && (n.caloriesKcal != null || n.proteinG != null || n.fatG != null || n.carbsG != null)) {
+            val total = recipe.ingredients.size
+            return Macros(
+                kcal = n.caloriesKcal ?: 0.0,
+                proteinG = n.proteinG ?: 0.0,
+                fatG = n.fatG ?: 0.0,
+                carbsG = n.carbsG ?: 0.0,
+                matched = total,
+                total = total,
+                perServing = true,
+                unmatched = emptyList(),
+            )
+        }
+        return of(recipe.ingredients, recipe.servings)
+    }
 
     fun of(ingredients: List<IngredientEntity>, servingCount: Int?): Macros? {
         if (ingredients.isEmpty()) return null
