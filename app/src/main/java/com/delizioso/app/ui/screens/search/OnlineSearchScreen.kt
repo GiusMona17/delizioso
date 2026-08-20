@@ -1,5 +1,6 @@
 package com.delizioso.app.ui.screens.search
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -42,6 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.delizioso.app.R
+import com.delizioso.app.data.import.RecipeSource
+import com.delizioso.app.data.import.displayNameRes
+import com.delizioso.app.data.search.OnlineSearchResult
 import com.delizioso.app.ui.components.ClayButton
 import com.delizioso.app.ui.components.ClayChip
 import com.delizioso.app.ui.components.ClayEmptyState
@@ -59,11 +63,10 @@ private const val TAB_NAME = 0
 private const val MAX_SUGGESTIONS = 8
 
 /**
- * TheMealDB, searched by name or by ingredients.
+ * Online recipe search across all active providers (TheMealDB, GialloZafferano, Cookist, etc.).
  *
  * A chosen result is handed to [ImportViewModel] — the same instance the preview
- * reads — and this screen then opens the preview itself, because the Import
- * screen's own effect is no longer composed once this one is on top.
+ * reads — and this screen then opens the preview itself.
  */
 @Composable
 fun OnlineSearchScreen(
@@ -99,25 +102,27 @@ fun OnlineSearchScreen(
                 ),
                 selectedIndex = tab,
                 onSelect = { tab = it },
+                modifier = Modifier.fillMaxWidth(),
             )
-            if (tab == TAB_NAME) {
-                ClayTextField(
-                    value = nameQuery,
-                    onValueChange = { nameQuery = it },
-                    placeholder = stringResource(R.string.search_name_placeholder),
-                    leadingIcon = Icons.Filled.Search,
-                    cornerRadius = 24.dp,
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                ClayButton(
-                    text = stringResource(R.string.search_action),
-                    icon = Icons.Filled.Search,
-                    onClick = { viewModel.searchByName(nameQuery) },
-                    enabled = nameQuery.isNotBlank(),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-            } else {
-                IngredientPicker(
+            when (tab) {
+                TAB_NAME -> {
+                    ClayTextField(
+                        value = nameQuery,
+                        onValueChange = { nameQuery = it },
+                        placeholder = stringResource(R.string.search_name_placeholder),
+                        leadingIcon = Icons.Filled.Search,
+                        cornerRadius = 24.dp,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                    ClayButton(
+                        text = stringResource(R.string.search_action),
+                        icon = Icons.Filled.Search,
+                        onClick = { viewModel.searchByName(nameQuery) },
+                        enabled = nameQuery.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+                else -> IngredientPicker(
                     query = ingredientQuery,
                     onQueryChange = { ingredientQuery = it },
                     names = ingredientNames,
@@ -126,17 +131,17 @@ fun OnlineSearchScreen(
                         viewModel.addIngredient(it)
                         ingredientQuery = ""
                     },
-                    onRemove = viewModel::removeIngredient,
+                    onRemove = { viewModel.removeIngredient(it) },
                 )
             }
         }
-
-        Box(Modifier.fillMaxWidth().weight(1f)) {
+        Box(
+            modifier = Modifier.fillMaxSize().weight(1f, fill = false),
+            contentAlignment = Alignment.Center,
+        ) {
             when (val s = state) {
-                is SearchUiState.Idle -> Unit
-                is SearchUiState.Loading -> CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary,
-                    strokeWidth = 3.dp,
+                SearchUiState.Idle -> {}
+                SearchUiState.Loading -> CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.TopCenter).padding(top = 32.dp),
                 )
                 is SearchUiState.Results -> LazyVerticalGrid(
@@ -150,8 +155,9 @@ fun OnlineSearchScreen(
                         SearchResultTile(
                             title = result.title,
                             thumbnailUrl = result.thumbnailUrl,
+                            source = result.source,
                             onClick = {
-                                viewModel.openResult(result.id) { recipe, raw ->
+                                viewModel.openResult(result) { recipe, raw ->
                                     importViewModel.importSearchResult(recipe, raw)
                                     onPreview()
                                 }
@@ -200,7 +206,6 @@ private fun IngredientPicker(
             modifier = Modifier.fillMaxWidth(),
         )
         if (names.isEmpty()) {
-            // No suggestions to offer, so the typed name is searched as it stands.
             Text(
                 stringResource(R.string.search_no_ingredient_list),
                 style = MaterialTheme.typography.bodyMedium,
@@ -257,15 +262,13 @@ private fun IngredientPicker(
 }
 
 /**
- * One search hit.
- *
- * Deliberately not `ClayRecipeTile`: that one binds to a stored recipe, and a
- * search result has no database row until the user saves it.
+ * One search hit with a portal source badge.
  */
 @Composable
 fun SearchResultTile(
     title: String,
     thumbnailUrl: String?,
+    source: RecipeSource,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -284,6 +287,18 @@ fun SearchResultTile(
                 .clip(RoundedCornerShape(16.dp)),
         ) {
             RecipeImage(thumbnailUrl, placeholderIconSize = 28.dp, modifier = Modifier.fillMaxSize())
+            Text(
+                text = stringResource(source.displayNameRes),
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier
+                    .padding(6.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.92f),
+                        shape = RoundedCornerShape(8.dp),
+                    )
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+            )
         }
         Text(
             title,
@@ -302,20 +317,19 @@ private fun FailureCard(message: String, onRetry: () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .clayCard(container = MaterialTheme.colorScheme.errorContainer)
+            .padding(20.dp)
+            .clayCard(container = MaterialTheme.colorScheme.errorContainer, cornerRadius = 24.dp)
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         Text(
-            stringResource(R.string.import_error_title),
-            style = MaterialTheme.typography.titleLarge,
+            text = stringResource(R.string.import_failed),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onErrorContainer,
         )
         Text(
-            // A lookup that came back empty has no message of its own — say what
-            // happened rather than trailing a colon after nothing.
-            if (message.isNotBlank()) {
+            text = if (message.isNotBlank()) {
                 stringResource(R.string.search_failed, message)
             } else {
                 stringResource(R.string.search_failed_unknown)
@@ -327,6 +341,7 @@ private fun FailureCard(message: String, onRetry: () -> Unit) {
             text = stringResource(R.string.detail_retry),
             onClick = onRetry,
             container = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError,
             modifier = Modifier.fillMaxWidth(),
         )
     }
