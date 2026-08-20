@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.delizioso.app.data.import.RecipeSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
@@ -25,6 +26,7 @@ class UserPreferences(private val context: Context) {
         val THEME_MODE = stringPreferencesKey("theme_mode")
         val LIBRARY_VIEW = stringPreferencesKey("library_view_mode")
         val LIBRARY_SORT = stringPreferencesKey("library_sort")
+        val ENABLED_SOURCES = stringSetPreferencesKey("enabled_recipe_sources")
     }
 
     /** Whether the user accepted the on-device AI (Gemini Nano) terms. */
@@ -58,6 +60,17 @@ class UserPreferences(private val context: Context) {
     val youTubeApiKey: Flow<String> =
         context.userDataStore.data.map { it[Keys.YOUTUBE_API_KEY] ?: "" }
 
+    /** Enabled recipe sources configured by the user in Settings. */
+    val enabledSources: Flow<Set<RecipeSource>> =
+        context.userDataStore.data.map { prefs ->
+            val stored = prefs[Keys.ENABLED_SOURCES]
+            if (stored == null) {
+                RecipeSource.defaultActiveSources()
+            } else {
+                stored.mapNotNull { RecipeSource.fromId(it) }.toSet()
+            }
+        }
+
     suspend fun setAiConsent(given: Boolean) {
         context.userDataStore.edit { it[Keys.AI_CONSENT] = given }
     }
@@ -84,6 +97,25 @@ class UserPreferences(private val context: Context) {
 
     suspend fun setYouTubeApiKey(key: String) {
         context.userDataStore.edit { it[Keys.YOUTUBE_API_KEY] = key }
+    }
+
+    suspend fun setSourceEnabled(source: RecipeSource, enabled: Boolean) {
+        context.userDataStore.edit { prefs ->
+            val current = prefs[Keys.ENABLED_SOURCES] ?: RecipeSource.defaultActiveSources().map { it.id }.toSet()
+            val updated = current.toMutableSet()
+            if (enabled) updated.add(source.id) else updated.remove(source.id)
+            prefs[Keys.ENABLED_SOURCES] = updated
+        }
+    }
+
+    suspend fun setAllSourcesEnabled(enabled: Boolean) {
+        context.userDataStore.edit { prefs ->
+            prefs[Keys.ENABLED_SOURCES] = if (enabled) {
+                RecipeSource.values().map { it.id }.toSet()
+            } else {
+                emptySet()
+            }
+        }
     }
 
     // ---- Grocery list state (survives navigation and restarts) ----
