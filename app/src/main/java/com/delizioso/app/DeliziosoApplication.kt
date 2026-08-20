@@ -70,7 +70,8 @@ class AppContainer(context: Context) {
     val searchProviders: List<com.delizioso.app.data.search.RecipeSearchProvider> by lazy {
         listOf(
             com.delizioso.app.data.search.GialloZafferanoSearchProvider(),
-            com.delizioso.app.data.search.CookistSearchProvider(),
+            com.delizioso.app.data.search.BimbySearchProvider(),
+            com.delizioso.app.data.search.BbcGoodFoodSearchProvider(),
             com.delizioso.app.data.search.TheMealDbSearchProvider(theMealDbClient),
         )
     }
