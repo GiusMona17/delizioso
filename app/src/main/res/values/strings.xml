@@ -336,12 +336,22 @@
     <string name="data_category_spicy">Spicy</string>
     <string name="data_category_other">Other</string>
     <string name="grocery_aisle_produce">Produce</string>
-    <string name="grocery_aisle_dairy">Dairy &amp; Eggs</string>
-    <string name="grocery_aisle_meat">Meat &amp; Fish</string>
+    <string name="grocery_aisle_meat">Meat &amp; Poultry</string>
+    <string name="grocery_aisle_fish">Seafood</string>
+    <string name="grocery_aisle_dairy">Dairy &amp; Cheese</string>
+    <string name="grocery_aisle_eggs">Eggs</string>
     <string name="grocery_aisle_bakery">Bakery</string>
+    <string name="grocery_aisle_pantry">Pantry &amp; Grains</string>
+    <string name="grocery_aisle_canned">Canned &amp; Sauces</string>
+    <string name="grocery_aisle_spices">Spices, Oils &amp; Condiments</string>
     <string name="grocery_aisle_frozen">Frozen</string>
-    <string name="grocery_aisle_pantry">Pantry</string>
+    <string name="grocery_aisle_beverages">Beverages</string>
     <string name="grocery_aisle_other">Other</string>
+
+    <string name="grocery_in_pantry">In Pantry</string>
+    <string name="grocery_hide_pantry">Hide Pantry Items</string>
+    <string name="grocery_show_pantry">Show All</string>
+    <string name="grocery_pantry_synced">%1$d in pantry</string>
     <string name="gemma_card_title">Advanced AI model (Gemma)</string>
     <string name="gemma_card_body">Optional, and only for the chat: Gemini Nano can answer just 256 tokens at a time, which cuts longer answers short. Install a Gemma .task file to get fuller replies. Importing, converting and translating never use it.</string>
     <string name="gemma_pick">Choose model file</string>

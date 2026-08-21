@@ -334,12 +334,22 @@
     <string name="data_category_spicy">Piccante</string>
     <string name="data_category_other">Altro</string>
     <string name="grocery_aisle_produce">Frutta e verdura</string>
-    <string name="grocery_aisle_dairy">Latticini e uova</string>
-    <string name="grocery_aisle_meat">Carne e pesce</string>
-    <string name="grocery_aisle_bakery">Panetteria</string>
+    <string name="grocery_aisle_meat">Macelleria e pollame</string>
+    <string name="grocery_aisle_fish">Pescheria</string>
+    <string name="grocery_aisle_dairy">Latticini e formaggi</string>
+    <string name="grocery_aisle_eggs">Uova</string>
+    <string name="grocery_aisle_bakery">Pane e pasticceria</string>
+    <string name="grocery_aisle_pantry">Pasta, riso e farine</string>
+    <string name="grocery_aisle_canned">Conserve e sughi</string>
+    <string name="grocery_aisle_spices">Spezie, oli e condimenti</string>
     <string name="grocery_aisle_frozen">Surgelati</string>
-    <string name="grocery_aisle_pantry">Dispensa</string>
+    <string name="grocery_aisle_beverages">Bevande</string>
     <string name="grocery_aisle_other">Altro</string>
+
+    <string name="grocery_in_pantry">In dispensa</string>
+    <string name="grocery_hide_pantry">Nascondi in dispensa</string>
+    <string name="grocery_show_pantry">Mostra tutti</string>
+    <string name="grocery_pantry_synced">%1$d in dispensa</string>
     <string name="gemma_card_title">Modello IA avanzato (Gemma)</string>
     <string name="gemma_card_body">Opzionale, e serve solo alla chat: Gemini Nano può rispondere solo 256 token alla volta e tronca le risposte lunghe. Installa un file .task di Gemma per averle complete. Importazione, conversione e traduzione non lo usano mai.</string>
     <string name="gemma_pick">Scegli il file del modello</string>

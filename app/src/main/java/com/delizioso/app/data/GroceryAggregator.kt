@@ -64,53 +64,125 @@ object GroceryAggregator {
         name.lowercase().trim().trimEnd('.', ',', '!')
 }
 
-/** Rough supermarket-aisle bucketing so the list can be shopped in order. */
+/** Supermarket aisle bucketing with bilingual keyword dictionaries. */
 object GroceryCategories {
 
+    const val PRODUCE = "Produce"
+    const val MEAT = "Meat"
+    const val SEAFOOD = "Seafood"
+    const val EGGS = "Eggs"
+    const val DAIRY = "Dairy"
+    const val BAKERY = "Bakery"
+    const val PANTRY = "Pantry"
+    const val CANNED = "Canned"
+    const val SPICES = "Spices"
+    const val FROZEN = "Frozen"
+    const val BEVERAGES = "Beverages"
     const val OTHER = "Other"
 
     private val BUCKETS: List<Pair<String, List<String>>> = listOf(
-        "Produce" to listOf(
+        CANNED to listOf(
+            "passata", "pelati", "tomato paste", "tomato sauce", "pesto", "broth", "stock",
+            "concentrato", "sugo", "ragù", "brodo", "dado", "olive", "sottoli", "sottaceti", "capperi", "canned",
+        ),
+        SPICES to listOf(
+            "olive oil", "extravergine", "extra virgin", "vinegar", "balsamic", "balsamico",
+            "oil", "salt", "pepper", "black pepper", "paprika", "cumin", "turmeric",
+            "oregano", "cinnamon", "nutmeg", "soy sauce", "mustard", "ketchup", "mayonnaise", "mayo", "vanilla",
+            "olio", "aceto", "sale", "pepe", "curcuma",
+            "origano", "cannella", "noce moscata", "salsa di soia", "senape", "maionese", "vaniglia",
+        ),
+        SEAFOOD to listOf(
+            "salmon", "tuna", "cod", "prawn", "prawns", "shrimp", "shrimps", "fish", "anchovy", "anchovies",
+            "trout", "seabass", "octopus", "squid", "clam", "clams", "mussel", "mussels", "crab", "lobster",
+            "salmone", "tonno", "merluzzo", "gambero", "gamberi", "gamberetti", "pesce", "trota", "spigola",
+            "branzino", "orata", "polpo", "calamaro", "calamari", "vongola", "vongole", "cozza", "cozze",
+            "acciuga", "acciughe", "alice", "alici", "granchio", "aragosta", "seppia", "seppie",
+        ),
+        MEAT to listOf(
+            "chicken", "beef", "pork", "lamb", "bacon", "sausage", "ham", "turkey", "mince", "steak",
+            "veal", "duck", "pancetta", "guanciale", "chorizo", "prosciutto",
+            "pollo", "manzo", "maiale", "vitello", "agnello", "tacchino", "bistecca", "salsiccia", "salsicce",
+            "macinato", "carne", "petto di pollo", "fegato", "coniglio", "costine", "lardo",
+        ),
+        EGGS to listOf(
+            "egg", "eggs", "yolk", "yolks", "egg white", "egg whites",
+            "uovo", "uova", "tuorlo", "tuorli", "albume", "albumi",
+        ),
+        DAIRY to listOf(
+            "milk", "cream", "butter", "cheese", "parmesan", "mozzarella", "cheddar", "feta", "ricotta",
+            "yogurt", "yoghurt", "mascarpone", "gorgonzola", "pecorino", "brie",
+            "latte", "panna", "burro", "formaggio", "formaggi", "parmigiano", "grana", "stracchino",
+            "provola", "scamorza", "caciocavallo", "fontina", "taleggio", "burrata",
+        ),
+        BAKERY to listOf(
+            "bread", "sourdough", "baguette", "bun", "tortilla", "pita", "brioche", "croissant", "toast",
+            "biscuit", "biscuits", "cookie", "cookies", "cake",
+            "pane", "pagnotta", "panino", "panini", "pancarrè", "piadina", "cornetto", "torta", "biscotti",
+            "fette biscottate", "savoiardi", "sfoglia", "pasta sfoglia", "pasta frolla",
+        ),
+        PANTRY to listOf(
+            "flour", "sugar", "rice", "pasta", "spaghetti", "penne", "rigatoni", "fusilli", "tagliatelle",
+            "noodle", "noodles", "bean", "beans", "lentil", "lentils", "chickpea", "chickpeas", "yeast",
+            "baking powder", "cocoa", "chocolate", "almond", "almonds", "walnut", "walnuts", "seed", "seeds",
+            "oat", "oats", "couscous", "quinoa", "honey", "syrup",
+            "farina", "riso", "risotto", "gnocchi", "fiocchi d'avena", "fagioli", "lenticchie", "ceci",
+            "zucchero", "lievito", "amido", "fecola", "cacao", "cioccolato", "mandorle", "noci", "nocciole", "pinoli",
+        ),
+        FROZEN to listOf("frozen", "ice cream", "surgelato", "surgelati", "congelato", "gelato", "ghiaccio"),
+        BEVERAGES to listOf(
+            "water", "juice", "wine", "beer", "coffee", "tea", "soda",
+            "acqua", "succo", "vino", "birra", "caffè", "tè", "bevanda", "spumante", "prosecco",
+        ),
+        PRODUCE to listOf(
             "onion", "garlic", "tomato", "potato", "carrot", "celery", "pepper", "chilli", "chili",
             "lettuce", "spinach", "kale", "cucumber", "avocado", "lemon", "lime", "orange", "apple",
-            "banana", "berry", "berries", "mushroom", "courgette", "zucchini", "aubergine", "eggplant",
+            "banana", "berry", "berries", "strawberry", "mushroom", "courgette", "zucchini", "aubergine", "eggplant",
             "broccoli", "cauliflower", "cabbage", "leek", "ginger", "basil", "parsley", "coriander",
-            "cilantro", "mint", "thyme", "rosemary", "salad", "peas", "corn", "squash",
-        ),
-        "Dairy & Eggs" to listOf(
-            "milk", "cream", "butter", "cheese", "parmesan", "mozzarella", "cheddar", "feta", "ricotta",
-            "yogurt", "yoghurt", "egg", "mascarpone",
-        ),
-        "Meat & Fish" to listOf(
-            "chicken", "beef", "pork", "lamb", "bacon", "sausage", "ham", "turkey", "mince", "steak",
-            "salmon", "tuna", "cod", "prawn", "shrimp", "fish", "anchovy", "chorizo", "pancetta",
-        ),
-        "Bakery" to listOf("bread", "sourdough", "baguette", "bun", "tortilla", "pita", "brioche", "croissant"),
-        "Frozen" to listOf("frozen", "ice cream"),
-        "Pantry" to listOf(
-            "flour", "sugar", "salt", "oil", "vinegar", "rice", "pasta", "spaghetti",
-            "noodle", "bean", "lentil", "chickpea", "stock", "broth", "sauce", "soy", "honey", "syrup",
-            "yeast", "baking", "vanilla", "cocoa", "chocolate", "almond", "walnut", "seed", "oat",
-            "cumin", "paprika", "cinnamon", "curry", "mustard", "ketchup", "mayonnaise",
+            "cilantro", "mint", "thyme", "rosemary", "salad", "peas", "corn", "squash", "pumpkin",
+            "cipolla", "cipolle", "aglio", "pomodoro", "pomodori", "pomodorini", "patata", "patate",
+            "carota", "carote", "sedano", "peperone", "peperoni", "peperoncino", "lattuga", "insalata",
+            "spinaci", "cetriolo", "arancia", "arance", "mela", "mele", "fragola", "fragole",
+            "funghi", "fungo", "zucchina", "zucchine", "melanzana", "melanzane", "broccolo", "cavolo",
+            "verza", "zenzero", "basilico", "prezzemolo", "rosmarino", "timo", "piselli", "mais",
+            "zucca", "porro", "porri", "limone", "limoni",
         ),
     )
 
     /** Aisle order for the "By Category" view; unknown items sink to the bottom. */
-    val ORDER: List<String> = BUCKETS.map { it.first } + OTHER
+    val ORDER: List<String> = listOf(
+        PRODUCE, MEAT, SEAFOOD, EGGS, DAIRY, BAKERY, PANTRY, CANNED, SPICES, FROZEN, BEVERAGES, OTHER
+    )
 
     fun of(ingredientName: String): String {
-        val name = ingredientName.lowercase()
-        return BUCKETS.firstOrNull { (_, keywords) -> keywords.any { name.contains(it) } }?.first ?: OTHER
+        val clean = ingredientName.lowercase()
+        val tokens = clean.split(Regex("[^a-zA-Z0-9àèéìòùáéíóú]+")).filter { it.isNotBlank() }.toSet()
+
+        for ((category, keywords) in BUCKETS) {
+            for (kw in keywords) {
+                if (kw.contains(" ")) {
+                    if (clean.contains(kw)) return category
+                } else {
+                    if (tokens.contains(kw)) return category
+                }
+            }
+        }
+        return OTHER
     }
 
     /** String resource for the localized display label of an aisle [category]. */
     fun labelRes(aisle: String): Int = when (aisle) {
-        "Produce" -> R.string.grocery_aisle_produce
-        "Dairy & Eggs" -> R.string.grocery_aisle_dairy
-        "Meat & Fish" -> R.string.grocery_aisle_meat
-        "Bakery" -> R.string.grocery_aisle_bakery
-        "Frozen" -> R.string.grocery_aisle_frozen
-        "Pantry" -> R.string.grocery_aisle_pantry
+        PRODUCE -> R.string.grocery_aisle_produce
+        MEAT -> R.string.grocery_aisle_meat
+        SEAFOOD -> R.string.grocery_aisle_fish
+        EGGS -> R.string.grocery_aisle_eggs
+        DAIRY -> R.string.grocery_aisle_dairy
+        BAKERY -> R.string.grocery_aisle_bakery
+        PANTRY -> R.string.grocery_aisle_pantry
+        CANNED -> R.string.grocery_aisle_canned
+        SPICES -> R.string.grocery_aisle_spices
+        FROZEN -> R.string.grocery_aisle_frozen
+        BEVERAGES -> R.string.grocery_aisle_beverages
         else -> R.string.grocery_aisle_other
     }
 }
