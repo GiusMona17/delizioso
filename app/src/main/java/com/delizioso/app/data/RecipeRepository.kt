@@ -1,5 +1,7 @@
 package com.delizioso.app.data
 
+import com.delizioso.app.data.local.PantryDao
+import com.delizioso.app.data.local.PantryItemEntity
 import com.delizioso.app.data.local.PlannedMealEntity
 import com.delizioso.app.data.local.PlannedMealWithRecipe
 import com.delizioso.app.data.local.RecipeDao
@@ -9,10 +11,25 @@ import com.delizioso.app.data.local.RecipeWithDetails
 import com.delizioso.app.data.local.StepEntity
 import kotlinx.coroutines.flow.Flow
 
-/** Single entry point for recipe persistence. */
-class RecipeRepository(private val dao: RecipeDao) {
+/** Single entry point for recipe and pantry persistence. */
+class RecipeRepository(
+    private val dao: RecipeDao,
+    private val pantryDao: PantryDao,
+) {
 
     val allWithDetails: Flow<List<RecipeWithDetails>> = dao.observeAllWithDetails()
+
+    // ---- Pantry ----
+
+    val pantryItems: Flow<List<PantryItemEntity>> = pantryDao.getAll()
+    val inStockPantryItems: Flow<List<PantryItemEntity>> = pantryDao.getInStock()
+
+    suspend fun savePantryItem(item: PantryItemEntity): Long = pantryDao.insert(item)
+    suspend fun savePantryItems(items: List<PantryItemEntity>) = pantryDao.insertAll(items)
+    suspend fun updatePantryItem(item: PantryItemEntity) = pantryDao.update(item)
+    suspend fun setPantryItemInStock(id: Long, inStock: Boolean) = pantryDao.setInStock(id, inStock)
+    suspend fun deletePantryItem(id: Long) = pantryDao.delete(id)
+    suspend fun clearOutOfStockPantryItems() = pantryDao.clearOutOfStock()
 
     fun byId(id: Long): Flow<RecipeWithDetails?> = dao.observeWithDetails(id)
 
