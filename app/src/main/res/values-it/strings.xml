@@ -362,6 +362,15 @@
     <string name="swap_twist">Twist</string>
     <string name="recipe_duplicate_action">Salva come variante</string>
     <string name="recipe_duplicated_toast">Copia salvata come variante!</string>
+
+    <!-- Social Card & PDF Export -->
+    <string name="export_social_card">Condividi scheda visiva</string>
+    <string name="export_pdf">Esporta PDF stampabile</string>
+    <string name="export_generating_card">Genero scheda ricetta…</string>
+    <string name="export_generating_pdf">Genero documento PDF…</string>
+    <string name="export_card_footer">Delizioso • Studio culinario on-device</string>
+    <string name="export_ingredients_title">Ingredienti</string>
+    <string name="export_steps_title">Preparazione</string>
     <string name="gemma_card_title">Modello IA avanzato (Gemma)</string>
     <string name="gemma_card_body">Opzionale, e serve solo alla chat: Gemini Nano può rispondere solo 256 token alla volta e tronca le risposte lunghe. Installa un file .task di Gemma per averle complete. Importazione, conversione e traduzione non lo usano mai.</string>
     <string name="gemma_pick">Scegli il file del modello</string>

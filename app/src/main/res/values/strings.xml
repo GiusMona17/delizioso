@@ -364,6 +364,15 @@
     <string name="swap_twist">Twist</string>
     <string name="recipe_duplicate_action">Save as variation</string>
     <string name="recipe_duplicated_toast">Saved copy as variation!</string>
+
+    <!-- Social Card & PDF Export -->
+    <string name="export_social_card">Share Visual Recipe Card</string>
+    <string name="export_pdf">Export Printable PDF</string>
+    <string name="export_generating_card">Generating recipe card…</string>
+    <string name="export_generating_pdf">Generating PDF document…</string>
+    <string name="export_card_footer">Delizioso • On-Device Culinary Studio</string>
+    <string name="export_ingredients_title">Ingredients</string>
+    <string name="export_steps_title">Instructions</string>
     <string name="gemma_card_title">Advanced AI model (Gemma)</string>
     <string name="gemma_card_body">Optional, and only for the chat: Gemini Nano can answer just 256 tokens at a time, which cuts longer answers short. Install a Gemma .task file to get fuller replies. Importing, converting and translating never use it.</string>
     <string name="gemma_pick">Choose model file</string>

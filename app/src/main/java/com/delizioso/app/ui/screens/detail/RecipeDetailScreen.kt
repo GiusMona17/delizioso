@@ -43,10 +43,13 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Schedule
 import com.delizioso.app.data.hasFixedIngredients
 import com.delizioso.app.data.ai.RecipeSwapEngine
 import com.delizioso.app.data.ai.SwapPreset
+import com.delizioso.app.export.SocialCardGenerator
+import com.delizioso.app.export.RecipePdfExporter
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextButton
@@ -956,6 +959,46 @@ private fun ExportSheet(
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
         ClayButton(
+            text = stringResource(R.string.export_social_card),
+            icon = Icons.Filled.AutoAwesome,
+            onClick = {
+                val file = SocialCardGenerator.generateCard(context, details)
+                val uri = SocialCardGenerator.getShareableUri(context, file)
+                val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "image/png"
+                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(
+                    android.content.Intent.createChooser(send, context.getString(R.string.export_social_card))
+                )
+                onDone()
+            },
+            container = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        ClayButton(
+            text = stringResource(R.string.export_pdf),
+            icon = Icons.Filled.Description,
+            onClick = {
+                val file = RecipePdfExporter.exportPdf(context, details)
+                val uri = RecipePdfExporter.getShareableUri(context, file)
+                val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "application/pdf"
+                    putExtra(android.content.Intent.EXTRA_STREAM, uri)
+                    addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                }
+                context.startActivity(
+                    android.content.Intent.createChooser(send, context.getString(R.string.export_pdf))
+                )
+                onDone()
+            },
+            container = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        ClayButton(
             text = stringResource(R.string.export_share),
             icon = Icons.Filled.IosShare,
             onClick = {
@@ -968,6 +1011,8 @@ private fun ExportSheet(
                 )
                 onDone()
             },
+            container = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.fillMaxWidth(),
         )
         ClayButton(
