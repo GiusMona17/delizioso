@@ -352,6 +352,18 @@
     <string name="grocery_hide_pantry">Hide Pantry Items</string>
     <string name="grocery_show_pantry">Show All</string>
     <string name="grocery_pantry_synced">%1$d in pantry</string>
+
+    <!-- AI Swaps & Variations -->
+    <string name="chat_quick_swaps">AI Swaps &amp; Variations</string>
+    <string name="swap_vegan">Vegan</string>
+    <string name="swap_gluten_free">Gluten-Free</string>
+    <string name="swap_dairy_free">Dairy-Free</string>
+    <string name="swap_low_carb">Low-Carb</string>
+    <string name="swap_pantry">Use Pantry</string>
+    <string name="swap_simplify">Quick</string>
+    <string name="swap_twist">Twist</string>
+    <string name="recipe_duplicate_action">Save as variation</string>
+    <string name="recipe_duplicated_toast">Saved copy as variation!</string>
     <string name="gemma_card_title">Advanced AI model (Gemma)</string>
     <string name="gemma_card_body">Optional, and only for the chat: Gemini Nano can answer just 256 tokens at a time, which cuts longer answers short. Install a Gemma .task file to get fuller replies. Importing, converting and translating never use it.</string>
     <string name="gemma_pick">Choose model file</string>

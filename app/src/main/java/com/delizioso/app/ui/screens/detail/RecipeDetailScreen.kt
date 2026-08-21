@@ -45,6 +45,8 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Schedule
 import com.delizioso.app.data.hasFixedIngredients
+import com.delizioso.app.data.ai.RecipeSwapEngine
+import com.delizioso.app.data.ai.SwapPreset
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextButton
@@ -287,6 +289,39 @@ class RecipeDetailViewModel(
         }
     }
 
+    val inStockPantry = repository.inStockPantryItems
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun askSwap(preset: SwapPreset) {
+        val prompt = RecipeSwapEngine.buildPrompt(preset, inStockPantry.value)
+        ask(prompt)
+    }
+
+    fun duplicateRecipe(onDuplicated: (Long) -> Unit) {
+        val d = details.value ?: return
+        viewModelScope.launch {
+            val newTitle = "${d.recipe.title} (Variation)"
+            val newRecipe = d.recipe.copy(
+                id = 0L,
+                title = newTitle,
+                isFavorite = false,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis(),
+            )
+            val newIngredients = d.ingredients.map { it.copy(id = 0L, recipeId = 0L) }
+            val newSteps = d.steps.map { it.copy(id = 0L, recipeId = 0L) }
+            val newDetails = RecipeWithDetails(
+                recipe = newRecipe,
+                ingredients = newIngredients,
+                steps = newSteps,
+                source = d.source?.copy(recipeId = 0L),
+                tags = d.tags,
+            )
+            val newId = repository.save(newDetails, d.tags.map { it.name })
+            onDuplicated(newId)
+        }
+    }
+
     fun clearChatError() = _chat.update { it.copy(error = null) }
 
     companion object {
@@ -386,6 +421,17 @@ fun RecipeDetailScreen(
                         container = MaterialTheme.colorScheme.surfaceContainerLowest,
                     )
                     Spacer(Modifier.weight(1f))
+                    ClayRoundButton(
+                        icon = Icons.Filled.ContentCopy,
+                        contentDescription = stringResource(R.string.recipe_duplicate_action),
+                        onClick = {
+                            viewModel.duplicateRecipe {
+                                Toast.makeText(context, context.getString(R.string.recipe_duplicated_toast), Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        container = MaterialTheme.colorScheme.surfaceContainerLowest,
+                    )
+                    Spacer(Modifier.width(12.dp))
                     ClayRoundButton(
                         icon = Icons.Filled.CalendarMonth,
                         contentDescription = stringResource(R.string.detail_add_planner),
@@ -534,6 +580,7 @@ fun RecipeDetailScreen(
                 recipeTitle = d.recipe.title,
                 state = chat,
                 onAsk = viewModel::ask,
+                onAskSwap = viewModel::askSwap,
                 onDismissError = viewModel::clearChatError,
             )
         }

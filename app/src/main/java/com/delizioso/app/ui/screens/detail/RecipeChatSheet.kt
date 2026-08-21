@@ -39,6 +39,8 @@ import com.delizioso.app.ui.theme.clayCard
 import androidx.compose.ui.res.stringResource
 import com.delizioso.app.R
 
+import com.delizioso.app.data.ai.SwapPreset
+
 /** Starter questions, so the first turn doesn't need typing. */
 @Composable
 private fun suggestionQuestions(): List<String> = listOf(
@@ -54,6 +56,7 @@ fun RecipeChatSheet(
     recipeTitle: String,
     state: ChatState,
     onAsk: (String) -> Unit,
+    onAskSwap: (SwapPreset) -> Unit = {},
     onDismissError: () -> Unit,
 ) {
     var question by remember { mutableStateOf("") }
@@ -150,6 +153,22 @@ fun RecipeChatSheet(
                     color = MaterialTheme.colorScheme.onErrorContainer,
                     modifier = Modifier.padding(start = 12.dp).clickable(onClick = onDismissError),
                 )
+            }
+        }
+
+        // Quick Swaps & Variations Rail
+        LazyRow(
+            contentPadding = PaddingValues(vertical = 2.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(SwapPreset.entries.toTypedArray()) { preset ->
+                Box(modifier = Modifier.clickable { onAskSwap(preset) }) {
+                    ClayChip(
+                        "${preset.iconEmoji} " + stringResource(preset.titleRes),
+                        container = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    )
+                }
             }
         }
 
