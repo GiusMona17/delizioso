@@ -1,12 +1,13 @@
 package com.delizioso.app.data
 
 import com.delizioso.app.data.local.RecipeWithDetails
+import com.delizioso.app.data.pantry.PantryMatcher
 import com.delizioso.app.R
 
 /** A consolidated grocery-list line. */
 data class GroceryItem(
     val name: String,
-    /** Final display line, e.g. "3 cups flour" or the original "2 large onions". */
+    /** Final display line, e.g. "500 g pasta" or "6 uova". */
     val line: String,
     /** True when several planned meals were merged into this line. */
     val isMerged: Boolean,
@@ -14,14 +15,44 @@ data class GroceryItem(
     val recipeTitles: List<String> = emptyList(),
     /** Supermarket aisle, used by the "By Category" view. */
     val category: String = GroceryCategories.OTHER,
+    /** True if this item is currently in stock in the Smart Pantry. */
+    val inPantry: Boolean = false,
 )
 
 /**
  * Aggregates ingredients across the planned recipes into a shopping list:
- * quantities that parse as numbers are summed per ingredient name; otherwise the
- * original lines are kept. (No unit conversion — "cups" and "g" are kept separate.)
+ * converts compatible units (e.g. 500g + 1kg = 1.5 kg, 200ml + 300ml = 500 ml)
+ * and normalizes ingredient synonyms into clean aisle categories.
  */
 object GroceryAggregator {
+
+    private sealed class NormalizedQuantity {
+        data class Weight(val grams: Double) : NormalizedQuantity()
+        data class Volume(val ml: Double) : NormalizedQuantity()
+        data class Count(val count: Double, val unit: String) : NormalizedQuantity()
+        data object Raw : NormalizedQuantity()
+    }
+
+    private fun normalizeUnit(unit: String?, qty: Double): NormalizedQuantity {
+        if (unit.isNullOrBlank()) return NormalizedQuantity.Count(qty, "")
+        val u = unit.lowercase().trim().trimEnd('.', ',')
+        return when (u) {
+            "g", "gr", "grammi", "grammo", "gram", "grams" -> NormalizedQuantity.Weight(qty)
+            "kg", "chilo", "chili", "kilogram", "kilograms", "kilo" -> NormalizedQuantity.Weight(qty * 1000.0)
+            "oz" -> NormalizedQuantity.Weight(qty * 28.3495)
+            "lb", "lbs" -> NormalizedQuantity.Weight(qty * 453.592)
+            "ml", "millilitri", "millilitro", "milliliter", "milliliters" -> NormalizedQuantity.Volume(qty)
+            "cl" -> NormalizedQuantity.Volume(qty * 10.0)
+            "dl" -> NormalizedQuantity.Volume(qty * 100.0)
+            "l", "lt", "litro", "litri", "liter", "liters" -> NormalizedQuantity.Volume(qty * 1000.0)
+            "cucchiaio", "cucchiai", "tbsp", "tablespoon", "tablespoons" -> NormalizedQuantity.Count(qty, "cucchiai")
+            "cucchiaino", "cucchiaini", "tsp", "teaspoon", "teaspoons" -> NormalizedQuantity.Count(qty, "cucchiaini")
+            "spicchio", "spicchi", "clove", "cloves" -> NormalizedQuantity.Count(qty, "spicchi")
+            "fetta", "fette", "slice", "slices" -> NormalizedQuantity.Count(qty, "fette")
+            "uovo", "uova", "egg", "eggs" -> NormalizedQuantity.Count(qty, "uova")
+            else -> NormalizedQuantity.Count(qty, unit)
+        }
+    }
 
     fun aggregate(recipes: List<RecipeWithDetails>): List<GroceryItem> {
         val sources = recipes.flatMap { details ->
@@ -30,38 +61,71 @@ object GroceryAggregator {
         if (sources.isEmpty()) return emptyList()
 
         return sources
-            .groupBy { (ingredient, _) -> normalize(ingredient.name) }
+            .groupBy { (ingredient, _) ->
+                PantryMatcher.normalize(ingredient.name).ifBlank { ingredient.name.lowercase().trim() }
+            }
             .values
             .map { group ->
                 val ingredients = group.map { it.first }
                 val titles = group.map { it.second }.distinct()
-                val name = ingredients.first().name
-                val quantities = ingredients.map { it.quantity?.let(Quantities::parse) }
-                val allNumeric = quantities.isNotEmpty() && quantities.all { it != null }
-                val line = if (allNumeric) {
-                    val total = quantities.filterNotNull().sum()
-                    val unit = ingredients.firstNotNullOfOrNull { it.unit }
-                    buildString {
-                        append(Quantities.format(total))
-                        if (!unit.isNullOrBlank()) append(" $unit")
-                        append(" $name")
-                    }
-                } else {
-                    ingredients.first().rawText ?: name
+                val displayName = ingredients.first().name.replaceFirstChar { if (it.isLowerCase()) it.titlecase() else it.toString() }
+
+                val parsedQuantities = ingredients.map { ing ->
+                    val num = ing.quantity?.let(Quantities::parse)
+                    if (num != null) normalizeUnit(ing.unit, num) else NormalizedQuantity.Raw
                 }
+
+                val allWeights = parsedQuantities.all { it is NormalizedQuantity.Weight }
+                val allVolumes = parsedQuantities.all { it is NormalizedQuantity.Volume }
+                val countUnits = parsedQuantities.mapNotNull { (it as? NormalizedQuantity.Count)?.unit }.distinct()
+                val allCompatibleCounts = parsedQuantities.all { it is NormalizedQuantity.Count } && countUnits.size <= 1
+
+                val line: String
+                val isMerged: Boolean
+
+                when {
+                    allWeights && parsedQuantities.isNotEmpty() -> {
+                        val totalGrams = parsedQuantities.filterIsInstance<NormalizedQuantity.Weight>().sumOf { it.grams }
+                        val (formattedQty, formattedUnit) = if (totalGrams >= 1000.0 && totalGrams % 100 == 0.0) {
+                            Quantities.format(totalGrams / 1000.0) to "kg"
+                        } else {
+                            Quantities.format(totalGrams) to "g"
+                        }
+                        line = "$formattedQty $formattedUnit $displayName"
+                        isMerged = ingredients.size > 1
+                    }
+                    allVolumes && parsedQuantities.isNotEmpty() -> {
+                        val totalMl = parsedQuantities.filterIsInstance<NormalizedQuantity.Volume>().sumOf { it.ml }
+                        val (formattedQty, formattedUnit) = if (totalMl >= 1000.0 && totalMl % 100 == 0.0) {
+                            Quantities.format(totalMl / 1000.0) to "l"
+                        } else {
+                            Quantities.format(totalMl) to "ml"
+                        }
+                        line = "$formattedQty $formattedUnit $displayName"
+                        isMerged = ingredients.size > 1
+                    }
+                    allCompatibleCounts && parsedQuantities.isNotEmpty() -> {
+                        val totalCount = parsedQuantities.filterIsInstance<NormalizedQuantity.Count>().sumOf { it.count }
+                        val unit = countUnits.firstOrNull().orEmpty()
+                        line = if (unit.isNotBlank()) "${Quantities.format(totalCount)} $unit $displayName" else "${Quantities.format(totalCount)} $displayName"
+                        isMerged = ingredients.size > 1
+                    }
+                    else -> {
+                        line = ingredients.mapNotNull { it.rawText ?: it.name }.distinct().joinToString(" + ")
+                        isMerged = ingredients.size > 1
+                    }
+                }
+
                 GroceryItem(
-                    name = name,
+                    name = displayName,
                     line = line,
-                    isMerged = allNumeric && ingredients.size > 1,
+                    isMerged = isMerged,
                     recipeTitles = titles,
-                    category = GroceryCategories.of(name),
+                    category = GroceryCategories.of(displayName),
                 )
             }
             .sortedBy { it.name.lowercase() }
     }
-
-    private fun normalize(name: String): String =
-        name.lowercase().trim().trimEnd('.', ',', '!')
 }
 
 /** Supermarket aisle bucketing with bilingual keyword dictionaries. */
