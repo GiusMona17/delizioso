@@ -1,5 +1,6 @@
 package com.delizioso.app.ui.screens.grocery
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -51,7 +53,8 @@ import com.delizioso.app.ui.theme.clayBevel
 import androidx.compose.ui.res.stringResource
 import com.delizioso.app.R
 
-private const val GROUP_BY_RECIPE = 0
+private const val GROUP_BY_CATEGORY = 0
+private const val GROUP_BY_RECIPE = 1
 
 @Composable
 fun GroceryScreen(
@@ -61,8 +64,10 @@ fun GroceryScreen(
     val items by viewModel.items.collectAsStateWithLifecycle()
     val checked by viewModel.checked.collectAsStateWithLifecycle()
     val customItems by viewModel.customItems.collectAsStateWithLifecycle()
+    val inPantryCount by viewModel.inPantryCount.collectAsStateWithLifecycle()
+    val hideInPantry by viewModel.hideInPantry.collectAsStateWithLifecycle()
 
-    var grouping by rememberSaveable { mutableStateOf(GROUP_BY_RECIPE) }
+    var grouping by rememberSaveable { mutableStateOf(GROUP_BY_CATEGORY) }
     var newItem by rememberSaveable { mutableStateOf("") }
 
     val groups: List<Pair<String, List<GroceryItem>>> = if (grouping == GROUP_BY_RECIPE) {
@@ -109,10 +114,37 @@ fun GroceryScreen(
         ) {
             item {
                 ClaySegmentedTabs(
-                    options = listOf(stringResource(R.string.grocery_by_recipe), stringResource(R.string.grocery_by_category)),
+                    options = listOf(stringResource(R.string.grocery_by_category), stringResource(R.string.grocery_by_recipe)),
                     selectedIndex = grouping,
                     onSelect = { grouping = it },
                 )
+            }
+
+            if (inPantryCount > 0) {
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clayCard(container = MaterialTheme.colorScheme.surfaceContainerLow, cornerRadius = 20.dp)
+                            .clickable { viewModel.toggleHideInPantry() }
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            "🧊 " + stringResource(R.string.grocery_pantry_synced, inPantryCount),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            if (hideInPantry) stringResource(R.string.grocery_show_pantry) else stringResource(R.string.grocery_hide_pantry),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
+                }
             }
 
             if (items.isEmpty()) {
@@ -127,8 +159,13 @@ fun GroceryScreen(
 
             groups.forEach { (groupName, groupItems) ->
                 item(key = "header-$groupName") {
+                    val title = when {
+                        groupName == CUSTOM_ITEM_SOURCE -> stringResource(R.string.grocery_custom_source)
+                        grouping == GROUP_BY_CATEGORY -> stringResource(GroceryCategories.labelRes(groupName))
+                        else -> groupName
+                    }
                     Text(
-                        if (groupName == CUSTOM_ITEM_SOURCE) stringResource(R.string.grocery_custom_source) else groupName,
+                        title,
                         style = MaterialTheme.typography.headlineMedium,
                         color = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.padding(top = 12.dp),
@@ -165,8 +202,10 @@ fun GroceryScreen(
                         icon = Icons.Filled.Add,
                         contentDescription = stringResource(R.string.grocery_add_item),
                         onClick = {
-                            viewModel.addCustomItem(newItem)
-                            newItem = ""
+                            if (newItem.isNotBlank()) {
+                                viewModel.addCustomItem(newItem)
+                                newItem = ""
+                            }
                         },
                         container = MaterialTheme.colorScheme.primaryContainer,
                     )
@@ -207,12 +246,32 @@ private fun GroceryRow(
     ) {
         ClayCheckbox(checked = checked, onCheckedChange = { onToggle() })
         Column(Modifier.weight(1f).padding(start = 14.dp)) {
-            Text(
-                item.line,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (checked) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
-                textDecoration = if (checked) TextDecoration.LineThrough else TextDecoration.None,
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    item.line,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (checked) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface,
+                    textDecoration = if (checked) TextDecoration.LineThrough else TextDecoration.None,
+                    modifier = Modifier.weight(1f, fill = false),
+                )
+                if (item.inPantry) {
+                    Box(
+                        modifier = Modifier
+                            .clip(PillShape)
+                            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                    ) {
+                        Text(
+                            "🧊 " + stringResource(R.string.grocery_in_pantry),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        )
+                    }
+                }
+            }
             if (showSource && item.recipeTitles.isNotEmpty()) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,

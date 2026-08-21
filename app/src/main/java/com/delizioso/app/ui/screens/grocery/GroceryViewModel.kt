@@ -11,6 +11,7 @@ import com.delizioso.app.data.GroceryCategories
 import com.delizioso.app.data.GroceryItem
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.local.UserPreferences
+import com.delizioso.app.data.pantry.PantryMatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -32,9 +33,10 @@ class GroceryViewModel(
 ) : ViewModel() {
 
     private val rangeDays = MutableStateFlow(7)
+    val hideInPantry = MutableStateFlow(false)
 
-    /** Consolidated list for the next `rangeDays` days plus the user's own items. */
-    val items: StateFlow<List<GroceryItem>> = rangeDays
+    /** Consolidated raw list before in-pantry filtering. */
+    private val allGroceryItems = rangeDays
         .flatMapLatest { days ->
             val from = LocalDate.now()
             val to = from.plusDays(days.toLong() - 1)
@@ -42,10 +44,12 @@ class GroceryViewModel(
                 repository.mealsBetween(from.toEpochDay(), to.toEpochDay()),
                 repository.allWithDetails,
                 preferences.groceryCustomItems,
-            ) { meals, all, custom ->
+                repository.inStockPantryItems,
+            ) { meals, all, custom, inStockPantry ->
                 val plannedIds = meals.map { it.meal.recipeId }.toSet()
                 val planned = all.filter { it.recipe.id in plannedIds }
-                GroceryAggregator.aggregate(planned) + custom.sortedBy { it.line }.map { entry ->
+                val aggregated = GroceryAggregator.aggregate(planned)
+                val customItems = custom.sortedBy { it.line }.map { entry ->
                     GroceryItem(
                         name = entry.line,
                         line = entry.line,
@@ -54,9 +58,30 @@ class GroceryViewModel(
                         category = GroceryCategories.of(entry.line),
                     )
                 }
+
+                (aggregated + customItems).map { item ->
+                    val inPantry = PantryMatcher.isIngredientAvailable(item.name, inStockPantry)
+                    item.copy(inPantry = inPantry)
+                }
             }
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** Consolidated list for the next `rangeDays` days plus the user's own items. */
+    val items: StateFlow<List<GroceryItem>> = combine(
+        allGroceryItems,
+        hideInPantry,
+    ) { allItems, hidePantry ->
+        if (hidePantry) {
+            allItems.filter { !it.inPantry }
+        } else {
+            allItems
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val inPantryCount: StateFlow<Int> = allGroceryItems
+        .map { items -> items.count { it.inPantry } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
 
     /** Lines the user has ticked off (persisted). */
     val checked: StateFlow<Set<String>> =
@@ -66,6 +91,10 @@ class GroceryViewModel(
     val customItems: StateFlow<Set<String>> = preferences.groceryCustomItems
         .map { entries -> entries.map { it.line }.toSet() }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptySet())
+
+    fun toggleHideInPantry() {
+        hideInPantry.value = !hideInPantry.value
+    }
 
     fun toggleChecked(line: String) = viewModelScope.launch { preferences.toggleGroceryChecked(line) }
 
