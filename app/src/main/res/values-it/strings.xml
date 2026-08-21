@@ -241,6 +241,9 @@
     <string name="data_lunch">Pranzo</string>
     <string name="data_dinner">Cena</string>
     <string name="data_snacks">Spuntini</string>
+    <string name="category_group_meal_type">Tipo di pasto</string>
+    <string name="category_group_course_component">Portate e componenti</string>
+    <string name="category_group_diet_style">Dieta e stile</string>
     <string name="data_category_breakfast">Colazione</string>
     <string name="data_category_lunch">Pranzo</string>
     <string name="data_category_dinner">Cena</string>
@@ -249,6 +252,13 @@
     <string name="data_category_pasta">Pasta</string>
     <string name="data_category_soup">Zuppa</string>
     <string name="data_category_salad">Insalata</string>
+    <string name="data_category_sauce">Salsa</string>
+    <string name="data_category_bread">Pane e impasti</string>
+    <string name="data_category_side">Contorno</string>
+    <string name="data_category_drink">Bevanda</string>
+    <string name="data_category_dressing">Condimento e marinatura</string>
+    <string name="data_category_base_broth">Basi e brodi</string>
+    <string name="data_category_preserve">Conserva</string>
     <string name="data_category_baking">Forno</string>
     <string name="data_category_vegetarian">Vegetariano</string>
     <string name="data_category_vegan">Vegano</string>

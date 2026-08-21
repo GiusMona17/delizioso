@@ -2,6 +2,18 @@ package com.delizioso.app.data
 
 import com.delizioso.app.R
 
+enum class CategoryGroup(val id: String, val titleRes: Int) {
+    MEAL_TYPE("meal_type", R.string.category_group_meal_type),
+    COURSE_COMPONENT("course_component", R.string.category_group_course_component),
+    DIET_STYLE("diet_style", R.string.category_group_diet_style),
+}
+
+data class CategoryDefinition(
+    val name: String,
+    val group: CategoryGroup,
+    val displayNameRes: Int,
+)
+
 /**
  * The closed category vocabulary.
  *
@@ -12,23 +24,37 @@ import com.delizioso.app.R
  */
 object Categories {
 
-    val ALL: List<String> = listOf(
-        "Breakfast",
-        "Lunch",
-        "Dinner",
-        "Snack",
-        "Dessert",
-        "Pasta",
-        "Soup",
-        "Salad",
-        "Baking",
-        "Vegetarian",
-        "Vegan",
-        "Healthy",
-        "Quick",
-        "Comfort",
-        "Spicy",
+    val DEFINITIONS: List<CategoryDefinition> = listOf(
+        // Meal types
+        CategoryDefinition("Breakfast", CategoryGroup.MEAL_TYPE, R.string.data_category_breakfast),
+        CategoryDefinition("Lunch", CategoryGroup.MEAL_TYPE, R.string.data_category_lunch),
+        CategoryDefinition("Dinner", CategoryGroup.MEAL_TYPE, R.string.data_category_dinner),
+        CategoryDefinition("Snack", CategoryGroup.MEAL_TYPE, R.string.data_category_snack),
+        CategoryDefinition("Dessert", CategoryGroup.MEAL_TYPE, R.string.data_category_dessert),
+
+        // Courses & Components (Non-dish & specialized elements)
+        CategoryDefinition("Pasta", CategoryGroup.COURSE_COMPONENT, R.string.data_category_pasta),
+        CategoryDefinition("Soup", CategoryGroup.COURSE_COMPONENT, R.string.data_category_soup),
+        CategoryDefinition("Salad", CategoryGroup.COURSE_COMPONENT, R.string.data_category_salad),
+        CategoryDefinition("Sauce", CategoryGroup.COURSE_COMPONENT, R.string.data_category_sauce),
+        CategoryDefinition("Bread", CategoryGroup.COURSE_COMPONENT, R.string.data_category_bread),
+        CategoryDefinition("Side", CategoryGroup.COURSE_COMPONENT, R.string.data_category_side),
+        CategoryDefinition("Drink", CategoryGroup.COURSE_COMPONENT, R.string.data_category_drink),
+        CategoryDefinition("Dressing & Marinade", CategoryGroup.COURSE_COMPONENT, R.string.data_category_dressing),
+        CategoryDefinition("Base & Broth", CategoryGroup.COURSE_COMPONENT, R.string.data_category_base_broth),
+        CategoryDefinition("Preserve", CategoryGroup.COURSE_COMPONENT, R.string.data_category_preserve),
+        CategoryDefinition("Baking", CategoryGroup.COURSE_COMPONENT, R.string.data_category_baking),
+
+        // Diet & Style
+        CategoryDefinition("Vegetarian", CategoryGroup.DIET_STYLE, R.string.data_category_vegetarian),
+        CategoryDefinition("Vegan", CategoryGroup.DIET_STYLE, R.string.data_category_vegan),
+        CategoryDefinition("Healthy", CategoryGroup.DIET_STYLE, R.string.data_category_healthy),
+        CategoryDefinition("Quick", CategoryGroup.DIET_STYLE, R.string.data_category_quick),
+        CategoryDefinition("Comfort", CategoryGroup.DIET_STYLE, R.string.data_category_comfort),
+        CategoryDefinition("Spicy", CategoryGroup.DIET_STYLE, R.string.data_category_spicy),
     )
+
+    val ALL: List<String> = DEFINITIONS.map { it.name }
 
     /** At most this many per recipe, so cards and chips stay readable. */
     const val MAX_PER_RECIPE = 3
@@ -47,13 +73,60 @@ object Categories {
         "starter" to "Snack",
         "appetizer" to "Snack",
         "appetiser" to "Snack",
-        "side" to "Snack",
-        "side dish" to "Snack",
+        "side" to "Side",
+        "side dish" to "Side",
+        "sides" to "Side",
+        "contorno" to "Side",
+        "contorni" to "Side",
         "brunch" to "Breakfast",
         "pudding" to "Dessert",
         "sweet" to "Dessert",
         "cake" to "Baking",
-        "bread" to "Baking",
+        "bread" to "Bread",
+        "pane" to "Bread",
+        "focaccia" to "Bread",
+        "dough" to "Bread",
+        "impasto" to "Bread",
+        "pizza" to "Bread",
+        "sauce" to "Sauce",
+        "sauces" to "Sauce",
+        "salsa" to "Sauce",
+        "salse" to "Sauce",
+        "pesto" to "Sauce",
+        "gravy" to "Sauce",
+        "dip" to "Sauce",
+        "condimento" to "Sauce",
+        "condimenti" to "Sauce",
+        "dressing" to "Dressing & Marinade",
+        "dressings" to "Dressing & Marinade",
+        "marinade" to "Dressing & Marinade",
+        "marinades" to "Dressing & Marinade",
+        "vinaigrette" to "Dressing & Marinade",
+        "marinata" to "Dressing & Marinade",
+        "broth" to "Base & Broth",
+        "brodo" to "Base & Broth",
+        "stock" to "Base & Broth",
+        "fondo" to "Base & Broth",
+        "base" to "Base & Broth",
+        "preserve" to "Preserve",
+        "preserves" to "Preserve",
+        "jam" to "Preserve",
+        "marmellata" to "Preserve",
+        "confettura" to "Preserve",
+        "pickle" to "Preserve",
+        "pickles" to "Preserve",
+        "sottoli" to "Preserve",
+        "sottaceti" to "Preserve",
+        "conserva" to "Preserve",
+        "conserve" to "Preserve",
+        "drink" to "Drink",
+        "drinks" to "Drink",
+        "beverage" to "Drink",
+        "beverages" to "Drink",
+        "cocktail" to "Drink",
+        "smoothie" to "Drink",
+        "bevanda" to "Drink",
+        "bevande" to "Drink",
         "cookies" to "Baking",
         "noodles" to "Pasta",
         "veggie" to "Vegetarian",
@@ -83,23 +156,14 @@ object Categories {
         .sortedBy { ALL.indexOf(it) }
         .take(MAX_PER_RECIPE)
 
+    fun groupOf(category: String): CategoryGroup? =
+        DEFINITIONS.firstOrNull { it.name.equals(category, ignoreCase = true) }?.group
+
+    fun byGroup(group: CategoryGroup): List<CategoryDefinition> =
+        DEFINITIONS.filter { it.group == group }
+
     /** String resource for the localized display label of a canonical [category]. */
-    fun displayNameRes(category: String): Int = when (category) {
-        "Breakfast" -> R.string.data_category_breakfast
-        "Lunch" -> R.string.data_category_lunch
-        "Dinner" -> R.string.data_category_dinner
-        "Snack" -> R.string.data_category_snack
-        "Dessert" -> R.string.data_category_dessert
-        "Pasta" -> R.string.data_category_pasta
-        "Soup" -> R.string.data_category_soup
-        "Salad" -> R.string.data_category_salad
-        "Baking" -> R.string.data_category_baking
-        "Vegetarian" -> R.string.data_category_vegetarian
-        "Vegan" -> R.string.data_category_vegan
-        "Healthy" -> R.string.data_category_healthy
-        "Quick" -> R.string.data_category_quick
-        "Comfort" -> R.string.data_category_comfort
-        "Spicy" -> R.string.data_category_spicy
-        else -> R.string.data_category_other
-    }
+    fun displayNameRes(category: String): Int =
+        DEFINITIONS.firstOrNull { it.name.equals(category, ignoreCase = true) }?.displayNameRes
+            ?: R.string.data_category_other
 }

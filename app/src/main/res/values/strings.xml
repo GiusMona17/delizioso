@@ -241,6 +241,9 @@
     <string name="data_lunch">Lunch</string>
     <string name="data_dinner">Dinner</string>
     <string name="data_snacks">Snacks</string>
+    <string name="category_group_meal_type">Meal Type</string>
+    <string name="category_group_course_component">Courses &amp; Components</string>
+    <string name="category_group_diet_style">Diet &amp; Style</string>
     <string name="data_category_breakfast">Breakfast</string>
     <string name="data_category_lunch">Lunch</string>
     <string name="data_category_dinner">Dinner</string>
@@ -249,6 +252,13 @@
     <string name="data_category_pasta">Pasta</string>
     <string name="data_category_soup">Soup</string>
     <string name="data_category_salad">Salad</string>
+    <string name="data_category_sauce">Sauce</string>
+    <string name="data_category_bread">Bread &amp; Dough</string>
+    <string name="data_category_side">Side Dish</string>
+    <string name="data_category_drink">Drink</string>
+    <string name="data_category_dressing">Dressing &amp; Marinade</string>
+    <string name="data_category_base_broth">Base &amp; Broth</string>
+    <string name="data_category_preserve">Preserve</string>
     <string name="data_category_baking">Baking</string>
     <string name="data_category_vegetarian">Vegetarian</string>
     <string name="data_category_vegan">Vegan</string>
