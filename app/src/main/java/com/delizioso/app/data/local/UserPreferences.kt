@@ -27,7 +27,27 @@ class UserPreferences(private val context: Context) {
         val LIBRARY_VIEW = stringPreferencesKey("library_view_mode")
         val LIBRARY_SORT = stringPreferencesKey("library_sort")
         val ENABLED_SOURCES = stringSetPreferencesKey("enabled_recipe_sources")
+        val TARGET_CALORIES_KCAL = intPreferencesKey("target_calories_kcal")
+        val TARGET_PROTEIN_G = intPreferencesKey("target_protein_g")
+        val TARGET_FAT_G = intPreferencesKey("target_fat_g")
+        val TARGET_CARBS_G = intPreferencesKey("target_carbs_g")
     }
+
+    /** Optional daily nutritional goals configured by the user. */
+    val nutritionGoals: Flow<NutritionGoals?> =
+        context.userDataStore.data.map { prefs ->
+            val kcal = prefs[Keys.TARGET_CALORIES_KCAL]
+            if (kcal == null || kcal <= 0) {
+                null
+            } else {
+                NutritionGoals(
+                    targetCaloriesKcal = kcal,
+                    targetProteinG = prefs[Keys.TARGET_PROTEIN_G] ?: 120,
+                    targetFatG = prefs[Keys.TARGET_FAT_G] ?: 65,
+                    targetCarbsG = prefs[Keys.TARGET_CARBS_G] ?: 230,
+                )
+            }
+        }
 
     /** Whether the user accepted the on-device AI (Gemini Nano) terms. */
     val aiConsentGiven: Flow<Boolean> =
@@ -165,7 +185,30 @@ class UserPreferences(private val context: Context) {
             prefs[Keys.GROCERY_CHECKED] = (prefs[Keys.GROCERY_CHECKED] ?: emptySet()) - line
         }
     }
+
+    suspend fun setNutritionGoals(goals: NutritionGoals?) {
+        context.userDataStore.edit { prefs ->
+            if (goals == null) {
+                prefs.remove(Keys.TARGET_CALORIES_KCAL)
+                prefs.remove(Keys.TARGET_PROTEIN_G)
+                prefs.remove(Keys.TARGET_FAT_G)
+                prefs.remove(Keys.TARGET_CARBS_G)
+            } else {
+                prefs[Keys.TARGET_CALORIES_KCAL] = goals.targetCaloriesKcal
+                prefs[Keys.TARGET_PROTEIN_G] = goals.targetProteinG
+                prefs[Keys.TARGET_FAT_G] = goals.targetFatG
+                prefs[Keys.TARGET_CARBS_G] = goals.targetCarbsG
+            }
+        }
+    }
 }
+
+data class NutritionGoals(
+    val targetCaloriesKcal: Int = 2000,
+    val targetProteinG: Int = 120,
+    val targetFatG: Int = 65,
+    val targetCarbsG: Int = 230,
+)
 
 /** A shopping-list line that didn't come from the meal planner. */
 data class CustomGroceryLine(val line: String, val source: String?) {

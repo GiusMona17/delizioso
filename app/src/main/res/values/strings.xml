@@ -216,13 +216,26 @@
     <string name="grocery_custom_source">Added by you</string>
 
     <!-- Profile -->
-    <string name="profile_title">Profile</string>
-    <string name="profile_heading">Your kitchen</string>
-    <string name="profile_recipes_one">1 recipe saved on this device</string>
-    <string name="profile_recipes_many">%1$d recipes saved on this device</string>
-    <string name="profile_ai_section">On-device AI</string>
-    <string name="profile_ai_title">Gemini Nano</string>
-    <string name="profile_ai_desc">Answers your questions about a saved recipe. Runs entirely on your phone.</string>
+    <string name="profile_title">Profile &amp; Settings</string>
+    <string name="profile_heading">Your Kitchen</string>
+    <string name="profile_recipes_one">1 recipe saved</string>
+    <string name="profile_recipes_many">%1$d recipes saved</string>
+    <string name="profile_ai_section">On-Device AI</string>
+    <string name="profile_ai_title">Use Gemini Nano</string>
+    <string name="profile_ai_desc">Runs locally on your Pixel. Never leaves your phone.</string>
+    <string name="profile_nutrition_title">Daily Nutrition Goals</string>
+    <string name="profile_nutrition_subtitle">Set daily targets for calories and macronutrients</string>
+    <string name="profile_nutrition_enabled">Track Daily Targets</string>
+    <string name="profile_nutrition_kcal">Target Calories (kcal)</string>
+    <string name="profile_nutrition_protein">Protein (g)</string>
+    <string name="profile_nutrition_carbs">Carbs (g)</string>
+    <string name="profile_nutrition_fat">Fat (g)</string>
+    <string name="profile_nutrition_reset">Reset</string>
+    <string name="nutrition_daily_recap">Daily Nutrition</string>
+    <string name="nutrition_weekly_recap">Weekly Nutrition</string>
+    <string name="nutrition_target_reached">Target Reached</string>
+    <string name="nutrition_daily_average">Daily Average</string>
+    <string name="nutrition_macro_split">Macro Split</string>
     <string name="profile_servings_section">Default servings</string>
     <string name="profile_servings_desc">Used when planning a meal</string>
     <string name="profile_servings_fewer">Fewer servings</string>

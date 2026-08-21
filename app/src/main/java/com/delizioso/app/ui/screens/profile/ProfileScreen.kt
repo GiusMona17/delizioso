@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,6 +52,7 @@ import com.delizioso.app.DeliziosoApplication
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.GemmaEngine
 import com.delizioso.app.data.backup.BackupManager
+import com.delizioso.app.data.local.NutritionGoals
 import com.delizioso.app.data.local.ThemeMode
 import com.delizioso.app.data.local.UserPreferences
 import com.delizioso.app.ui.components.ClayButton
@@ -116,6 +118,11 @@ class ProfileViewModel(
         preferences.themeMode.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ThemeMode.SYSTEM)
 
     fun setThemeMode(mode: ThemeMode) = viewModelScope.launch { preferences.setThemeMode(mode) }
+
+    val nutritionGoals: StateFlow<NutritionGoals?> =
+        preferences.nutritionGoals.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    fun setNutritionGoals(goals: NutritionGoals?) = viewModelScope.launch { preferences.setNutritionGoals(goals) }
 
     val recipeCount: StateFlow<Int> =
         repository.count().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
@@ -184,6 +191,7 @@ fun ProfileScreen(
     val recipeCount by viewModel.recipeCount.collectAsStateWithLifecycle()
     val backupState by viewModel.backup.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
+    val nutritionGoals by viewModel.nutritionGoals.collectAsStateWithLifecycle()
 
     var apiKey by rememberSaveable { mutableStateOf("") }
     var apiKeyLoaded by rememberSaveable { mutableStateOf(false) }
@@ -231,6 +239,13 @@ fun ProfileScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
+            }
+
+            item {
+                NutritionGoalsCard(
+                    goals = nutritionGoals,
+                    onSaveGoals = viewModel::setNutritionGoals,
+                )
             }
 
             item {
@@ -517,5 +532,154 @@ private fun RoundStepper(
         contentAlignment = Alignment.Center,
     ) {
         Icon(icon, contentDescription = description, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(18.dp))
+    }
+}
+
+@Composable
+private fun NutritionGoalsCard(
+    goals: NutritionGoals?,
+    onSaveGoals: (NutritionGoals?) -> Unit,
+) {
+    var enabled by remember(goals) { mutableStateOf(goals != null) }
+    var kcal by remember(goals) { mutableStateOf(goals?.targetCaloriesKcal?.toString() ?: "2000") }
+    var protein by remember(goals) { mutableStateOf(goals?.targetProteinG?.toString() ?: "120") }
+    var carbs by remember(goals) { mutableStateOf(goals?.targetCarbsG?.toString() ?: "230") }
+    var fat by remember(goals) { mutableStateOf(goals?.targetFatG?.toString() ?: "65") }
+
+    SettingsCard(title = stringResource(R.string.profile_nutrition_title)) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Column(Modifier.weight(1f).padding(end = 14.dp)) {
+                Text(
+                    stringResource(R.string.profile_nutrition_enabled),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    stringResource(R.string.profile_nutrition_subtitle),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Switch(
+                checked = enabled,
+                onCheckedChange = { isChecked ->
+                    enabled = isChecked
+                    if (!isChecked) {
+                        onSaveGoals(null)
+                    } else {
+                        onSaveGoals(
+                            NutritionGoals(
+                                targetCaloriesKcal = kcal.toIntOrNull() ?: 2000,
+                                targetProteinG = protein.toIntOrNull() ?: 120,
+                                targetCarbsG = carbs.toIntOrNull() ?: 230,
+                                targetFatG = fat.toIntOrNull() ?: 65,
+                            )
+                        )
+                    }
+                },
+                colors = SwitchDefaults.colors(
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                ),
+            )
+        }
+
+        if (enabled) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                ClayLabelledField(
+                    label = stringResource(R.string.profile_nutrition_kcal),
+                    value = kcal,
+                    onValueChange = {
+                        kcal = it
+                        val k = it.toIntOrNull()
+                        if (k != null && k > 0) {
+                            onSaveGoals(
+                                NutritionGoals(
+                                    targetCaloriesKcal = k,
+                                    targetProteinG = protein.toIntOrNull() ?: 120,
+                                    targetCarbsG = carbs.toIntOrNull() ?: 230,
+                                    targetFatG = fat.toIntOrNull() ?: 65,
+                                )
+                            )
+                        }
+                    },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    ClayLabelledField(
+                        label = stringResource(R.string.profile_nutrition_protein),
+                        value = protein,
+                        onValueChange = {
+                            protein = it
+                            val p = it.toIntOrNull()
+                            if (p != null) {
+                                onSaveGoals(
+                                    NutritionGoals(
+                                        targetCaloriesKcal = kcal.toIntOrNull() ?: 2000,
+                                        targetProteinG = p,
+                                        targetCarbsG = carbs.toIntOrNull() ?: 230,
+                                        targetFatG = fat.toIntOrNull() ?: 65,
+                                    )
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                    ClayLabelledField(
+                        label = stringResource(R.string.profile_nutrition_carbs),
+                        value = carbs,
+                        onValueChange = {
+                            carbs = it
+                            val c = it.toIntOrNull()
+                            if (c != null) {
+                                onSaveGoals(
+                                    NutritionGoals(
+                                        targetCaloriesKcal = kcal.toIntOrNull() ?: 2000,
+                                        targetProteinG = protein.toIntOrNull() ?: 120,
+                                        targetCarbsG = c,
+                                        targetFatG = fat.toIntOrNull() ?: 65,
+                                    )
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                    ClayLabelledField(
+                        label = stringResource(R.string.profile_nutrition_fat),
+                        value = fat,
+                        onValueChange = {
+                            fat = it
+                            val f = it.toIntOrNull()
+                            if (f != null) {
+                                onSaveGoals(
+                                    NutritionGoals(
+                                        targetCaloriesKcal = kcal.toIntOrNull() ?: 2000,
+                                        targetProteinG = protein.toIntOrNull() ?: 120,
+                                        targetCarbsG = carbs.toIntOrNull() ?: 230,
+                                        targetFatG = f,
+                                    )
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+            }
+        }
     }
 }
