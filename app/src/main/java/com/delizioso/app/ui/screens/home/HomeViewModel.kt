@@ -1,0 +1,142 @@
+package com.delizioso.app.ui.screens.home
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.delizioso.app.DeliziosoApplication
+import com.delizioso.app.data.RecipeRepository
+import com.delizioso.app.data.local.MealSlot
+import com.delizioso.app.data.local.PlannedMealWithRecipe
+import com.delizioso.app.data.local.RecipeWithDetails
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import java.time.DayOfWeek
+import java.time.LocalDate
+import java.time.LocalTime
+import java.time.temporal.TemporalAdjusters
+
+enum class TimeOfDayGreeting {
+    MORNING,
+    AFTERNOON,
+    EVENING,
+}
+
+data class UpcomingMealState(
+    val slot: String,
+    val isPlanned: Boolean,
+    val mainMeal: PlannedMealWithRecipe? = null,
+    val sideMeals: List<PlannedMealWithRecipe> = emptyList(),
+)
+
+data class DayOverview(
+    val date: LocalDate,
+    val isToday: Boolean,
+    val hasPlanned: Boolean,
+    val hasCooked: Boolean,
+)
+
+data class HomeUiState(
+    val greeting: TimeOfDayGreeting = TimeOfDayGreeting.MORNING,
+    val date: LocalDate = LocalDate.now(),
+    val upcomingMeal: UpcomingMealState = UpcomingMealState(slot = MealSlot.DINNER, isPlanned = false),
+    val dailyInspiration: RecipeWithDetails? = null,
+    val recentRecipes: List<RecipeWithDetails> = emptyList(),
+    val weekOverview: List<DayOverview> = emptyList(),
+    val totalRecipeCount: Int = 0,
+)
+
+@OptIn(ExperimentalCoroutinesApi::class)
+class HomeViewModel(
+    private val repository: RecipeRepository,
+) : ViewModel() {
+
+    private val today = LocalDate.now()
+    private val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+
+    val uiState: StateFlow<HomeUiState> = combine(
+        repository.allWithDetails,
+        repository.mealsBetween(monday.toEpochDay(), monday.plusDays(6).toEpochDay()),
+    ) { allRecipes, weekMeals ->
+        val hour = LocalTime.now().hour
+
+        val greeting = when {
+            hour in 5..11 -> TimeOfDayGreeting.MORNING
+            hour in 12..17 -> TimeOfDayGreeting.AFTERNOON
+            else -> TimeOfDayGreeting.EVENING
+        }
+
+        val targetSlot = when {
+            hour in 5..10 -> MealSlot.BREAKFAST
+            hour in 11..15 -> MealSlot.LUNCH
+            hour in 16..22 -> MealSlot.DINNER
+            else -> MealSlot.BREAKFAST
+        }
+
+        val todayMeals = weekMeals.filter { it.meal.dateEpochDay == today.toEpochDay() }
+        val slotMeals = todayMeals.filter { it.meal.slot == targetSlot }
+            .ifEmpty { todayMeals }
+
+        val mainMeal = slotMeals.firstOrNull { !it.meal.isSide } ?: slotMeals.firstOrNull()
+        val sideMeals = if (mainMeal != null) slotMeals.filter { it.meal.id != mainMeal.meal.id && it.meal.isSide } else emptyList()
+
+        val upcomingState = if (mainMeal != null) {
+            UpcomingMealState(
+                slot = mainMeal.meal.slot,
+                isPlanned = true,
+                mainMeal = mainMeal,
+                sideMeals = sideMeals,
+            )
+        } else {
+            UpcomingMealState(
+                slot = targetSlot,
+                isPlanned = false,
+            )
+        }
+
+        val inspiration = if (allRecipes.isNotEmpty()) {
+            val seedIndex = ((today.toEpochDay().hashCode() and 0x7FFFFFFF) % allRecipes.size)
+            allRecipes[seedIndex]
+        } else null
+
+        val recents = allRecipes.take(6)
+
+        val days = (0..6).map { offset ->
+            val day = monday.plusDays(offset.toLong())
+            val dayMeals = weekMeals.filter { it.meal.dateEpochDay == day.toEpochDay() }
+            DayOverview(
+                date = day,
+                isToday = day == today,
+                hasPlanned = dayMeals.any { !it.meal.cooked },
+                hasCooked = dayMeals.any { it.meal.cooked },
+            )
+        }
+
+        HomeUiState(
+            greeting = greeting,
+            date = today,
+            upcomingMeal = upcomingState,
+            dailyInspiration = inspiration,
+            recentRecipes = recents,
+            weekOverview = days,
+            totalRecipeCount = allRecipes.size,
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        HomeUiState(),
+    )
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as DeliziosoApplication
+                HomeViewModel(app.container.recipeRepository)
+            }
+        }
+    }
+}

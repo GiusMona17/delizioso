@@ -4,11 +4,32 @@
     <string name="app_name">Delizioso!</string>
 
     <!-- Bottom navigation -->
+    <string name="nav_home">Home</string>
     <string name="nav_library">Library</string>
     <string name="nav_import">Import</string>
     <string name="nav_create">Create</string>
     <string name="nav_planner">Planner</string>
     <string name="nav_profile">Profile</string>
+
+    <!-- Home Dashboard -->
+    <string name="home_greeting_morning">Good morning</string>
+    <string name="home_greeting_afternoon">Good afternoon</string>
+    <string name="home_greeting_evening">Good evening</string>
+    <string name="home_next_meal_title">Upcoming Meal</string>
+    <string name="home_cook_now">Start Cooking</string>
+    <string name="home_no_meal_title">Nothing planned for %1$s</string>
+    <string name="home_no_meal_subtitle">Choose a recipe from your library or get inspired.</string>
+    <string name="home_plan_btn">Plan %1$s</string>
+    <string name="home_daily_inspiration">Daily Inspiration</string>
+    <string name="home_inspiration_sub">Handpicked from your collection</string>
+    <string name="home_quick_actions">Quick Actions</string>
+    <string name="home_action_create">New Recipe</string>
+    <string name="home_action_import">Import Link</string>
+    <string name="home_action_planner">Meal Plan</string>
+    <string name="home_action_grocery">Grocery List</string>
+    <string name="home_recent_title">Recent Recipes</string>
+    <string name="home_view_all">See all</string>
+    <string name="home_week_overview">This Week</string>
 
     <!-- Common actions -->
     <string name="action_save">Save Recipe</string>

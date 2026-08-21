@@ -4,11 +4,32 @@
     <string name="app_name">Delizioso!</string>
 
     <!-- Navigazione inferiore -->
+    <string name="nav_home">Home</string>
     <string name="nav_library">Libreria</string>
     <string name="nav_import">Importa</string>
     <string name="nav_create">Crea</string>
     <string name="nav_planner">Pianificatore</string>
     <string name="nav_profile">Profilo</string>
+
+    <!-- Schermata iniziale (Home) -->
+    <string name="home_greeting_morning">Buongiorno</string>
+    <string name="home_greeting_afternoon">Buon pomeriggio</string>
+    <string name="home_greeting_evening">Buonasera</string>
+    <string name="home_next_meal_title">Prossimo pasto</string>
+    <string name="home_cook_now">Inizia a cucinare</string>
+    <string name="home_no_meal_title">Nulla di pianificato per %1$s</string>
+    <string name="home_no_meal_subtitle">Scegli una ricetta dalla libreria o lasciati ispirare.</string>
+    <string name="home_plan_btn">Pianifica %1$s</string>
+    <string name="home_daily_inspiration">Ispirazione del giorno</string>
+    <string name="home_inspiration_sub">Selezionata dalla tua raccolta</string>
+    <string name="home_quick_actions">Azioni rapide</string>
+    <string name="home_action_create">Nuova ricetta</string>
+    <string name="home_action_import">Importa link</string>
+    <string name="home_action_planner">Pianificatore</string>
+    <string name="home_action_grocery">Lista della spesa</string>
+    <string name="home_recent_title">Ricette recenti</string>
+    <string name="home_view_all">Vedi tutte</string>
+    <string name="home_week_overview">Questa settimana</string>
 
     <!-- Azioni comuni -->
     <string name="action_save">Salva ricetta</string>

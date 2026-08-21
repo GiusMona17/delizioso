@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
@@ -39,6 +40,7 @@ import com.delizioso.app.ui.theme.clayBevel
 import com.delizioso.app.ui.theme.clayOuter
 
 object Routes {
+    const val HOME = "home"
     const val LIBRARY = "library"
     const val PLANNER = "planner"
     const val IMPORT = "import"
@@ -62,7 +64,7 @@ object Routes {
     fun recipeEdit(recipeId: Long) = "recipe/$recipeId/edit"
 
     /** Routes that show the floating dock. */
-    val tabRoutes = listOf(LIBRARY, PLANNER, CREATE, IMPORT, PROFILE)
+    val tabRoutes = listOf(HOME, LIBRARY, PLANNER, IMPORT, PROFILE)
 }
 
 private data class DockItem(
@@ -71,7 +73,7 @@ private data class DockItem(
     val icon: ImageVector,
 )
 
-/** Floating clay "dock" — Library / Planner / Create / Import / Profile (per mockups). */
+/** Floating clay "dock" — Home / Library / Planner / Import / Profile. */
 @Composable
 fun ClayDock(
     currentRoute: String?,
@@ -79,9 +81,9 @@ fun ClayDock(
     modifier: Modifier = Modifier,
 ) {
     val items = listOf(
+        DockItem(Routes.HOME, stringResource(R.string.nav_home), Icons.Filled.Home),
         DockItem(Routes.LIBRARY, stringResource(R.string.nav_library), Icons.AutoMirrored.Filled.MenuBook),
         DockItem(Routes.PLANNER, stringResource(R.string.nav_planner), Icons.Filled.CalendarMonth),
-        DockItem(Routes.CREATE, stringResource(R.string.nav_create), Icons.Filled.AddCircleOutline),
         DockItem(Routes.IMPORT, stringResource(R.string.nav_import), Icons.Filled.Download),
         DockItem(Routes.PROFILE, stringResource(R.string.nav_profile), Icons.Filled.Person),
     )

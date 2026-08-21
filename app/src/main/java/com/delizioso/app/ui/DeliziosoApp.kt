@@ -25,6 +25,7 @@ import com.delizioso.app.ui.screens.cook.CookModeScreen
 import com.delizioso.app.ui.screens.detail.RecipeDetailScreen
 import com.delizioso.app.ui.screens.edit.EditRecipeScreen
 import com.delizioso.app.ui.screens.grocery.GroceryScreen
+import com.delizioso.app.ui.screens.home.HomeScreen
 import com.delizioso.app.ui.screens.import.ImportPreviewScreen
 import com.delizioso.app.ui.screens.import.ImportScreen
 import com.delizioso.app.ui.screens.import.ImportViewModel
@@ -49,7 +50,7 @@ fun DeliziosoApp(
     LaunchedEffect(sharedLink) {
         if (sharedLink != null && currentRoute != Routes.IMPORT) {
             navController.navigate(Routes.IMPORT) {
-                popUpTo(Routes.LIBRARY) { saveState = true }
+                popUpTo(Routes.HOME) { saveState = true }
                 launchSingleTop = true
                 restoreState = true
             }
@@ -65,7 +66,7 @@ fun DeliziosoApp(
                     currentRoute = currentRoute,
                     onNavigate = { route ->
                         navController.navigate(route) {
-                            popUpTo(Routes.LIBRARY) { saveState = true }
+                            popUpTo(Routes.HOME) { saveState = true }
                             launchSingleTop = true
                             restoreState = true
                         }
@@ -76,9 +77,21 @@ fun DeliziosoApp(
     ) { padding ->
         NavHost(
             navController = navController,
-            startDestination = Routes.LIBRARY,
+            startDestination = Routes.HOME,
             modifier = Modifier.padding(padding),
         ) {
+            composable(Routes.HOME) {
+                HomeScreen(
+                    onRecipeClick = { id -> navController.navigate(Routes.recipeDetail(id)) },
+                    onStartCook = { id -> navController.navigate(Routes.cook(id)) },
+                    onOpenLibrary = { navController.navigate(Routes.LIBRARY) },
+                    onOpenPlanner = { navController.navigate(Routes.PLANNER) },
+                    onOpenImport = { navController.navigate(Routes.IMPORT) },
+                    onCreateRecipe = { navController.navigate(Routes.CREATE) },
+                    onOpenGrocery = { navController.navigate(Routes.GROCERY) },
+                    onProfileClick = { navController.navigate(Routes.PROFILE) },
+                )
+            }
             composable(Routes.LIBRARY) {
                 LibraryScreen(
                     onRecipeClick = { id -> navController.navigate(Routes.recipeDetail(id)) },
