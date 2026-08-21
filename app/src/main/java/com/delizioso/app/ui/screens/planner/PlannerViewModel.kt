@@ -59,6 +59,19 @@ class PlannerViewModel(
         .flatMapLatest { first -> repository.mealsBetween(first.toEpochDay(), first.plusMonths(1).minusDays(1).toEpochDay()) }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    /** Weekly nutrition aggregated recap for the visible week. */
+    val weekNutritionRecap: StateFlow<com.delizioso.app.data.nutrition.WeekNutritionRecap> = kotlinx.coroutines.flow.combine(
+        weekStart,
+        weekMeals,
+        recipes,
+    ) { start, meals, allRecipes ->
+        com.delizioso.app.data.nutrition.NutritionAggregator.computeWeekRecap(start, meals, allRecipes)
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        com.delizioso.app.data.nutrition.WeekNutritionRecap(weekStart = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))),
+    )
+
     fun selectDate(date: LocalDate) {
         _selectedDate.value = date
     }

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.CalendarViewMonth
 import androidx.compose.material.icons.filled.CalendarViewWeek
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.DropdownMenu
@@ -90,6 +91,7 @@ fun PlannerScreen(
     val weekMeals by viewModel.weekMeals.collectAsStateWithLifecycle()
     val monthMeals by viewModel.monthMeals.collectAsStateWithLifecycle()
     val recipes by viewModel.recipes.collectAsStateWithLifecycle()
+    val weekNutritionRecap by viewModel.weekNutritionRecap.collectAsStateWithLifecycle()
 
     var view by rememberSaveable { mutableStateOf(PlannerView.WEEK) }
     var pickerRequest by remember { mutableStateOf<PickerRequest?>(null) }
@@ -122,6 +124,12 @@ fun PlannerScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
+                if (weekNutritionRecap.totalPlannedMeals > 0) {
+                    item(key = "weekly-nutrition") {
+                        WeeklyNutritionSummaryCard(recap = weekNutritionRecap)
+                    }
+                }
+
                 MealSlot.all.forEach { slot ->
                     item(key = "label-$slot") {
                         ClayGroupLabel(stringResource(MealSlot.labelRes(slot)), icon = mealSlotIcon(slot), modifier = Modifier.padding(top = 12.dp))
@@ -664,7 +672,7 @@ private fun RecipePickerSheet(
                             modifier = Modifier.weight(1f).padding(start = 14.dp),
                         )
                         if (isSideRecipe) {
-                            ClayChip(
+                        ClayChip(
                                 text = stringResource(R.string.planner_side_badge),
                                 container = MaterialTheme.colorScheme.secondaryContainer,
                                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
@@ -676,6 +684,108 @@ private fun RecipePickerSheet(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun WeeklyNutritionSummaryCard(
+    recap: com.delizioso.app.data.nutrition.WeekNutritionRecap,
+) {
+    val avg = recap.dailyAverage
+    val dist = recap.averageDistribution
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clayCard(container = MaterialTheme.colorScheme.surfaceContainer, cornerRadius = 24.dp)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    Icons.Filled.RestaurantMenu,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    stringResource(R.string.nutrition_weekly_recap),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            Text(
+                "${avg.caloriesKcal} kcal / ${stringResource(R.string.nutrition_daily_average).lowercase()}",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+            )
+        }
+
+        // Macro breakdown bar
+        if (dist.proteinPct > 0 || dist.carbsPct > 0 || dist.fatPct > 0) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(PillShape),
+            ) {
+                if (dist.proteinPct > 0) {
+                    Box(
+                        modifier = Modifier
+                            .weight(dist.proteinPct.toFloat().coerceAtLeast(0.01f))
+                            .fillMaxSize()
+                            .background(Color(0xFF2E7D32))
+                    )
+                }
+                if (dist.carbsPct > 0) {
+                    Box(
+                        modifier = Modifier
+                            .weight(dist.carbsPct.toFloat().coerceAtLeast(0.01f))
+                            .fillMaxSize()
+                            .background(Color(0xFFF57C00))
+                    )
+                }
+                if (dist.fatPct > 0) {
+                    Box(
+                        modifier = Modifier
+                            .weight(dist.fatPct.toFloat().coerceAtLeast(0.01f))
+                            .fillMaxSize()
+                            .background(Color(0xFFC2185B))
+                    )
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                "🥩 ${avg.proteinG}g (${dist.proteinPct}%)",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                "🌾 ${avg.carbsG}g (${dist.carbsPct}%)",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                "🥑 ${avg.fatG}g (${dist.fatPct}%)",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }
