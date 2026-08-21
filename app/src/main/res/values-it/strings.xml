@@ -128,6 +128,7 @@
     <string name="import_title">Importa una ricetta</string>
     <string name="import_subtitle">Incolla un link da Instagram, TikTok, YouTube o un blog per estrarre magicamente la ricetta.</string>
     <string name="import_extract">Estrai ricetta</string>
+    <string name="import_cancel">Annulla importazione</string>
     <string name="import_fetching">Recupero il link…</string>
     <string name="import_structuring">Organizzo con l\'IA sul dispositivo…</string>
     <string name="import_recent">Importati di recente</string>

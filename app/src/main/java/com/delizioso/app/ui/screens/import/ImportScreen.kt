@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Link
@@ -37,8 +38,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -136,35 +139,90 @@ fun ImportScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                ClayTextField(
-                    value = url,
-                    onValueChange = { url = it },
-                    placeholder = "https://www.instagram.com/p/…",
-                    leadingIcon = Icons.Filled.Link,
-                    cornerRadius = 24.dp,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                    modifier = Modifier.fillMaxWidth(),
-                    trailing = {
-                        Text(
-                            stringResource(R.string.action_paste),
-                            style = MaterialTheme.typography.labelLarge,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier
-                                .clip(PillShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer)
-                                .clayBevel(PillShape)
-                                .clickable { clipboard.getText()?.text?.let { url = it.trim() } }
-                                .padding(horizontal = 18.dp, vertical = 10.dp),
+                if (busy) {
+                    val statusText = when (state) {
+                        is ImportUiState.Fetching -> stringResource(R.string.import_fetching)
+                        is ImportUiState.Structuring -> stringResource(R.string.import_structuring)
+                        else -> stringResource(R.string.import_fetching)
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(PillShape)
+                            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+                            .clayBevel(PillShape)
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+                        CircularProgressIndicator(
+                            strokeWidth = 3.dp,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(2.dp),
                         )
-                    },
-                )
-                ClayButton(
-                    text = stringResource(R.string.import_extract),
-                    icon = Icons.Filled.Download,
-                    onClick = { viewModel.importLink(url) },
-                    enabled = url.isNotBlank() && !busy,
-                    modifier = Modifier.fillMaxWidth(),
-                )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = statusText,
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Bold,
+                            )
+                            if (url.isNotBlank()) {
+                                Text(
+                                    text = url,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                    }
+                    ClayButton(
+                        text = stringResource(R.string.import_cancel),
+                        icon = Icons.Filled.Close,
+                        onClick = { viewModel.discard() },
+                        container = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                } else {
+                    ClayTextField(
+                        value = url,
+                        onValueChange = { url = it },
+                        placeholder = "https://www.instagram.com/p/…",
+                        leadingIcon = Icons.Filled.Link,
+                        cornerRadius = 24.dp,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                        modifier = Modifier.fillMaxWidth(),
+                        trailing = {
+                            Text(
+                                stringResource(R.string.action_paste),
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                modifier = Modifier
+                                    .clip(PillShape)
+                                    .background(MaterialTheme.colorScheme.primaryContainer)
+                                    .clayBevel(PillShape)
+                                    .clickable { clipboard.getText()?.text?.let { url = it.trim() } }
+                                    .padding(horizontal = 18.dp, vertical = 10.dp),
+                            )
+                        },
+                    )
+                    ClayButton(
+                        text = stringResource(R.string.import_extract),
+                        icon = Icons.Filled.Download,
+                        onClick = { viewModel.importLink(url) },
+                        enabled = url.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
+            }
+
+            when (val s = state) {
+                is ImportUiState.Error -> ErrorCard(message = s.message, retryable = s.retryable, onRetry = viewModel::retry)
+                is ImportUiState.AiConsentNeeded -> ConsentCard(onGrant = viewModel::grantConsent)
+                else -> {}
             }
 
             PasteTextCard(
@@ -190,14 +248,6 @@ fun ImportScreen(
                         }
                     )
                 }
-            }
-
-            when (val s = state) {
-                is ImportUiState.Fetching -> BusyRow(stringResource(R.string.import_fetching))
-                is ImportUiState.Structuring -> BusyRow(stringResource(R.string.import_structuring))
-                is ImportUiState.Error -> ErrorCard(message = s.message, retryable = s.retryable, onRetry = viewModel::retry)
-                is ImportUiState.AiConsentNeeded -> ConsentCard(onGrant = viewModel::grantConsent)
-                else -> {}
             }
 
             if (recent.isNotEmpty()) {
@@ -306,18 +356,6 @@ private fun SearchOnlineCard(onSearchOnline: () -> Unit) {
             onClick = onSearchOnline,
             modifier = Modifier.fillMaxWidth(),
         )
-    }
-}
-
-@Composable
-private fun BusyRow(text: String) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.padding(horizontal = 20.dp),
-    ) {
-        CircularProgressIndicator(color = MaterialTheme.colorScheme.primary, strokeWidth = 3.dp, modifier = Modifier.padding(vertical = 12.dp))
-        Text(text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 
