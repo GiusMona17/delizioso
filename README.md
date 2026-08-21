@@ -100,7 +100,7 @@ app/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/delizioso.git
+   git clone https://github.com/GiusMona17/delizioso.git
    cd delizioso
    ```
 
