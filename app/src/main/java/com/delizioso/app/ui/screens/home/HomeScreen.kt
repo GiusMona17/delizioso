@@ -113,7 +113,16 @@ fun HomeScreen(
                 onOpenPlanner = onOpenPlanner,
             )
 
-            // 4. Quick Actions
+            // 4. Daily Nutrition Widget
+            if (state.dailyNutrition.nutrients.caloriesKcal > 0 || state.nutritionGoals != null) {
+                DailyNutritionCard(
+                    recap = state.dailyNutrition,
+                    goals = state.nutritionGoals,
+                    onOpenPlanner = onOpenPlanner,
+                )
+            }
+
+            // 5. Quick Actions
             QuickActionsSection(
                 onCreateRecipe = onCreateRecipe,
                 onOpenImport = onOpenImport,
@@ -639,3 +648,200 @@ private fun RecentRecipesSection(
         }
     }
 }
+
+@Composable
+private fun DailyNutritionCard(
+    recap: com.delizioso.app.data.nutrition.DayNutritionRecap,
+    goals: com.delizioso.app.data.local.NutritionGoals?,
+    onOpenPlanner: () -> Unit,
+) {
+    val nutrients = recap.nutrients
+    val dist = recap.distribution
+    val targetKcal = goals?.targetCaloriesKcal
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clayCard(container = MaterialTheme.colorScheme.surfaceContainer, cornerRadius = 24.dp)
+            .clickable(onClick = onOpenPlanner)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    Icons.Filled.RestaurantMenu,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    stringResource(R.string.nutrition_daily_recap),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            if (targetKcal != null && nutrients.caloriesKcal >= targetKcal) {
+                ClayChip(
+                    text = stringResource(R.string.nutrition_target_reached),
+                    container = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
+        }
+
+        // Calories & Goal progress
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    "${nutrients.caloriesKcal}",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+                Text(
+                    "kcal",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 3.dp),
+                )
+            }
+
+            if (targetKcal != null) {
+                Text(
+                    stringResource(R.string.nutrition_goal_of, targetKcal),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        // Progress bar if goal is set
+        if (targetKcal != null && targetKcal > 0) {
+            val progress = (nutrients.caloriesKcal.toFloat() / targetKcal).coerceIn(0f, 1f)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(PillShape)
+                    .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(progress)
+                        .height(8.dp)
+                        .clip(PillShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                )
+            }
+        }
+
+        // Macro breakdown bar
+        if (dist.proteinPct > 0 || dist.carbsPct > 0 || dist.fatPct > 0) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(6.dp)
+                    .clip(PillShape),
+            ) {
+                if (dist.proteinPct > 0) {
+                    Box(
+                        modifier = Modifier
+                            .weight(dist.proteinPct.toFloat().coerceAtLeast(0.01f))
+                            .fillMaxSize()
+                            .background(Color(0xFF2E7D32))
+                    )
+                }
+                if (dist.carbsPct > 0) {
+                    Box(
+                        modifier = Modifier
+                            .weight(dist.carbsPct.toFloat().coerceAtLeast(0.01f))
+                            .fillMaxSize()
+                            .background(Color(0xFFF57C00))
+                    )
+                }
+                if (dist.fatPct > 0) {
+                    Box(
+                        modifier = Modifier
+                            .weight(dist.fatPct.toFloat().coerceAtLeast(0.01f))
+                            .fillMaxSize()
+                            .background(Color(0xFFC2185B))
+                    )
+                }
+            }
+        }
+
+        // Macro chips
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            MacroMiniBadge(
+                label = stringResource(R.string.macro_protein_label),
+                amountG = nutrients.proteinG,
+                pct = dist.proteinPct,
+                color = Color(0xFF2E7D32),
+            )
+            MacroMiniBadge(
+                label = stringResource(R.string.macro_carbs_label),
+                amountG = nutrients.carbsG,
+                pct = dist.carbsPct,
+                color = Color(0xFFF57C00),
+            )
+            MacroMiniBadge(
+                label = stringResource(R.string.macro_fat_label),
+                amountG = nutrients.fatG,
+                pct = dist.fatPct,
+                color = Color(0xFFC2185B),
+            )
+        }
+    }
+}
+
+@Composable
+private fun MacroMiniBadge(
+    label: String,
+    amountG: Int,
+    pct: Int,
+    color: Color,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(PillShape)
+                .background(color)
+        )
+        Column {
+            Text(
+                "${amountG}g",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            Text(
+                "$label ($pct%)",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+

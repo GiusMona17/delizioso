@@ -133,6 +133,10 @@
     <string name="macro_protein">%1$dg protein</string>
     <string name="macro_fat">%1$dg fat</string>
     <string name="macro_carbs">%1$dg carbs</string>
+    <string name="macro_protein_label">Protein</string>
+    <string name="macro_fat_label">Fat</string>
+    <string name="macro_carbs_label">Carbs</string>
+    <string name="nutrition_goal_of">/ %1$d kcal</string>
 
     <!-- Chat -->
     <string name="chat_title">Ask about this recipe</string>
