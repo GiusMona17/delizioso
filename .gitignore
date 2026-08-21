@@ -4,8 +4,10 @@ build/
 .kotlin/
 !gradle/wrapper/gradle-wrapper.jar
 
-# Local tooling index
+# Local tooling index & exploration outputs
 .codegraph/
+graphify-out/
+.superpowers/
 
 # Android / IDE
 local.properties
@@ -18,6 +20,3 @@ captures/
 # OS
 .DS_Store
 Thumbs.db
-
-# Subagent-driven development scratch (ledger, briefs, review packages)
-.superpowers/
