@@ -163,7 +163,12 @@
     <string name="planner_next_month">Mese successivo</string>
     <string name="planner_add_recipe">Aggiungi ricetta %1$s</string>
     <string name="planner_add_title">Aggiungi %1$s · %2$s</string>
-    <string name="planner_add_more">+ Aggiungi un\'altra</string>
+    <string name="planner_add_more">+ Aggiungi un\'altra portata</string>
+    <string name="planner_add_side">+ Aggiungi contorno o salsa</string>
+    <string name="planner_side_badge">Contorno</string>
+    <string name="planner_filter_all">Tutti</string>
+    <string name="planner_filter_mains">Portate</string>
+    <string name="planner_filter_sides">Contorni e salse</string>
     <string name="planner_remove">Rimuovi dal piano</string>
     <string name="planner_meal_options">Opzioni pasto</string>
     <string name="planner_legend_planned">Pianificato</string>

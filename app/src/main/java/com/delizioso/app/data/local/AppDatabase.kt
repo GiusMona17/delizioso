@@ -17,7 +17,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         SourceEntity::class,
         PlannedMealEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -105,9 +105,16 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v5 → v6: add isSide column to planned_meals. */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `planned_meals` ADD COLUMN `isSide` INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
         fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "delizioso.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                 // Safety net only; every version bump so far ships a real migration.
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()

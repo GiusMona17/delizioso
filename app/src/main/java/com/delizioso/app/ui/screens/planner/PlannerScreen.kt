@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -44,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -90,7 +92,7 @@ fun PlannerScreen(
     val recipes by viewModel.recipes.collectAsStateWithLifecycle()
 
     var view by rememberSaveable { mutableStateOf(PlannerView.WEEK) }
-    var pickerSlot by remember { mutableStateOf<String?>(null) }
+    var pickerRequest by remember { mutableStateOf<PickerRequest?>(null) }
 
     Column(Modifier.fillMaxSize()) {
         ClayTopBar(
@@ -125,16 +127,19 @@ fun PlannerScreen(
                         ClayGroupLabel(stringResource(MealSlot.labelRes(slot)), icon = mealSlotIcon(slot), modifier = Modifier.padding(top = 12.dp))
                     }
                     val slotMeals = dayMeals.filter { it.meal.slot == slot }
+                    val mains = slotMeals.filter { !it.meal.isSide }
+                    val sides = slotMeals.filter { it.meal.isSide }
+
                     if (slotMeals.isEmpty()) {
                         item(key = "empty-$slot") {
                             ClayAddPanel(
                                 text = stringResource(R.string.planner_add_recipe, stringResource(MealSlot.labelRes(slot)).lowercase()),
-                                onClick = { pickerSlot = slot },
+                                onClick = { pickerRequest = PickerRequest(slot, isSide = false) },
                                 accent = if (slot == MealSlot.SNACK) Secondary else MaterialTheme.colorScheme.primary,
                             )
                         }
                     } else {
-                        items(slotMeals, key = { it.meal.id }) { planned ->
+                        items(mains, key = { it.meal.id }) { planned ->
                             PlannedMealRow(
                                 planned = planned,
                                 recipes = recipes,
@@ -142,16 +147,39 @@ fun PlannerScreen(
                                 onRemove = { viewModel.removeMeal(planned.meal.id) },
                             )
                         }
-                        item(key = "add-more-$slot") {
-                            Text(
-                                stringResource(R.string.planner_add_more),
-                                style = MaterialTheme.typography.labelLarge,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier
-                                    .clip(PillShape)
-                                    .clickable { pickerSlot = slot }
-                                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                        items(sides, key = { it.meal.id }) { planned ->
+                            PlannedMealRow(
+                                planned = planned,
+                                recipes = recipes,
+                                onOpen = onRecipeClick,
+                                onRemove = { viewModel.removeMeal(planned.meal.id) },
                             )
+                        }
+                        item(key = "actions-$slot") {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(top = 4.dp),
+                            ) {
+                                Text(
+                                    stringResource(R.string.planner_add_more),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier
+                                        .clip(PillShape)
+                                        .clickable { pickerRequest = PickerRequest(slot, isSide = false) }
+                                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                                )
+                                Text(
+                                    stringResource(R.string.planner_add_side),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.secondary,
+                                    modifier = Modifier
+                                        .clip(PillShape)
+                                        .clickable { pickerRequest = PickerRequest(slot, isSide = true) }
+                                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                                )
+                            }
                         }
                     }
                 }
@@ -171,28 +199,31 @@ fun PlannerScreen(
         }
     }
 
-    pickerSlot?.let { slot ->
+    pickerRequest?.let { req ->
         ModalBottomSheet(
-            onDismissRequest = { pickerSlot = null },
+            onDismissRequest = { pickerRequest = null },
             sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ) {
             RecipePickerSheet(
                 title = stringResource(
                     R.string.planner_add_title,
-                    stringResource(MealSlot.labelRes(slot)),
+                    stringResource(MealSlot.labelRes(req.slot)),
                     selectedDate.dayOfWeek.getDisplayName(TextStyle.FULL, Locale.getDefault()),
                 ),
+                initialIsSide = req.isSide,
                 recipes = recipes,
-                onPick = { recipeId ->
-                    viewModel.addMeal(recipeId, selectedDate.toEpochDay(), slot)
-                    pickerSlot = null
+                onPick = { recipeId, isSide ->
+                    viewModel.addMeal(recipeId, selectedDate.toEpochDay(), req.slot, isSide = isSide)
+                    pickerRequest = null
                 },
-                onClose = { pickerSlot = null },
+                onClose = { pickerRequest = null },
             )
         }
     }
 }
+
+private data class PickerRequest(val slot: String, val isSide: Boolean)
 
 // ---- Week strip ------------------------------------------------------------
 
@@ -322,6 +353,15 @@ private fun PlannedMealRow(
     ClayRecipeRow(
         details = details,
         onClick = { onOpen(recipe.id) },
+        extraBadge = if (planned.meal.isSide) {
+            {
+                ClayChip(
+                    text = stringResource(R.string.planner_side_badge),
+                    container = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
+        } else null,
         trailing = {
             Box {
                 Icon(
@@ -409,30 +449,35 @@ private fun MonthCalendar(
                     )
                 }
             }
-            cells.chunked(7).forEach { week ->
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            val weeks = cells.chunked(7)
+            weeks.forEach { week ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     week.forEach { dayNumber ->
-                        val day = if (dayNumber > 0) first.withDayOfMonth(dayNumber) else null
-                        val dayMeals = day?.let { mealsByDay[it.toEpochDay()] }.orEmpty()
-                        CalendarCell(
-                            day = day,
-                            selected = day == anchor,
-                            planned = dayMeals.any { !it.meal.cooked },
-                            cooked = dayMeals.any { it.meal.cooked },
-                            onClick = { day?.let(onDayClick) },
-                            modifier = Modifier.weight(1f),
-                        )
+                        if (dayNumber == 0) {
+                            Spacer(Modifier.weight(1f))
+                        } else {
+                            val day = first.withDayOfMonth(dayNumber)
+                            val dayMeals = mealsByDay[day.toEpochDay()].orEmpty()
+                            MonthDayCell(
+                                day = day,
+                                selected = day == anchor,
+                                planned = dayMeals.any { !it.meal.cooked },
+                                cooked = dayMeals.any { it.meal.cooked },
+                                onClick = { onDayClick(day) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
                     }
-                    // Pad a short final week so the columns stay aligned.
-                    repeat(7 - week.size) { Box(Modifier.weight(1f)) }
+                    if (week.size < 7) {
+                        repeat(7 - week.size) { Spacer(Modifier.weight(1f)) }
+                    }
                 }
             }
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
             ) {
                 LegendEntry(MaterialTheme.colorScheme.primary, stringResource(R.string.planner_legend_planned))
-                Spacer(Modifier.size(24.dp))
                 LegendEntry(Secondary, stringResource(R.string.planner_legend_cooked))
             }
         }
@@ -440,23 +485,32 @@ private fun MonthCalendar(
 }
 
 @Composable
-private fun CalendarCell(
-    day: LocalDate?,
+private fun MonthDayCell(
+    day: LocalDate,
     selected: Boolean,
     planned: Boolean,
     cooked: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Box(modifier = modifier.height(56.dp), contentAlignment = Alignment.Center) {
-        if (day == null) return@Box
+    Box(
+        modifier = modifier
+            .padding(2.dp)
+            .aspectRatio(1f)
+            .then(
+                if (selected) {
+                    Modifier
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .clayBevel(RoundedCornerShape(14.dp), light = ClayShadow.highlight, dark = ClayShadow.innerAccent)
+                } else {
+                    Modifier
+                }
+            )
+            .clickable(onClick = onClick),
+        contentAlignment = Alignment.Center,
+    ) {
         Column(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(PillShape)
-                .background(if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest)
-                .clayBevel(PillShape, light = ClayShadow.highlight, dark = ClayShadow.insetDark)
-                .clickable(onClick = onClick),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
@@ -486,12 +540,30 @@ private fun LegendEntry(color: Color, label: String) {
 @Composable
 private fun RecipePickerSheet(
     title: String,
+    initialIsSide: Boolean,
     recipes: List<RecipeWithDetails>,
-    onPick: (Long) -> Unit,
+    onPick: (Long, Boolean) -> Unit,
     onClose: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
-    val visible = if (query.isBlank()) recipes else recipes.filter { it.recipe.title.contains(query, ignoreCase = true) }
+    var filterTab by rememberSaveable { mutableStateOf(if (initialIsSide) 2 else 0) }
+    val sideCategories = remember {
+        setOf("Sauce", "Bread", "Side", "Dressing & Marinade", "Base & Broth", "Preserve")
+    }
+
+    val visible = remember(recipes, query, filterTab) {
+        recipes.filter { details ->
+            val matchesQuery = query.isBlank() || details.recipe.title.contains(query, ignoreCase = true)
+            if (!matchesQuery) return@filter false
+
+            val hasSideTag = details.tags.any { it.name in sideCategories }
+            when (filterTab) {
+                1 -> !hasSideTag // Mains
+                2 -> hasSideTag // Sides & Sauces
+                else -> true // All
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -517,6 +589,36 @@ private fun RecipePickerSheet(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
+
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            val tabs = listOf(
+                0 to stringResource(R.string.planner_filter_all),
+                1 to stringResource(R.string.planner_filter_mains),
+                2 to stringResource(R.string.planner_filter_sides),
+            )
+            tabs.forEach { (index, label) ->
+                val selected = filterTab == index
+                Box(
+                    modifier = Modifier
+                        .clip(PillShape)
+                        .background(if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLowest)
+                        .clayBevel(PillShape)
+                        .clickable { filterTab = index }
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                        color = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+
         ClayTextField(
             value = query,
             onValueChange = { query = it },
@@ -537,11 +639,14 @@ private fun RecipePickerSheet(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
                 items(visible, key = { it.recipe.id }) { details ->
+                    val isSideRecipe = details.tags.any { it.name in sideCategories }
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clayCard(container = MaterialTheme.colorScheme.surfaceContainerLowest, cornerRadius = 22.dp)
-                            .clickable { onPick(details.recipe.id) }
+                            .clickable {
+                                onPick(details.recipe.id, initialIsSide || filterTab == 2 || isSideRecipe)
+                            }
                             .padding(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -558,8 +663,16 @@ private fun RecipePickerSheet(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.weight(1f).padding(start = 14.dp),
                         )
-                        val minutes = (details.recipe.prepTimeMinutes ?: 0) + (details.recipe.cookTimeMinutes ?: 0)
-                        if (minutes > 0) ClayChip(stringResource(R.string.time_min, minutes))
+                        if (isSideRecipe) {
+                            ClayChip(
+                                text = stringResource(R.string.planner_side_badge),
+                                container = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            )
+                        } else {
+                            val minutes = (details.recipe.prepTimeMinutes ?: 0) + (details.recipe.cookTimeMinutes ?: 0)
+                            if (minutes > 0) ClayChip(stringResource(R.string.time_min, minutes))
+                        }
                     }
                 }
             }

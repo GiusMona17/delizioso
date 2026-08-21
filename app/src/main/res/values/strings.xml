@@ -163,7 +163,12 @@
     <string name="planner_next_month">Next month</string>
     <string name="planner_add_recipe">Add %1$s recipe</string>
     <string name="planner_add_title">Add %1$s · %2$s</string>
-    <string name="planner_add_more">+ Add another</string>
+    <string name="planner_add_more">+ Add another dish</string>
+    <string name="planner_add_side">+ Add side or sauce</string>
+    <string name="planner_side_badge">Side</string>
+    <string name="planner_filter_all">All</string>
+    <string name="planner_filter_mains">Mains</string>
+    <string name="planner_filter_sides">Sides &amp; Sauces</string>
     <string name="planner_remove">Remove from plan</string>
     <string name="planner_meal_options">Meal options</string>
     <string name="planner_legend_planned">Planned</string>

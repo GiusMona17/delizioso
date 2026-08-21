@@ -71,7 +71,7 @@ class PlannerViewModel(
         _selectedDate.value = _selectedDate.value.plusMonths(delta.toLong())
     }
 
-    fun addMeal(recipeId: Long, epochDay: Long, slot: String = MealSlot.DINNER) {
+    fun addMeal(recipeId: Long, epochDay: Long, slot: String = MealSlot.DINNER, isSide: Boolean = false) {
         viewModelScope.launch {
             repository.addMeal(
                 PlannedMealEntity(
@@ -79,6 +79,7 @@ class PlannerViewModel(
                     dateEpochDay = epochDay,
                     slot = slot,
                     servings = preferences.defaultServings.first(),
+                    isSide = isSide,
                 )
             )
         }

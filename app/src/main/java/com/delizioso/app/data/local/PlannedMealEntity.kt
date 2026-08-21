@@ -31,6 +31,8 @@ data class PlannedMealEntity(
     val servings: Int = 2,
     /** Set once the user finishes cook mode for this meal (drives the planner's "cooked" dot). */
     val cooked: Boolean = false,
+    /** True if this is an attached side dish, sauce, or bread for the slot. */
+    val isSide: Boolean = false,
 )
 
 object MealSlot {

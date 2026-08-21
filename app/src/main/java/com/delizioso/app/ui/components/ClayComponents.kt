@@ -614,6 +614,7 @@ fun ClayRecipeRow(
     details: RecipeWithDetails,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    extraBadge: (@Composable () -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
     Row(
@@ -643,7 +644,11 @@ fun ClayRecipeRow(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
             )
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                extraBadge?.invoke()
                 totalMinutes(details)?.let {
                     ClayChip(stringResource(R.string.time_min, it), icon = Icons.Filled.Schedule)
                 }
