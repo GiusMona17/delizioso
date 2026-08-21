@@ -37,12 +37,14 @@ import androidx.compose.material.icons.filled.IosShare
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Schedule
+import com.delizioso.app.data.hasFixedIngredients
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.TextButton
@@ -351,9 +353,7 @@ fun RecipeDetailScreen(
 
     val baseServings = d.recipe.servings ?: servings
     val factor = if (baseServings > 0 && servings > 0) servings.toDouble() / baseServings else 1.0
-    // Derived, not stored: editing an ingredient can never leave a stale total,
-    // and recipes saved before this existed get their macros for free.
-    val macros = remember(d) { MacroCalculator.of(d.ingredients, d.recipe.servings) }
+    val macros = remember(d) { MacroCalculator.of(d) }
 
     Box(Modifier.fillMaxSize()) {
         Column(
@@ -419,6 +419,41 @@ fun RecipeDetailScreen(
                     onSelect = { tab = it },
                 )
                 if (tab == TAB_INGREDIENTS) {
+                    if (d.hasFixedIngredients()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clayCard(container = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.85f), cornerRadius = 18.dp)
+                                .padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                Icon(
+                                    Icons.Filled.Info,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                                Text(
+                                    text = stringResource(R.string.detail_fixed_ingredients_warning),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
+                                    modifier = Modifier.weight(1f),
+                                )
+                            }
+                            ClayButton(
+                                text = stringResource(R.string.detail_fixed_ingredients_action),
+                                icon = Icons.Filled.AutoAwesome,
+                                onClick = onEdit,
+                                container = MaterialTheme.colorScheme.surfaceContainerLowest,
+                                contentColor = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.fillMaxWidth(),
+                            )
+                        }
+                    }
                     IngredientList(
                         ingredients = d.ingredients.sortedBy { it.position },
                         factor = factor,
@@ -532,10 +567,9 @@ fun RecipeDetailScreen(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
         ) {
             ExportSheet(
+                details = d,
                 markdown = RecipeExport.toMarkdown(d, macros),
                 json = RecipeExport.toJson(d, macros),
-                // Only offered when the original caption was kept: the prompt is
-                // for restructuring that text, not the tidy recipe beside it.
                 caption = d.source?.rawText?.takeIf { it.isNotBlank() },
                 onDone = { showExport = false },
             )
@@ -845,16 +879,18 @@ private fun MacrosPanel(
     }
 }
 
-/**
- * Hand the recipe to something better at open questions than a phone-sized model.
- *
- * Sharing goes through the system chooser, so the user picks the destination —
- * the app never sends the recipe anywhere on its own.
- */
+/** Export options: share plain text, copy Markdown, copy JSON, or copy/send prompt for AI. */
 @Composable
-private fun ExportSheet(markdown: String, json: String, caption: String?, onDone: () -> Unit) {
+private fun ExportSheet(
+    details: RecipeWithDetails,
+    markdown: String,
+    json: String,
+    caption: String?,
+    onDone: () -> Unit,
+) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -909,43 +945,45 @@ private fun ExportSheet(markdown: String, json: String, caption: String?, onDone
             contentColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.fillMaxWidth(),
         )
-        if (caption != null) {
-            val language = java.util.Locale.getDefault().getDisplayLanguage(java.util.Locale.ENGLISH)
-            val prompt = RecipePrompt.forCaption(caption, language)
-            Text(
-                stringResource(R.string.export_prompt_hint),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            ClayButton(
-                text = stringResource(R.string.export_copy_prompt),
-                icon = Icons.Filled.AutoAwesome,
-                onClick = {
-                    clipboard.setText(androidx.compose.ui.text.AnnotatedString(prompt))
-                    onDone()
-                },
-                container = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentColor = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            ClayButton(
-                text = stringResource(R.string.export_share_prompt),
-                icon = Icons.Filled.IosShare,
-                onClick = {
-                    val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(android.content.Intent.EXTRA_TEXT, prompt)
-                    }
-                    context.startActivity(
-                        android.content.Intent.createChooser(send, context.getString(R.string.export_share_prompt))
-                    )
-                    onDone()
-                },
-                container = MaterialTheme.colorScheme.surfaceContainerLow,
-                contentColor = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.fillMaxWidth(),
-            )
+        val language = java.util.Locale.getDefault().getDisplayLanguage(java.util.Locale.ENGLISH)
+        val prompt = if (caption != null) {
+            RecipePrompt.forCaption(caption, language)
+        } else {
+            RecipePrompt.forRecipeWithDetails(details, language)
         }
+        Text(
+            stringResource(R.string.export_enrich_hint),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        ClayButton(
+            text = stringResource(R.string.export_enrich_prompt),
+            icon = Icons.Filled.AutoAwesome,
+            onClick = {
+                clipboard.setText(androidx.compose.ui.text.AnnotatedString(prompt))
+                onDone()
+            },
+            container = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        ClayButton(
+            text = stringResource(R.string.export_share_enrich_prompt),
+            icon = Icons.Filled.IosShare,
+            onClick = {
+                val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(android.content.Intent.EXTRA_TEXT, prompt)
+                }
+                context.startActivity(
+                    android.content.Intent.createChooser(send, context.getString(R.string.export_share_enrich_prompt))
+                )
+                onDone()
+            },
+            container = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

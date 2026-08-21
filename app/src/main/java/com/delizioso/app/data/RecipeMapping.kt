@@ -1,5 +1,6 @@
 package com.delizioso.app.data
 
+import com.delizioso.app.data.import.NutritionInfo
 import com.delizioso.app.data.import.StructuredRecipe
 import com.delizioso.app.data.local.RecipeWithDetails
 
@@ -17,4 +18,12 @@ fun RecipeWithDetails.toStructuredRecipe(): StructuredRecipe = StructuredRecipe(
     ingredients = ingredients.sortedBy { it.position },
     steps = steps.sortedBy { it.position }.map { it.text },
     categories = tags.map { it.name },
+    nutrition = if (recipe.caloriesKcal != null || recipe.proteinG != null || recipe.fatG != null || recipe.carbsG != null) {
+        NutritionInfo(
+            caloriesKcal = recipe.caloriesKcal,
+            proteinG = recipe.proteinG,
+            fatG = recipe.fatG,
+            carbsG = recipe.carbsG,
+        )
+    } else null,
 )

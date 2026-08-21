@@ -77,6 +77,24 @@ object MacroCalculator {
         return of(recipe.ingredients, recipe.servings)
     }
 
+    fun of(details: com.delizioso.app.data.local.RecipeWithDetails): Macros? {
+        val r = details.recipe
+        if (r.caloriesKcal != null || r.proteinG != null || r.fatG != null || r.carbsG != null) {
+            val total = details.ingredients.size
+            return Macros(
+                kcal = r.caloriesKcal ?: 0.0,
+                proteinG = r.proteinG ?: 0.0,
+                fatG = r.fatG ?: 0.0,
+                carbsG = r.carbsG ?: 0.0,
+                matched = total,
+                total = total,
+                perServing = true,
+                unmatched = emptyList(),
+            )
+        }
+        return of(details.ingredients, details.recipe.servings)
+    }
+
     fun of(ingredients: List<IngredientEntity>, servingCount: Int?): Macros? {
         if (ingredients.isEmpty()) return null
         var kcal = 0.0

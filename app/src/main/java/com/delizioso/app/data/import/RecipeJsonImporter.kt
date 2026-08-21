@@ -11,11 +11,6 @@ import kotlinx.serialization.json.JsonPrimitive
  * Reads back the JSON an external assistant was asked for by
  * [com.delizioso.app.data.export.RecipePrompt] — the same shape the app exports,
  * so one format serves both directions.
- *
- * Deliberately forgiving about what arrives: assistants wrap answers in ```json
- * fences, add a sentence before the object, or hand back an ingredient as a plain
- * string instead of the three-field object. None of that is worth an error message
- * the user has to decode.
  */
 object RecipeJsonImporter {
 
@@ -37,13 +32,15 @@ object RecipeJsonImporter {
                     ?.let { IngredientParser.split(it).copy(position = i) }
                 is JsonObject -> {
                     val name = element.str("name") ?: return@mapIndexedNotNull null
+                    val quantity = element.str("quantity")
+                    val unit = element.str("unit")
                     IngredientEntity(
                         recipeId = 0,
                         position = i,
-                        quantity = element.str("quantity"),
-                        unit = element.str("unit"),
+                        quantity = quantity,
+                        unit = unit,
                         name = name,
-                        rawText = listOfNotNull(element.str("quantity"), element.str("unit"), name)
+                        rawText = listOfNotNull(quantity, unit, name)
                             .joinToString(" ")
                             .trim(),
                     )
@@ -56,6 +53,16 @@ object RecipeJsonImporter {
 
         if (ingredients.isEmpty() && steps.isEmpty()) return null
 
+        val nutritionObj = obj["nutrition"] as? JsonObject
+        val nutrition = if (nutritionObj != null) {
+            NutritionInfo(
+                caloriesKcal = nutritionObj.double("caloriesKcal") ?: nutritionObj.double("calories"),
+                proteinG = nutritionObj.double("proteinG") ?: nutritionObj.double("protein"),
+                fatG = nutritionObj.double("fatG") ?: nutritionObj.double("fat"),
+                carbsG = nutritionObj.double("carbsG") ?: nutritionObj.double("carbs") ?: nutritionObj.double("carbohydrates"),
+            ).takeIf { it.caloriesKcal != null || it.proteinG != null || it.fatG != null || it.carbsG != null }
+        } else null
+
         return StructuredRecipe(
             title = obj.str("title"),
             description = obj.str("description"),
@@ -67,6 +74,7 @@ object RecipeJsonImporter {
             categories = Categories.canonicalise(
                 (obj["tags"] as? JsonArray).orEmpty().mapNotNull { (it as? JsonPrimitive)?.content }
             ),
+            nutrition = nutrition,
         )
     }
 
@@ -84,4 +92,6 @@ object RecipeJsonImporter {
         (this[key] as? JsonPrimitive)?.content?.trim()?.takeIf { it.isNotEmpty() && it != "null" }
 
     private fun JsonObject.int(key: String): Int? = str(key)?.toDoubleOrNull()?.toInt()?.takeIf { it > 0 }
+
+    private fun JsonObject.double(key: String): Double? = str(key)?.toDoubleOrNull()?.takeIf { it >= 0 }
 }

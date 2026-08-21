@@ -297,6 +297,10 @@ class ImportViewModel(
             prepTimeMinutes = recipe.prepTimeMinutes,
             cookTimeMinutes = recipe.cookTimeMinutes,
             imageUri = photoPath,
+            caloriesKcal = recipe.nutrition?.caloriesKcal,
+            proteinG = recipe.nutrition?.proteinG,
+            fatG = recipe.nutrition?.fatG,
+            carbsG = recipe.nutrition?.carbsG,
         )
         val ingredients = recipe.ingredients.mapIndexed { i, ing -> ing.copy(recipeId = 0, position = i) }
         val steps = recipe.steps.mapIndexed { i, s -> StepEntity(recipeId = 0, position = i + 1, text = s) }

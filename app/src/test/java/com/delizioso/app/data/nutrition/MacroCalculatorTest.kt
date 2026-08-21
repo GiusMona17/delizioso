@@ -73,4 +73,28 @@ class MacroCalculatorTest {
         assertEquals(371.0 + 18.0, macros.kcal, 0.01)
         assertTrue(!macros.perServing)
     }
+
+    @Test
+    fun `stored AI macros take priority over ingredient calculation`() {
+        val details = com.delizioso.app.data.local.RecipeWithDetails(
+            recipe = com.delizioso.app.data.local.RecipeEntity(
+                title = "Carbonara",
+                servings = 4,
+                caloriesKcal = 550.0,
+                proteinG = 26.0,
+                fatG = 24.0,
+                carbsG = 60.0,
+            ),
+            ingredients = listOf(
+                com.delizioso.app.data.local.IngredientEntity(recipeId = 0, position = 0, name = "spaghetti", quantity = "320", unit = "g")
+            ),
+            steps = emptyList(),
+        )
+        val macros = MacroCalculator.of(details)!!
+        assertEquals(550.0, macros.kcal, 0.01)
+        assertEquals(26.0, macros.proteinG, 0.01)
+        assertEquals(24.0, macros.fatG, 0.01)
+        assertEquals(60.0, macros.carbsG, 0.01)
+        assertTrue(macros.perServing)
+    }
 }

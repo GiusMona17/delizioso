@@ -201,13 +201,19 @@ fun EditRecipeScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
             modifier = Modifier.weight(1f),
         ) {
-            if (caption != null) {
-                item {
-                    AiRoundTripCard(
-                        caption = caption!!,
-                        onPasteJson = { showJsonPaste = true },
-                    )
-                }
+            item {
+                val draft = form.toStructuredRecipe()
+                AiRoundTripCard(
+                    onGeneratePrompt = {
+                        val language = java.util.Locale.getDefault().getDisplayLanguage(java.util.Locale.ENGLISH)
+                        if (caption != null) {
+                            RecipePrompt.forCaption(caption!!, language)
+                        } else {
+                            RecipePrompt.forRecipe(draft, language)
+                        }
+                    },
+                    onPasteJson = { showJsonPaste = true },
+                )
             }
             item {
                 val draft = form.toStructuredRecipe()
@@ -237,19 +243,16 @@ fun EditRecipeScreen(
 }
 
 /**
- * Hand this recipe's original caption to an outside assistant, and take the
- * result back into *this* recipe.
- *
- * The import screen can do the same round trip, but it creates a new recipe —
- * which loses the source link and the imported photo. Here the recipe already
- * exists and only its fields are replaced.
+ * Hand this recipe to an outside assistant (ChatGPT, Claude, Gemini) and take
+ * the structured result back into *this* recipe.
  */
 @Composable
-private fun AiRoundTripCard(caption: String, onPasteJson: () -> Unit) {
+private fun AiRoundTripCard(
+    onGeneratePrompt: () -> String,
+    onPasteJson: () -> Unit,
+) {
     val clipboard = LocalClipboardManager.current
     val context = LocalContext.current
-    val language = java.util.Locale.getDefault().getDisplayLanguage(java.util.Locale.ENGLISH)
-    val prompt = RecipePrompt.forCaption(caption, language)
 
     Column(
         modifier = Modifier
@@ -272,7 +275,7 @@ private fun AiRoundTripCard(caption: String, onPasteJson: () -> Unit) {
             ClayButton(
                 text = stringResource(R.string.edit_ai_copy),
                 icon = Icons.Filled.AutoAwesome,
-                onClick = { clipboard.setText(AnnotatedString(prompt)) },
+                onClick = { clipboard.setText(AnnotatedString(onGeneratePrompt())) },
                 container = MaterialTheme.colorScheme.surfaceContainer,
                 contentColor = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f),
@@ -281,6 +284,7 @@ private fun AiRoundTripCard(caption: String, onPasteJson: () -> Unit) {
                 text = stringResource(R.string.edit_ai_send),
                 icon = Icons.Filled.IosShare,
                 onClick = {
+                    val prompt = onGeneratePrompt()
                     val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
                         type = "text/plain"
                         putExtra(android.content.Intent.EXTRA_TEXT, prompt)

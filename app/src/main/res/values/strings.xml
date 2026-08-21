@@ -339,6 +339,11 @@
     <string name="edit_ai_paste_failed">That is not the expected JSON. Paste the whole answer, fences and all.</string>
     <string name="edit_ai_paste_placeholder">Paste here…</string>
     <string name="edit_ai_paste_apply">Apply</string>
+    <string name="detail_fixed_ingredients_warning">Some ingredient quantities are fixed and cannot scale with portions. Use AI enrichment to structure them.</string>
+    <string name="detail_fixed_ingredients_action">Enrich with AI</string>
+    <string name="export_enrich_prompt">Copy AI enrichment prompt</string>
+    <string name="export_share_enrich_prompt">Send AI enrichment prompt</string>
+    <string name="export_enrich_hint">Ask an external AI (ChatGPT, Claude, Gemini) to extract macros, prep/cook times, portions, and scaleable quantities.</string>
     <string name="import_search_title">Search online</string>
     <string name="import_search_body">Find recipes by name or ingredients across active portals (GialloZafferano, TheMealDB, Cookist, etc.).</string>
     <string name="import_search_open">Search online</string>

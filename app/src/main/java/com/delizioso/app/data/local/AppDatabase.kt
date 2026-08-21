@@ -17,7 +17,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         SourceEntity::class,
         PlannedMealEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -95,9 +95,19 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v4 → v5: add caloriesKcal, proteinG, fatG, carbsG columns for AI/stored macros. */
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `recipes` ADD COLUMN `caloriesKcal` REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE `recipes` ADD COLUMN `proteinG` REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE `recipes` ADD COLUMN `fatG` REAL DEFAULT NULL")
+                db.execSQL("ALTER TABLE `recipes` ADD COLUMN `carbsG` REAL DEFAULT NULL")
+            }
+        }
+
         fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "delizioso.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                 // Safety net only; every version bump so far ships a real migration.
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()

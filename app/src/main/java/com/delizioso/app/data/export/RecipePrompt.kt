@@ -1,23 +1,26 @@
 package com.delizioso.app.data.export
 
+import com.delizioso.app.data.import.StructuredRecipe
+import com.delizioso.app.data.local.RecipeWithDetails
+
 /**
- * The prompt handed to an external assistant to restructure a messy caption.
- *
- * Every account writes its ingredients and method differently — bullets, emoji,
- * run-on paragraphs, three languages — and the deterministic parser only wins
- * when the caption declares its own sections. Rather than grow a model inside the
- * app for the rest, this hands the raw text to whichever assistant the user
- * already has and asks for it back in the shape the app imports.
- *
- * The requested JSON is deliberately the same shape [RecipeExport.toJson] emits,
- * so there is one format in the app rather than two, and a recipe exported from
- * here can be fed straight back in.
+ * The prompt handed to an external AI assistant to structure, enrich, and calculate
+ * recipe metadata (macros, preparation & cooking time, portions, scaleable ingredients).
  */
 object RecipePrompt {
 
-    fun forCaption(caption: String, targetLanguage: String): String = buildString {
-        appendLine("Below is the description of a recipe, copied from social media.")
-        appendLine("Reorganise it and return ONLY a JSON object — no markdown, no commentary —")
+    fun forCaption(caption: String, targetLanguage: String): String =
+        buildPrompt(caption.trim(), targetLanguage)
+
+    fun forRecipe(recipe: StructuredRecipe, targetLanguage: String): String =
+        buildPrompt(recipe.toPlainText().trim(), targetLanguage)
+
+    fun forRecipeWithDetails(details: RecipeWithDetails, targetLanguage: String): String =
+        buildPrompt(RecipeExport.toMarkdown(details).trim(), targetLanguage)
+
+    private fun buildPrompt(recipeContent: String, targetLanguage: String): String = buildString {
+        appendLine("Below is the text/description of a recipe.")
+        appendLine("Enrich, structure, and convert it into a valid JSON object — no markdown, no commentary —")
         appendLine("in exactly this shape:")
         appendLine()
         appendLine(SCHEMA)
@@ -25,28 +28,38 @@ object RecipePrompt {
         appendLine("Rules:")
         appendLine("- Write every field in $targetLanguage.")
         appendLine("- Convert imperial amounts to grams, millilitres and °C.")
-        appendLine("- Split \"quantity\", \"unit\" and \"name\": {\"quantity\":\"200\",\"unit\":\"g\",\"name\":\"farina\"}.")
-        appendLine("  Use null for quantity or unit when the text gives none.")
-        appendLine("- \"steps\": one instruction per entry, in order, without numbering.")
-        appendLine("- Drop hashtags, greetings, calls to action and anything about the account.")
-        appendLine("- Never invent an ingredient, a time or a temperature that is not in the text.")
-        appendLine("- \"title\": the name of the dish. If the text never names it, describe it in a few words.")
-        appendLine("- \"servings\", \"prepTimeMinutes\", \"cookTimeMinutes\": numbers, or null when unstated.")
+        appendLine("- Split \"quantity\", \"unit\" and \"name\": e.g. {\"quantity\":\"320\",\"unit\":\"g\",\"name\":\"spaghetti\"}.")
+        appendLine("  Ensure \"quantity\" is a clean numeric string (or fraction like \"1/2\") so the app can scale portions mathematically.")
+        appendLine("  For qualitative ingredients (to taste), use null quantity and \"q.b.\" as unit: {\"quantity\":null,\"unit\":\"q.b.\",\"name\":\"sale\"}.")
+        appendLine("- \"servings\": number of portions (e.g. 4). If unstated in text, provide a realistic estimate (e.g. 2 or 4).")
+        appendLine("- \"prepTimeMinutes\" and \"cookTimeMinutes\": integer numbers in minutes.")
+        appendLine("- \"nutrition\": calculated or stated macros per serving (caloriesKcal, proteinG, fatG, carbsG as numbers).")
+        appendLine("- \"steps\": one clear instruction per entry, in order, without numbering.")
+        appendLine("- \"title\": the clear name of the dish.")
         appendLine("- \"tags\": at most 3, chosen from: $TAGS")
         appendLine()
-        appendLine("--- RECIPE TEXT ---")
-        appendLine(caption.trim())
+        appendLine("--- RECIPE CONTENT ---")
+        appendLine(recipeContent)
     }
 
     private const val SCHEMA = """{
   "title": "",
   "description": "",
-  "servings": null,
-  "prepTimeMinutes": null,
-  "cookTimeMinutes": null,
+  "servings": 4,
+  "prepTimeMinutes": 15,
+  "cookTimeMinutes": 20,
   "tags": [],
-  "ingredients": [{"quantity": "", "unit": "", "name": ""}],
-  "steps": [""]
+  "ingredients": [
+    {"quantity": "320", "unit": "g", "name": "spaghetti"},
+    {"quantity": null, "unit": "q.b.", "name": "sale"}
+  ],
+  "steps": [""],
+  "nutrition": {
+    "caloriesKcal": 450,
+    "proteinG": 22,
+    "fatG": 18,
+    "carbsG": 55
+  }
 }"""
 
     private val TAGS: String

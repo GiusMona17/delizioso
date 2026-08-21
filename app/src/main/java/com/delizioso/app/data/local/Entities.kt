@@ -18,8 +18,10 @@ data class RecipeEntity(
     val imageUri: String? = null,
     val notes: String? = null,
     val isFavorite: Boolean = false,
-    // Macros are not stored: they are summed from the ingredients on the fly by
-    // MacroCalculator, so an edit can never leave a stale total behind.
+    val caloriesKcal: Double? = null,
+    val proteinG: Double? = null,
+    val fatG: Double? = null,
+    val carbsG: Double? = null,
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
 )

@@ -51,6 +51,7 @@ class RecipeFormState(
     ingredients: List<String> = listOf(""),
     steps: List<String> = listOf(""),
     categories: List<String> = emptyList(),
+    nutrition: com.delizioso.app.data.import.NutritionInfo? = null,
 ) {
     var title by mutableStateOf(title)
     var description by mutableStateOf(description)
@@ -60,6 +61,7 @@ class RecipeFormState(
     var ingredients by mutableStateOf(ingredients)
     var steps by mutableStateOf(steps)
     var categories by mutableStateOf(categories)
+    var nutrition by mutableStateOf(nutrition)
 
     val isValid: Boolean
         get() = title.isNotBlank() && ingredients.any { it.isNotBlank() } && steps.any { it.isNotBlank() }
@@ -82,6 +84,9 @@ class RecipeFormState(
         ingredients = draft.ingredients.map { it.rawText ?: it.name }.ifEmpty { listOf("") }
         steps = draft.steps.ifEmpty { listOf("") }
         categories = Categories.canonicalise(draft.categories)
+        if (draft.nutrition != null) {
+            nutrition = draft.nutrition
+        }
     }
 
     fun toStructuredRecipe(): StructuredRecipe = StructuredRecipe(
@@ -93,6 +98,7 @@ class RecipeFormState(
         ingredients = ingredients.map { IngredientParser.split(it) }.filter { it.name.isNotBlank() },
         steps = steps.filter { it.isNotBlank() },
         categories = Categories.canonicalise(categories),
+        nutrition = nutrition,
     )
 
     fun categoryList(): List<String> = Categories.canonicalise(categories)
@@ -101,10 +107,33 @@ class RecipeFormState(
 @Composable
 fun rememberRecipeFormState(): RecipeFormState = rememberSaveable(saver = RecipeFormSaver) { RecipeFormState() }
 
-private val RecipeFormSaver = androidx.compose.runtime.saveable.listSaver<RecipeFormState, Any>(
-    save = { listOf(it.title, it.description, it.servings, it.prep, it.cook, it.ingredients, it.steps, it.categories) },
+private val RecipeFormSaver = androidx.compose.runtime.saveable.listSaver<RecipeFormState, Any?>(
+    save = {
+        listOf(
+            it.title,
+            it.description,
+            it.servings,
+            it.prep,
+            it.cook,
+            it.ingredients,
+            it.steps,
+            it.categories,
+            it.nutrition?.caloriesKcal,
+            it.nutrition?.proteinG,
+            it.nutrition?.fatG,
+            it.nutrition?.carbsG,
+        )
+    },
     restore = {
         @Suppress("UNCHECKED_CAST")
+        val calories = it[8] as? Double
+        val protein = it[9] as? Double
+        val fat = it[10] as? Double
+        val carbs = it[11] as? Double
+        val nutrition = if (calories != null || protein != null || fat != null || carbs != null) {
+            com.delizioso.app.data.import.NutritionInfo(calories, protein, fat, carbs)
+        } else null
+
         RecipeFormState(
             title = it[0] as String,
             description = it[1] as String,
@@ -114,6 +143,7 @@ private val RecipeFormSaver = androidx.compose.runtime.saveable.listSaver<Recipe
             ingredients = it[5] as List<String>,
             steps = it[6] as List<String>,
             categories = it[7] as List<String>,
+            nutrition = nutrition,
         )
     },
 )

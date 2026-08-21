@@ -335,10 +335,15 @@
     <string name="edit_ai_send">Manda il prompt</string>
     <string name="edit_ai_paste">Incolla il JSON</string>
     <string name="edit_ai_paste_title">Incolla la risposta</string>
-    <string name="edit_ai_paste_body">Incolla il JSON restituito dall\'assistente. Cambiano solo i campi della ricetta.</string>
-    <string name="edit_ai_paste_failed">Non è il JSON atteso. Incolla tutta la risposta, virgolette e apici inclusi.</string>
+    <string name="edit_ai_paste_body">Incolla il JSON restituito dall\'assistente. Solo i campi della ricetta verranno aggiornati.</string>
+    <string name="edit_ai_paste_failed">Questo non è il JSON atteso. Incolla l\'intera risposta, inclusi i blocchi di codice.</string>
     <string name="edit_ai_paste_placeholder">Incolla qui…</string>
     <string name="edit_ai_paste_apply">Applica</string>
+    <string name="detail_fixed_ingredients_warning">Alcuni ingredienti hanno quantità fisse e non variano con le porzioni. Usa l\'arricchimento AI per strutturarli.</string>
+    <string name="detail_fixed_ingredients_action">Arricchisci con AI</string>
+    <string name="export_enrich_prompt">Copia prompt arricchimento AI</string>
+    <string name="export_share_enrich_prompt">Invia prompt arricchimento AI</string>
+    <string name="export_enrich_hint">Chiedi a un\'AI esterna (ChatGPT, Claude, Gemini) di estrarre macro, tempi di prep/cottura, porzioni e quantità scalabili.</string>
     <string name="import_search_title">Cerca online</string>
     <string name="import_search_body">Trova ricette per nome o ingredienti tra i portali attivi (GialloZafferano, TheMealDB, Cookist, ecc.).</string>
     <string name="import_search_open">Cerca online</string>
