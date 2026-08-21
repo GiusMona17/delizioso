@@ -240,6 +240,30 @@
     <string name="nutrition_target_reached">Target Reached</string>
     <string name="nutrition_daily_average">Daily Average</string>
     <string name="nutrition_macro_split">Macro Split</string>
+
+    <!-- Pantry -->
+    <string name="pantry_title">Smart Pantry</string>
+    <string name="pantry_in_stock">In Stock (%1$d)</string>
+    <string name="pantry_out_of_stock">Out of Stock (%1$d)</string>
+    <string name="pantry_add_item">Add to Pantry</string>
+    <string name="pantry_add_staple">Quick Staples</string>
+    <string name="pantry_name_label">Ingredient Name</string>
+    <string name="pantry_quantity_label">Quantity (optional)</string>
+    <string name="pantry_cat_all">All</string>
+    <string name="pantry_cat_produce">Produce</string>
+    <string name="pantry_cat_dairy">Dairy &amp; Eggs</string>
+    <string name="pantry_cat_meat">Meat &amp; Fish</string>
+    <string name="pantry_cat_pantry">Pantry &amp; Grains</string>
+    <string name="pantry_cat_spices">Spices &amp; Oils</string>
+    <string name="pantry_empty_title">Your pantry is empty</string>
+    <string name="pantry_empty_subtitle">Add items you have at home to see what you can cook!</string>
+    <string name="pantry_clear_out">Clear Out-of-Stock</string>
+    <string name="pantry_ready_to_cook">Ready to cook</string>
+    <string name="pantry_match_count">%1$d/%2$d items</string>
+    <string name="pantry_missing_count">Missing %1$d item</string>
+    <string name="pantry_missing_count_many">Missing %1$d items</string>
+    <string name="home_cook_with_pantry">Cook With What You Have</string>
+    <string name="home_pantry_action">Pantry</string>
     <string name="profile_servings_section">Default servings</string>
     <string name="profile_servings_desc">Used when planning a meal</string>
     <string name="profile_servings_fewer">Fewer servings</string>

@@ -51,6 +51,7 @@ object Routes {
     const val IMPORT_PREVIEW = "importPreview"
     const val IMPORT_SEARCH = "importSearch"
     const val GROCERY = "grocery"
+    const val PANTRY = "pantry"
     const val RECIPE_SOURCES = "profile/sources"
     const val COOK = "cook/{recipeId}"
     const val COOK_COMPLETE = "cookComplete/{recipeId}"

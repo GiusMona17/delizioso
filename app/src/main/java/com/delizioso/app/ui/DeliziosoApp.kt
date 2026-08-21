@@ -193,6 +193,9 @@ fun DeliziosoApp(
             composable(Routes.PROFILE) {
                 ProfileScreen(onOpenRecipeSources = { navController.navigate(Routes.RECIPE_SOURCES) })
             }
+            composable(Routes.PANTRY) {
+                com.delizioso.app.ui.screens.pantry.PantryScreen(onBack = { navController.popBackStack() })
+            }
             composable(Routes.RECIPE_SOURCES) {
                 RecipeSourcesScreen(onBack = { navController.popBackStack() })
             }

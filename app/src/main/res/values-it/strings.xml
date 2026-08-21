@@ -235,11 +235,33 @@
     <string name="profile_nutrition_carbs">Carboidrati (g)</string>
     <string name="profile_nutrition_fat">Grassi (g)</string>
     <string name="profile_nutrition_reset">Ripristina</string>
-    <string name="nutrition_daily_recap">Nutrizione giornaliera</string>
-    <string name="nutrition_weekly_recap">Nutrizione settimanale</string>
     <string name="nutrition_target_reached">Obiettivo raggiunto</string>
     <string name="nutrition_daily_average">Media giornaliera</string>
     <string name="nutrition_macro_split">Ripartizione energetica</string>
+
+    <!-- Dispensa -->
+    <string name="pantry_title">Dispensa Smart</string>
+    <string name="pantry_in_stock">Disponibili (%1$d)</string>
+    <string name="pantry_out_of_stock">Esauriti (%1$d)</string>
+    <string name="pantry_add_item">Aggiungi alla dispensa</string>
+    <string name="pantry_add_staple">Basi della dispensa</string>
+    <string name="pantry_name_label">Nome ingrediente</string>
+    <string name="pantry_quantity_label">Quantità (opzionale)</string>
+    <string name="pantry_cat_all">Tutti</string>
+    <string name="pantry_cat_produce">Ortofrutta</string>
+    <string name="pantry_cat_dairy">Latticini e uova</string>
+    <string name="pantry_cat_meat">Carne e pesce</string>
+    <string name="pantry_cat_pantry">Dispensa e cereali</string>
+    <string name="pantry_cat_spices">Spezie e oli</string>
+    <string name="pantry_empty_title">La tua dispensa è vuota</string>
+    <string name="pantry_empty_subtitle">Aggiungi gli ingredienti che hai a casa per vedere cosa cucinare!</string>
+    <string name="pantry_clear_out">Rimuovi esauriti</string>
+    <string name="pantry_ready_to_cook">Pronto da cucinare</string>
+    <string name="pantry_match_count">%1$d/%2$d ingredienti</string>
+    <string name="pantry_missing_count">Manca %1$d ingrediente</string>
+    <string name="pantry_missing_count_many">Mancano %1$d ingredienti</string>
+    <string name="home_cook_with_pantry">Cucina con quello che hai</string>
+    <string name="home_pantry_action">Dispensa</string>
     <string name="profile_servings_section">Porzioni predefinite</string>
     <string name="profile_servings_desc">Usate per pianificare un pasto</string>
     <string name="profile_servings_fewer">Meno porzioni</string>
