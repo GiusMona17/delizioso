@@ -89,6 +89,7 @@ fun DeliziosoApp(
                     onOpenImport = { navController.navigate(Routes.IMPORT) },
                     onCreateRecipe = { navController.navigate(Routes.CREATE) },
                     onOpenGrocery = { navController.navigate(Routes.GROCERY) },
+                    onOpenPantry = { navController.navigate(Routes.PANTRY) },
                     onProfileClick = { navController.navigate(Routes.PROFILE) },
                 )
             }

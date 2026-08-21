@@ -9,11 +9,14 @@ import com.delizioso.app.DeliziosoApplication
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.local.MealSlot
 import com.delizioso.app.data.local.NutritionGoals
+import com.delizioso.app.data.local.PantryItemEntity
 import com.delizioso.app.data.local.PlannedMealWithRecipe
 import com.delizioso.app.data.local.RecipeWithDetails
 import com.delizioso.app.data.local.UserPreferences
 import com.delizioso.app.data.nutrition.DayNutritionRecap
 import com.delizioso.app.data.nutrition.NutritionAggregator
+import com.delizioso.app.data.pantry.PantryMatcher
+import com.delizioso.app.data.pantry.RecipePantryMatch
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -51,6 +54,8 @@ data class HomeUiState(
     val dailyNutrition: DayNutritionRecap = DayNutritionRecap(date = LocalDate.now()),
     val nutritionGoals: NutritionGoals? = null,
     val dailyInspiration: RecipeWithDetails? = null,
+    val pantryMatches: List<RecipePantryMatch> = emptyList(),
+    val inStockPantryCount: Int = 0,
     val recentRecipes: List<RecipeWithDetails> = emptyList(),
     val weekOverview: List<DayOverview> = emptyList(),
     val totalRecipeCount: Int = 0,
@@ -69,7 +74,8 @@ class HomeViewModel(
         repository.allWithDetails,
         repository.mealsBetween(monday.toEpochDay(), monday.plusDays(6).toEpochDay()),
         preferences.nutritionGoals,
-    ) { allRecipes, weekMeals, goals ->
+        repository.pantryItems,
+    ) { allRecipes, weekMeals, goals, pantryItems ->
         val hour = LocalTime.now().hour
 
         val greeting = when {
@@ -106,6 +112,13 @@ class HomeViewModel(
             )
         }
 
+        val inStock = pantryItems.filter { it.inStock }
+        val pantryMatches = if (inStock.isNotEmpty() && allRecipes.isNotEmpty()) {
+            PantryMatcher.rank(allRecipes, inStock)
+                .filter { it.matchPercentage >= 40 }
+                .take(6)
+        } else emptyList()
+
         val inspiration = if (allRecipes.isNotEmpty()) {
             val seedIndex = ((today.toEpochDay().hashCode() and 0x7FFFFFFF) % allRecipes.size)
             allRecipes[seedIndex]
@@ -133,6 +146,8 @@ class HomeViewModel(
             dailyNutrition = dailyNutrition,
             nutritionGoals = goals,
             dailyInspiration = inspiration,
+            pantryMatches = pantryMatches,
+            inStockPantryCount = inStock.size,
             recentRecipes = recents,
             weekOverview = days,
             totalRecipeCount = allRecipes.size,

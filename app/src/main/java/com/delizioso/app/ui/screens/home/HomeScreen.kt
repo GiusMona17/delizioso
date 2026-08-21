@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.AddCircleOutline
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Inventory2
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Schedule
@@ -73,6 +74,7 @@ fun HomeScreen(
     onOpenImport: () -> Unit,
     onCreateRecipe: () -> Unit,
     onOpenGrocery: () -> Unit,
+    onOpenPantry: () -> Unit,
     onProfileClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = viewModel(factory = HomeViewModel.Factory),
@@ -126,11 +128,21 @@ fun HomeScreen(
             QuickActionsSection(
                 onCreateRecipe = onCreateRecipe,
                 onOpenImport = onOpenImport,
-                onOpenPlanner = onOpenPlanner,
+                onOpenPantry = onOpenPantry,
                 onOpenGrocery = onOpenGrocery,
             )
 
-            // 5. Daily Inspiration
+            // 6. Cook With What You Have (Smart Pantry Matches)
+            if (state.pantryMatches.isNotEmpty()) {
+                CookWithPantrySection(
+                    matches = state.pantryMatches,
+                    pantryCount = state.inStockPantryCount,
+                    onRecipeClick = onRecipeClick,
+                    onOpenPantry = onOpenPantry,
+                )
+            }
+
+            // 7. Daily Inspiration
             state.dailyInspiration?.let { inspiration ->
                 DailyInspirationCard(
                     details = inspiration,
@@ -138,7 +150,7 @@ fun HomeScreen(
                 )
             }
 
-            // 6. Recent Recipes
+            // 8. Recent Recipes
             if (state.recentRecipes.isNotEmpty()) {
                 RecentRecipesSection(
                     recipes = state.recentRecipes,
@@ -435,7 +447,7 @@ private fun UpcomingMealHero(
 private fun QuickActionsSection(
     onCreateRecipe: () -> Unit,
     onOpenImport: () -> Unit,
-    onOpenPlanner: () -> Unit,
+    onOpenPantry: () -> Unit,
     onOpenGrocery: () -> Unit,
 ) {
     Column(
@@ -468,9 +480,9 @@ private fun QuickActionsSection(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
             QuickActionTile(
-                title = stringResource(R.string.home_action_planner),
-                icon = Icons.Filled.CalendarMonth,
-                onClick = onOpenPlanner,
+                title = stringResource(R.string.home_pantry_action),
+                icon = Icons.Filled.Inventory2,
+                onClick = onOpenPantry,
                 modifier = Modifier.weight(1f),
             )
             QuickActionTile(
@@ -479,6 +491,125 @@ private fun QuickActionsSection(
                 onClick = onOpenGrocery,
                 modifier = Modifier.weight(1f),
             )
+        }
+    }
+}
+
+@Composable
+private fun CookWithPantrySection(
+    matches: List<com.delizioso.app.data.pantry.RecipePantryMatch>,
+    pantryCount: Int,
+    onRecipeClick: (Long) -> Unit,
+    onOpenPantry: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Icon(
+                    Icons.Filled.Inventory2,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp),
+                )
+                Text(
+                    stringResource(R.string.home_cook_with_pantry),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+            Text(
+                stringResource(R.string.home_pantry_action),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .clip(PillShape)
+                    .clickable(onClick = onOpenPantry)
+                    .padding(horizontal = 8.dp, vertical = 4.dp),
+            )
+        }
+
+        LazyRow(
+            contentPadding = PaddingValues(horizontal = 20.dp),
+            horizontalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            items(matches, key = { it.details.recipe.id }) { match ->
+                Column(
+                    modifier = Modifier
+                        .width(180.dp)
+                        .clayCard(container = MaterialTheme.colorScheme.surfaceContainer, cornerRadius = 24.dp)
+                        .clickable { onRecipeClick(match.details.recipe.id) }
+                        .padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth().height(110.dp)) {
+                        RecipeImage(
+                            match.details.recipe.imageUri,
+                            placeholderIconSize = 32.dp,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(16.dp)),
+                        )
+                        Box(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(6.dp)
+                                .clip(PillShape)
+                                .background(
+                                    if (match.isReadyToCook) Color(0xFF2E7D32)
+                                    else MaterialTheme.colorScheme.primaryContainer
+                                )
+                                .padding(horizontal = 8.dp, vertical = 3.dp),
+                        ) {
+                            Text(
+                                if (match.isReadyToCook) "✨ " + stringResource(R.string.pantry_ready_to_cook)
+                                else "${match.matchPercentage}%",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = if (match.isReadyToCook) Color.White else MaterialTheme.colorScheme.onPrimaryContainer,
+                            )
+                        }
+                    }
+
+                    Text(
+                        match.details.recipe.title,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+
+                    Text(
+                        if (match.isReadyToCook) {
+                            stringResource(R.string.pantry_match_count, match.totalIngredients, match.totalIngredients)
+                        } else {
+                            if (match.missingIngredients.size == 1) {
+                                stringResource(R.string.pantry_missing_count, 1)
+                            } else {
+                                stringResource(R.string.pantry_missing_count_many, match.missingIngredients.size)
+                            }
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
         }
     }
 }
