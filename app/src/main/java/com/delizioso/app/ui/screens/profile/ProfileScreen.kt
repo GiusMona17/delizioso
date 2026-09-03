@@ -28,6 +28,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +53,7 @@ import com.delizioso.app.DeliziosoApplication
 import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.ai.GemmaEngine
 import com.delizioso.app.data.backup.BackupManager
+import com.delizioso.app.data.import.InstagramSessionManager
 import com.delizioso.app.data.local.NutritionGoals
 import com.delizioso.app.data.local.ThemeMode
 import com.delizioso.app.data.local.UserPreferences
@@ -164,6 +166,18 @@ class ProfileViewModel(
 
     fun setYouTubeApiKey(value: String) = viewModelScope.launch { preferences.setYouTubeApiKey(value.trim()) }
 
+    private val _instagramLoggedIn = MutableStateFlow(InstagramSessionManager.isLoggedIn())
+    val instagramLoggedIn: StateFlow<Boolean> = _instagramLoggedIn.asStateFlow()
+
+    fun refreshInstagramStatus() {
+        _instagramLoggedIn.value = InstagramSessionManager.isLoggedIn()
+    }
+
+    fun disconnectInstagram() {
+        InstagramSessionManager.clearSession()
+        _instagramLoggedIn.value = false
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
@@ -182,6 +196,7 @@ class ProfileViewModel(
 @Composable
 fun ProfileScreen(
     onOpenRecipeSources: () -> Unit = {},
+    onConnectInstagram: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory),
 ) {
@@ -192,6 +207,18 @@ fun ProfileScreen(
     val backupState by viewModel.backup.collectAsStateWithLifecycle()
     val themeMode by viewModel.themeMode.collectAsStateWithLifecycle()
     val nutritionGoals by viewModel.nutritionGoals.collectAsStateWithLifecycle()
+    val instagramLoggedIn by viewModel.instagramLoggedIn.collectAsStateWithLifecycle()
+
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshInstagramStatus()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     var apiKey by rememberSaveable { mutableStateOf("") }
     var apiKeyLoaded by rememberSaveable { mutableStateOf(false) }
@@ -430,6 +457,47 @@ fun ProfileScreen(
                             placeholder = "AIza…",
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         )
+                    }
+                }
+            }
+
+            item {
+                SettingsCard(title = stringResource(R.string.profile_social_section)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Column(modifier = Modifier.weight(1f).padding(end = 12.dp)) {
+                            Text(
+                                text = stringResource(R.string.source_instagram),
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                text = stringResource(
+                                    if (instagramLoggedIn) R.string.instagram_connected
+                                    else R.string.instagram_not_connected
+                                ),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (instagramLoggedIn) MaterialTheme.colorScheme.primary
+                                else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        if (instagramLoggedIn) {
+                            ClayButton(
+                                text = stringResource(R.string.instagram_disconnect),
+                                onClick = viewModel::disconnectInstagram,
+                                container = MaterialTheme.colorScheme.surfaceContainerHighest,
+                                contentColor = MaterialTheme.colorScheme.error,
+                            )
+                        } else {
+                            ClayButton(
+                                text = stringResource(R.string.instagram_connect),
+                                onClick = onConnectInstagram,
+                            )
+                        }
                     }
                 }
             }

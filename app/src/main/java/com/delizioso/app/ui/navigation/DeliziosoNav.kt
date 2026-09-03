@@ -55,6 +55,7 @@ object Routes {
     const val RECIPE_SOURCES = "profile/sources"
     const val COOK = "cook/{recipeId}"
     const val COOK_COMPLETE = "cookComplete/{recipeId}"
+    const val INSTAGRAM_LOGIN = "profile/instagram_login"
 
     fun cook(recipeId: Long) = "cook/$recipeId"
 

@@ -23,6 +23,8 @@ object LoginWall {
         "guarda cosa ha inviat", "see what", "create new account",
         "you must log in", "devi accedere", "ottieni l'esperienza",
         "cookie consent", "consent to", "gestisci opzioni",
+        "è possibile che il",   // Italian Instagram login wall
+        "it's possible that",   // English equivalent
     )
 
     fun matches(text: String): Boolean =
@@ -53,17 +55,38 @@ class WebViewCaptionExtractor(
         val wallDetected: Boolean = false,
     )
 
-    suspend fun extract(url: String, timeoutMillis: Long = 60_000L): Extracted =
+    suspend fun extract(url: String, timeoutMillis: Long = 60_000L, useSession: Boolean = false): Extracted =
         withContext(Dispatchers.Main) {
+            val cm = android.webkit.CookieManager.getInstance()
+            if (useSession) {
+                cm.setAcceptCookie(true)
+            } else {
+                cm.setAcceptCookie(false)
+            }
             try {
                 withTimeout(timeoutMillis) {
                     suspendCancellableCoroutine { cont ->
                         val webView = WebView(context.applicationContext)
+                        if (useSession) {
+                            cm.setAcceptThirdPartyCookies(webView, true)
+                        }
                         var reloads = 0
                         var consentClicks = 0
-                        webView.settings.javaScriptEnabled = true
-                        webView.settings.domStorageEnabled = true
-                        webView.settings.loadWithOverviewMode = true
+                        webView.settings.apply {
+                            javaScriptEnabled = true
+                            domStorageEnabled = true
+                            databaseEnabled = true
+                            loadWithOverviewMode = true
+                            useWideViewPort = true
+
+                            val rawUa = userAgentString ?: ""
+                            userAgentString = rawUa
+                                .replace(Regex("""\s*Version/\d+\.\d+"""), "")
+                                .replace(Regex("""\s*Build/[^;)]+"""), "")
+                                .replace(Regex("""\s*wv\s*"""), " ")
+                                .replace(Regex("""\s+"""), " ")
+                                .trim()
+                        }
                         webView.webViewClient = object : WebViewClient() {
                         /**
                          * Social pages (Facebook especially) deep-link to their app via
@@ -78,6 +101,15 @@ class WebViewCaptionExtractor(
                         ): Boolean {
                             val scheme = request?.url?.scheme
                             return scheme != null && scheme != "http" && scheme != "https"
+                        }
+
+                        /**
+                         * Inject `window.chrome` before any page script runs.
+                         * Its absence is one of the JS signals Instagram uses to
+                         * detect an embedded WebView and serve a login wall.
+                         */
+                        override fun onPageStarted(view: WebView?, pageUrl: String?, favicon: android.graphics.Bitmap?) {
+                            view?.evaluateJavascript(CHROME_STUB_JS, null)
                         }
 
                         override fun onPageFinished(view: WebView?, pageUrl: String?) {
@@ -172,18 +204,23 @@ class WebViewCaptionExtractor(
             }
             } catch (e: TimeoutCancellationException) {
                 throw ImportException("Timed out loading the page", retryable = true)
+            } finally {
+                // Always re-enable cookies, even on timeout or cancellation.
+                if (!useSession) android.webkit.CookieManager.getInstance().setAcceptCookie(true)
             }
         }
 
     private companion object {
         /** Separates the caption from the image URL in the single JS return value. */
-        const val FIELD_SEPARATOR = ""
+        const val FIELD_SEPARATOR = "\u001f"
 
         /** At most this many reloads when the page renders a login/consent wall. */
         const val MAX_RELOADS = 1
 
         /** At most this many consent-wall clicks before giving up. */
         const val MAX_CONSENT_CLICKS = 2
+
+        const val CHROME_STUB_JS = InstagramSessionManager.CHROME_STUB_JS
 
         /**
          * Facebook (and some other sites) put a cookie-consent wall in front of the
@@ -227,6 +264,10 @@ class WebViewCaptionExtractor(
               function cleanCaption(t) {
                 t = (t || '').trim();
                 if (!t) return '';
+                var igMatch = t.match(/^(.+?)\s+(?:on|su|sur|en)\s+Instagram\s*:\s*["“]([\s\S]+?)["”]?$/i);
+                if (igMatch) {
+                  t = igMatch[2].trim();
+                }
                 var parts = t.split(' | ');
                 if (parts.length > 1) {
                   var first = parts[0].toLowerCase();
@@ -239,18 +280,22 @@ class WebViewCaptionExtractor(
               }
               var ogt = document.querySelector('meta[property="og:title"]');
               var ogTitleValue = (ogt && ogt.content) ? ogt.content : '';
+              var author = '';
+              if (ogTitleValue) {
+                var igAuthorMatch = ogTitleValue.match(/^(.+?)\s+(?:on|su|sur|en)\s+Instagram\s*:/i);
+                if (igAuthorMatch) author = igAuthorMatch[1].trim();
+              }
               // Instagram's /embed/captioned/ page carries the real caption in
               // .Caption, prefixed by the account name in .CaptionUsername, while
               // its og:title is only the account. Reading og:title first therefore
               // put the author's name where the dish name belongs.
-              var author = '';
               var text = '';
               var captionEl = document.querySelector('.Caption')
                            || document.querySelector('[class*="Caption"]');
               if (captionEl) {
                 var userEl = captionEl.querySelector('.CaptionUsername')
                           || captionEl.querySelector('[class*="Username"]');
-                author = userEl ? (userEl.innerText || '').trim() : '';
+                if (userEl) author = (userEl.innerText || '').trim();
                 // Strip from the LIVE node, never a clone: innerText derives its line
                 // breaks from layout, and a detached clone has none — cloning
                 // returned the whole recipe as a single unbroken line, which left
@@ -262,16 +307,35 @@ class WebViewCaptionExtractor(
                 }
                 text = (captionEl.innerText || '').trim();
               }
-              // Facebook has no .Caption: there the recipe lives in og:title.
+              // Facebook and authenticated Instagram post pages have no .Caption: there the recipe lives in og:title.
               if (!text) text = cleanCaption(ogTitleValue);
+              if (!text) {
+                var ogd = document.querySelector('meta[property="og:description"]');
+                var ogDescValue = (ogd && ogd.content) ? ogd.content : '';
+                var dMatch = ogDescValue.match(/:\s*["“]([\s\S]+?)["”]?$/);
+                if (dMatch) text = cleanCaption(dMatch[1]);
+              }
               if (!text) {
                 var cap = document.querySelector('article') || document.body;
                 text = cap ? cap.innerText.trim() : '';
               }
               var best = null, bestArea = 0, src = null;
+              // 0) Instagram clean cover frame: look for image_versions2 in page data
+              // to get the pure high-res frame without the play button overlay.
+              try {
+                var html = document.documentElement ? document.documentElement.innerHTML : '';
+                var m = html.match(/"image_versions2":\s*\{\s*"candidates":\s*\[\s*\{\s*"url":\s*"([^"]+)"/);
+                if (m && m[1]) {
+                  best = m[1].replace(/\\u0026/g, '&').replace(/\\u0025/g, '%').replace(/\\\//g, '/');
+                  src = 'image_versions2';
+                  bestArea = Number.MAX_SAFE_INTEGER;
+                }
+              } catch (e) {}
               // 1) The media cover: a <video poster> beats any avatar-style <img>.
-              var video = document.querySelector('video');
-              if (video && video.poster) { best = video.poster; src = 'video'; bestArea = Number.MAX_SAFE_INTEGER; }
+              if (!best) {
+                var video = document.querySelector('video');
+                if (video && video.poster) { best = video.poster; src = 'video'; bestArea = Number.MAX_SAFE_INTEGER; }
+              }
               // 2) The page-declared share thumbnail (og:image) — for reels this is
               //    the cover frame itself.
               if (!best) {

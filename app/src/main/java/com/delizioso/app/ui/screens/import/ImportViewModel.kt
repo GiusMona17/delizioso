@@ -17,6 +17,7 @@ import com.delizioso.app.data.ai.NanoInference
 import com.delizioso.app.data.ai.NanoStructurer
 import com.delizioso.app.data.import.ImportContent
 import com.delizioso.app.data.import.ImportException
+import com.delizioso.app.data.import.InstagramAuthRequiredException
 import com.delizioso.app.data.import.LoginWall
 import com.delizioso.app.data.import.PastedRecipeParser
 import com.delizioso.app.data.import.RawImport
@@ -57,6 +58,8 @@ sealed interface ImportUiState {
     data class DuplicateFound(val recipeId: Long, val url: String) : ImportUiState
     data class Error(val message: String, val retryable: Boolean) : ImportUiState
     data object AiConsentNeeded : ImportUiState
+    /** Pass 1 hit a wall and no Instagram session is saved. */
+    data object InstagramAuthRequired : ImportUiState
 }
 
 class ImportViewModel(
@@ -172,12 +175,22 @@ class ImportViewModel(
                 structure(raw)
             } catch (e: CancellationException) {
                 throw e
+            } catch (e: InstagramAuthRequiredException) {
+                _state.value = ImportUiState.InstagramAuthRequired
             } catch (e: ImportException) {
                 _state.value = ImportUiState.Error(e.message ?: appContext.getString(R.string.import_failed), e.retryable)
             } catch (e: Exception) {
                 _state.value = ImportUiState.Error(e.message ?: appContext.getString(R.string.import_unexpected), false)
             }
         }
+    }
+
+    /**
+     * Called when the user returns from [InstagramLoginScreen] after a successful
+     * login. Re-runs the last URL so Pass 2 (authenticated) can fetch the recipe.
+     */
+    fun retryAfterLogin() {
+        lastUrl?.let { importLink(it, force = true) }
     }
 
     private suspend fun structure(raw: RawImport) {

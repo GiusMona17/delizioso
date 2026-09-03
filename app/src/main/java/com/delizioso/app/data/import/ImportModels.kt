@@ -107,3 +107,10 @@ class ImportException(
     /** True if retrying later (or on-device/WebView) may help. */
     val retryable: Boolean = false,
 ) : Exception(message)
+
+/**
+ * Thrown by [InstagramImporter] when Pass 1 (unauthenticated) hits a login
+ * wall and no saved Instagram session is available. The Import screen catches
+ * this and shows a "Connect Instagram" card instead of a generic error.
+ */
+class InstagramAuthRequiredException : Exception("Instagram login required")

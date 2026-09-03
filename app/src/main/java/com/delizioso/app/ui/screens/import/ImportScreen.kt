@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Link
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Segment
 import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.material3.AlertDialog
@@ -63,6 +64,7 @@ fun ImportScreen(
     onRecipeClick: (Long) -> Unit,
     onProfileClick: () -> Unit,
     onSearchOnline: () -> Unit,
+    onConnectInstagram: () -> Unit = {},
     sharedLink: String? = null,
     onSharedLinkHandled: () -> Unit = {},
     viewModel: ImportViewModel = viewModel(factory = ImportViewModel.Factory),
@@ -222,6 +224,9 @@ fun ImportScreen(
             when (val s = state) {
                 is ImportUiState.Error -> ErrorCard(message = s.message, retryable = s.retryable, onRetry = viewModel::retry)
                 is ImportUiState.AiConsentNeeded -> ConsentCard(onGrant = viewModel::grantConsent)
+                is ImportUiState.InstagramAuthRequired -> InstagramAuthCard(onConnect = {
+                    onConnectInstagram()
+                })
                 else -> {}
             }
 
@@ -394,5 +399,45 @@ private fun ConsentCard(onGrant: () -> Unit) {
             color = MaterialTheme.colorScheme.onPrimaryContainer,
         )
         ClayButton(text = stringResource(R.string.detail_enable_ai), onClick = onGrant, modifier = Modifier.fillMaxWidth())
+    }
+}
+
+/**
+ * Shown when an Instagram post requires a session and none is saved.
+ * Matches the visual style of [ConsentCard] but uses tertiary colours.
+ */
+@Composable
+private fun InstagramAuthCard(onConnect: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp)
+            .clayCard(container = MaterialTheme.colorScheme.secondaryContainer)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            androidx.compose.material3.Icon(
+                Icons.Filled.Lock,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Text(
+                stringResource(R.string.instagram_auth_required_title),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
+        Text(
+            stringResource(R.string.instagram_auth_required_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+        ClayButton(
+            text = stringResource(R.string.instagram_connect),
+            icon = Icons.Filled.Lock,
+            onClick = onConnect,
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }

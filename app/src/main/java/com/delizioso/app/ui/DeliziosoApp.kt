@@ -16,6 +16,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.delizioso.app.ui.navigation.ClayDock
 import com.delizioso.app.ui.navigation.Routes
@@ -31,6 +32,7 @@ import com.delizioso.app.ui.screens.import.ImportScreen
 import com.delizioso.app.ui.screens.import.ImportViewModel
 import com.delizioso.app.ui.screens.library.LibraryScreen
 import com.delizioso.app.ui.screens.planner.PlannerScreen
+import com.delizioso.app.ui.screens.profile.InstagramLoginScreen
 import com.delizioso.app.ui.screens.profile.ProfileScreen
 import com.delizioso.app.ui.screens.profile.RecipeSourcesScreen
 import com.delizioso.app.ui.screens.search.OnlineSearchScreen
@@ -141,14 +143,27 @@ fun DeliziosoApp(
                     },
                 )
             }
-            composable(Routes.IMPORT) {
+            composable(Routes.IMPORT) { importEntry ->
+                val importViewModel: ImportViewModel =
+                    viewModel(viewModelStoreOwner = importEntry, factory = ImportViewModel.Factory)
+                val loginSuccess by importEntry.savedStateHandle
+                    .getStateFlow("instagram_login_success", false)
+                    .collectAsStateWithLifecycle()
+                LaunchedEffect(loginSuccess) {
+                    if (loginSuccess) {
+                        importEntry.savedStateHandle["instagram_login_success"] = false
+                        importViewModel.retryAfterLogin()
+                    }
+                }
                 ImportScreen(
                     onPreview = { navController.navigate(Routes.IMPORT_PREVIEW) },
                     onRecipeClick = { id -> navController.navigate(Routes.recipeDetail(id)) },
                     onProfileClick = { navController.navigate(Routes.PROFILE) },
                     onSearchOnline = { navController.navigate(Routes.IMPORT_SEARCH) },
+                    onConnectInstagram = { navController.navigate(Routes.INSTAGRAM_LOGIN) },
                     sharedLink = sharedLink,
                     onSharedLinkHandled = onSharedLinkHandled,
+                    viewModel = importViewModel,
                 )
             }
             composable(Routes.IMPORT_PREVIEW) {
@@ -192,7 +207,21 @@ fun DeliziosoApp(
                 )
             }
             composable(Routes.PROFILE) {
-                ProfileScreen(onOpenRecipeSources = { navController.navigate(Routes.RECIPE_SOURCES) })
+                ProfileScreen(
+                    onOpenRecipeSources = { navController.navigate(Routes.RECIPE_SOURCES) },
+                    onConnectInstagram = { navController.navigate(Routes.INSTAGRAM_LOGIN) },
+                )
+            }
+            composable(Routes.INSTAGRAM_LOGIN) {
+                InstagramLoginScreen(
+                    onLoginSuccess = {
+                        navController.previousBackStackEntry
+                            ?.savedStateHandle
+                            ?.set("instagram_login_success", true)
+                        navController.popBackStack()
+                    },
+                    onBack = { navController.popBackStack() },
+                )
             }
             composable(Routes.PANTRY) {
                 com.delizioso.app.ui.screens.pantry.PantryScreen(onBack = { navController.popBackStack() })

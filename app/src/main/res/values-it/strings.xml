@@ -471,4 +471,14 @@
     <string name="import_duplicate_reimport">Importa di nuovo</string>
     <string name="library_search_online_for">Cerca online \"%1$s\"</string>
     <string name="library_import_from_link">Importa ricetta da link</string>
+
+    <!-- Accesso Instagram / account social -->
+    <string name="instagram_login_title">Collega Instagram</string>
+    <string name="instagram_auth_required_title">Accesso richiesto</string>
+    <string name="instagram_auth_required_body">Questo post è riservato. Collega il tuo account Instagram una volta sola per importarlo.</string>
+    <string name="instagram_connect">Collega Instagram</string>
+    <string name="instagram_connected">Collegato</string>
+    <string name="instagram_not_connected">Non collegato</string>
+    <string name="instagram_disconnect">Scollega</string>
+    <string name="profile_social_section">Account social</string>
 </resources>
