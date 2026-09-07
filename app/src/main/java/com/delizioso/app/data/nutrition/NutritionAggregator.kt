@@ -79,15 +79,29 @@ object NutritionAggregator {
         var hasRecognizedNutrition = false
 
         dayMeals.forEach { planned ->
-            val recipe = planned.recipe ?: return@forEach
-            val details = allRecipes.firstOrNull { it.recipe.id == recipe.id } ?: RecipeWithDetails(recipe = recipe)
-            val macros = MacroCalculator.of(details)
-            if (macros != null) {
-                hasRecognizedNutrition = true
-                totalKcal += macros.kcal
-                totalProtein += macros.proteinG
-                totalFat += macros.fatG
-                totalCarbs += macros.carbsG
+            if (planned.meal.recipeId != null) {
+                val recipe = planned.recipe ?: return@forEach
+                val details = allRecipes.firstOrNull { it.recipe.id == recipe.id } ?: RecipeWithDetails(recipe = recipe)
+                val macros = MacroCalculator.of(details)
+                if (macros != null) {
+                    hasRecognizedNutrition = true
+                    totalKcal += macros.kcal
+                    totalProtein += macros.proteinG
+                    totalFat += macros.fatG
+                    totalCarbs += macros.carbsG
+                }
+            } else {
+                val kcal = planned.meal.caloriesKcal ?: 0.0
+                val protein = planned.meal.proteinG ?: 0.0
+                val fat = planned.meal.fatG ?: 0.0
+                val carbs = planned.meal.carbsG ?: 0.0
+                if (kcal > 0.0 || protein > 0.0 || fat > 0.0 || carbs > 0.0) {
+                    hasRecognizedNutrition = true
+                    totalKcal += kcal
+                    totalProtein += protein
+                    totalFat += fat
+                    totalCarbs += carbs
+                }
             }
         }
 

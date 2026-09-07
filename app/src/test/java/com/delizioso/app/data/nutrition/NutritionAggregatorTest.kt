@@ -136,4 +136,80 @@ class NutritionAggregatorTest {
         assertEquals(20, weekRecap.dailyAverage.fatG)
         assertEquals(30, weekRecap.dailyAverage.carbsG)
     }
+
+    @Test
+    fun `computeDayRecap aggregates quick meals without recipes`() {
+        val date = LocalDate.of(2026, 9, 7)
+        val quickMeal = PlannedMealWithRecipe(
+            meal = PlannedMealEntity(
+                id = 99L,
+                recipeId = null,
+                customName = "Latte e biscotti",
+                caloriesKcal = 350.0,
+                proteinG = 12.0,
+                fatG = 10.0,
+                carbsG = 50.0,
+                dateEpochDay = date.toEpochDay(),
+                slot = MealSlot.BREAKFAST,
+            ),
+            recipe = null,
+        )
+
+        val recap = NutritionAggregator.computeDayRecap(
+            date = date,
+            meals = listOf(quickMeal),
+            allRecipes = emptyList(),
+        )
+
+        assertEquals(1, recap.mealCount)
+        assertEquals(350, recap.nutrients.caloriesKcal)
+        assertEquals(12, recap.nutrients.proteinG)
+        assertEquals(10, recap.nutrients.fatG)
+        assertEquals(50, recap.nutrients.carbsG)
+        assertTrue(recap.isCompleteEstimate)
+    }
+
+    @Test
+    fun `computeDayRecap combines recipes and quick meals in daily total`() {
+        val date = LocalDate.of(2026, 9, 7)
+        val recipe = RecipeEntity(
+            id = 1L,
+            title = "Pollo e riso",
+            servings = 1,
+            caloriesKcal = 500.0,
+            proteinG = 45.0,
+            fatG = 10.0,
+            carbsG = 55.0,
+        )
+        val recipeMeal = PlannedMealWithRecipe(
+            meal = PlannedMealEntity(id = 1L, recipeId = 1L, dateEpochDay = date.toEpochDay(), slot = MealSlot.LUNCH),
+            recipe = recipe,
+        )
+        val quickMeal = PlannedMealWithRecipe(
+            meal = PlannedMealEntity(
+                id = 2L,
+                recipeId = null,
+                customName = "Yogurt greco",
+                caloriesKcal = 120.0,
+                proteinG = 15.0,
+                fatG = 2.0,
+                carbsG = 8.0,
+                dateEpochDay = date.toEpochDay(),
+                slot = MealSlot.SNACK,
+            ),
+            recipe = null,
+        )
+
+        val recap = NutritionAggregator.computeDayRecap(
+            date = date,
+            meals = listOf(recipeMeal, quickMeal),
+            allRecipes = listOf(RecipeWithDetails(recipe = recipe)),
+        )
+
+        assertEquals(2, recap.mealCount)
+        assertEquals(620, recap.nutrients.caloriesKcal)
+        assertEquals(60, recap.nutrients.proteinG)
+        assertEquals(12, recap.nutrients.fatG)
+        assertEquals(63, recap.nutrients.carbsG)
+    }
 }
