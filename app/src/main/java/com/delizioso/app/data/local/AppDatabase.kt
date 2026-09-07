@@ -18,7 +18,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PlannedMealEntity::class,
         PantryItemEntity::class,
     ],
-    version = 7,
+    version = 8,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -135,9 +135,44 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v7 → v8: make recipeId nullable and add custom quick meal columns. */
+        val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `planned_meals_new` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `recipeId` INTEGER,
+                        `customName` TEXT,
+                        `caloriesKcal` REAL,
+                        `proteinG` REAL,
+                        `fatG` REAL,
+                        `carbsG` REAL,
+                        `dateEpochDay` INTEGER NOT NULL,
+                        `slot` TEXT NOT NULL,
+                        `servings` INTEGER NOT NULL,
+                        `cooked` INTEGER NOT NULL,
+                        `isSide` INTEGER NOT NULL,
+                        FOREIGN KEY(`recipeId`) REFERENCES `recipes`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    """
+                    INSERT INTO `planned_meals_new` (`id`, `recipeId`, `dateEpochDay`, `slot`, `servings`, `cooked`, `isSide`)
+                    SELECT `id`, `recipeId`, `dateEpochDay`, `slot`, `servings`, `cooked`, `isSide`
+                    FROM `planned_meals`
+                    """.trimIndent()
+                )
+                db.execSQL("DROP TABLE `planned_meals`")
+                db.execSQL("ALTER TABLE `planned_meals_new` RENAME TO `planned_meals`")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_planned_meals_recipeId` ON `planned_meals` (`recipeId`)")
+            }
+        }
+
         fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "delizioso.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                 // Safety net only; every version bump so far ships a real migration.
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()

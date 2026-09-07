@@ -86,6 +86,30 @@ class RecipeRepository(
 
     suspend fun addMeal(meal: PlannedMealEntity): Long = dao.insertMeal(meal)
 
+    suspend fun addQuickMeal(
+        dateEpochDay: Long,
+        slot: String,
+        customName: String,
+        caloriesKcal: Double?,
+        proteinG: Double?,
+        fatG: Double?,
+        carbsG: Double?,
+        isSide: Boolean = false,
+    ): Long = dao.insertMeal(
+        PlannedMealEntity(
+            recipeId = null,
+            customName = customName.trim(),
+            caloriesKcal = caloriesKcal,
+            proteinG = proteinG,
+            fatG = fatG,
+            carbsG = carbsG,
+            dateEpochDay = dateEpochDay,
+            slot = slot,
+            servings = 1,
+            isSide = isSide,
+        )
+    )
+
     suspend fun removeMeal(id: Long) = dao.deleteMeal(id)
 
     suspend fun markMealsCooked(recipeId: Long, dateEpochDay: Long) = dao.markMealsCooked(recipeId, dateEpochDay)

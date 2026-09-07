@@ -23,12 +23,17 @@ import com.delizioso.app.R
 )
 data class PlannedMealEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val recipeId: Long,
+    val recipeId: Long? = null,
+    val customName: String? = null,
+    val caloriesKcal: Double? = null,
+    val proteinG: Double? = null,
+    val fatG: Double? = null,
+    val carbsG: Double? = null,
     /** Days since epoch (java.time.LocalDate.toEpochDay). */
     val dateEpochDay: Long,
     /** BREAKFAST | LUNCH | DINNER | SNACK. */
     val slot: String,
-    val servings: Int = 2,
+    val servings: Int = 1,
     /** Set once the user finishes cook mode for this meal (drives the planner's "cooked" dot). */
     val cooked: Boolean = false,
     /** True if this is an attached side dish, sauce, or bread for the slot. */
