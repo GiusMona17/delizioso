@@ -98,6 +98,34 @@ class PlannerViewModel(
         }
     }
 
+    val quickMealEstimator = com.delizioso.app.data.ai.QuickMealEstimator {
+        preferences.aiConsentGiven.first()
+    }
+
+    fun addQuickMeal(
+        dateEpochDay: Long,
+        slot: String,
+        name: String,
+        caloriesKcal: Double?,
+        proteinG: Double?,
+        fatG: Double?,
+        carbsG: Double?,
+        isSide: Boolean = false,
+    ) {
+        viewModelScope.launch {
+            repository.addQuickMeal(
+                dateEpochDay = dateEpochDay,
+                slot = slot,
+                customName = name,
+                caloriesKcal = caloriesKcal,
+                proteinG = proteinG,
+                fatG = fatG,
+                carbsG = carbsG,
+                isSide = isSide,
+            )
+        }
+    }
+
     fun removeMeal(id: Long) {
         viewModelScope.launch { repository.removeMeal(id) }
     }

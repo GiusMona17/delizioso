@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CalendarViewMonth
 import androidx.compose.material.icons.filled.CalendarViewWeek
 import androidx.compose.material.icons.filled.Close
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.ShoppingCart
+import kotlin.math.roundToInt
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -94,7 +96,9 @@ fun PlannerScreen(
     val weekNutritionRecap by viewModel.weekNutritionRecap.collectAsStateWithLifecycle()
 
     var view by rememberSaveable { mutableStateOf(PlannerView.WEEK) }
+    var chooserSlot by remember { mutableStateOf<String?>(null) }
     var pickerRequest by remember { mutableStateOf<PickerRequest?>(null) }
+    var quickMealRequest by remember { mutableStateOf<QuickMealRequest?>(null) }
 
     Column(Modifier.fillMaxSize()) {
         ClayTopBar(
@@ -142,7 +146,7 @@ fun PlannerScreen(
                         item(key = "empty-$slot") {
                             ClayAddPanel(
                                 text = stringResource(R.string.planner_add_recipe, stringResource(MealSlot.labelRes(slot)).lowercase()),
-                                onClick = { pickerRequest = PickerRequest(slot, isSide = false) },
+                                onClick = { chooserSlot = slot },
                                 accent = if (slot == MealSlot.SNACK) Secondary else MaterialTheme.colorScheme.primary,
                             )
                         }
@@ -187,6 +191,15 @@ fun PlannerScreen(
                                         .clickable { pickerRequest = PickerRequest(slot, isSide = true) }
                                         .padding(horizontal = 10.dp, vertical = 6.dp),
                                 )
+                                Text(
+                                    stringResource(R.string.planner_add_quick_meal),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.tertiary,
+                                    modifier = Modifier
+                                        .clip(PillShape)
+                                        .clickable { quickMealRequest = QuickMealRequest(slot = slot, isSide = false) }
+                                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                                )
                             }
                         }
                     }
@@ -203,6 +216,29 @@ fun PlannerScreen(
                     viewModel.selectDate(it)
                     view = PlannerView.WEEK
                 },
+            )
+        }
+    }
+
+    chooserSlot?.let { slot ->
+        ModalBottomSheet(
+            onDismissRequest = { chooserSlot = null },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ) {
+            AddMealChooserSheet(
+                slotTitle = stringResource(MealSlot.labelRes(slot)),
+                onPickRecipe = {
+                    val s = slot
+                    chooserSlot = null
+                    pickerRequest = PickerRequest(s, isSide = false)
+                },
+                onAddQuickMeal = {
+                    val s = slot
+                    chooserSlot = null
+                    quickMealRequest = QuickMealRequest(s, isSide = false)
+                },
+                onClose = { chooserSlot = null },
             )
         }
     }
@@ -225,13 +261,48 @@ fun PlannerScreen(
                     viewModel.addMeal(recipeId, selectedDate.toEpochDay(), req.slot, isSide = isSide)
                     pickerRequest = null
                 },
+                onAddQuickMealFallback = { query ->
+                    val s = req.slot
+                    val isSide = req.isSide
+                    pickerRequest = null
+                    quickMealRequest = QuickMealRequest(slot = s, initialQuery = query, isSide = isSide)
+                },
                 onClose = { pickerRequest = null },
+            )
+        }
+    }
+
+    quickMealRequest?.let { req ->
+        ModalBottomSheet(
+            onDismissRequest = { quickMealRequest = null },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ) {
+            QuickMealSheet(
+                slotTitle = stringResource(MealSlot.labelRes(req.slot)),
+                initialDescription = req.initialQuery,
+                estimator = viewModel.quickMealEstimator,
+                onSave = { name, kcal, p, f, c ->
+                    viewModel.addQuickMeal(
+                        dateEpochDay = selectedDate.toEpochDay(),
+                        slot = req.slot,
+                        name = name,
+                        caloriesKcal = kcal,
+                        proteinG = p,
+                        fatG = f,
+                        carbsG = c,
+                        isSide = req.isSide,
+                    )
+                    quickMealRequest = null
+                },
+                onClose = { quickMealRequest = null },
             )
         }
     }
 }
 
 private data class PickerRequest(val slot: String, val isSide: Boolean)
+private data class QuickMealRequest(val slot: String, val initialQuery: String = "", val isSide: Boolean = false)
 
 // ---- Week strip ------------------------------------------------------------
 
@@ -354,45 +425,142 @@ private fun PlannedMealRow(
     onOpen: (Long) -> Unit,
     onRemove: () -> Unit,
 ) {
-    val recipe = planned.recipe ?: return
-    val details = recipes.firstOrNull { it.recipe.id == recipe.id } ?: RecipeWithDetails(recipe = recipe)
-    var menuOpen by remember { mutableStateOf(false) }
+    val recipe = planned.recipe
+    if (recipe != null) {
+        val details = recipes.firstOrNull { it.recipe.id == recipe.id } ?: RecipeWithDetails(recipe = recipe)
+        var menuOpen by remember { mutableStateOf(false) }
 
-    ClayRecipeRow(
-        details = details,
-        onClick = { onOpen(recipe.id) },
-        extraBadge = if (planned.meal.isSide) {
-            {
-                ClayChip(
-                    text = stringResource(R.string.planner_side_badge),
-                    container = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                )
-            }
-        } else null,
-        trailing = {
-            Box {
-                Icon(
-                    Icons.Filled.MoreVert,
-                    contentDescription = stringResource(R.string.planner_meal_options),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .clip(PillShape)
-                        .clickable { menuOpen = true }
-                        .padding(8.dp),
-                )
-                DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.planner_remove)) },
-                        onClick = {
-                            menuOpen = false
-                            onRemove()
-                        },
+        ClayRecipeRow(
+            details = details,
+            onClick = { onOpen(recipe.id) },
+            extraBadge = if (planned.meal.isSide) {
+                {
+                    ClayChip(
+                        text = stringResource(R.string.planner_side_badge),
+                        container = MaterialTheme.colorScheme.secondaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                     )
                 }
+            } else null,
+            trailing = {
+                Box {
+                    Icon(
+                        Icons.Filled.MoreVert,
+                        contentDescription = stringResource(R.string.planner_meal_options),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier
+                            .clip(PillShape)
+                            .clickable { menuOpen = true }
+                            .padding(8.dp),
+                    )
+                    DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.planner_remove)) },
+                            onClick = {
+                                menuOpen = false
+                                onRemove()
+                            },
+                        )
+                    }
+                }
+            },
+        )
+    } else {
+        QuickPlannedMealRow(
+            planned = planned,
+            onRemove = onRemove,
+        )
+    }
+}
+
+@Composable
+private fun QuickPlannedMealRow(
+    planned: PlannedMealWithRecipe,
+    onRemove: () -> Unit,
+) {
+    var menuOpen by remember { mutableStateOf(false) }
+    val meal = planned.meal
+    val title = meal.customName ?: stringResource(R.string.quick_meal_title)
+
+    val parts = mutableListOf<String>()
+    meal.caloriesKcal?.let { parts += "${it.roundToInt()} kcal" }
+    meal.proteinG?.let { parts += "${it.roundToInt()}g P" }
+    meal.carbsG?.let { parts += "${it.roundToInt()}g C" }
+    meal.fatG?.let { parts += "${it.roundToInt()}g F" }
+    val macroText = parts.joinToString(" · ")
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clayCard(container = MaterialTheme.colorScheme.surfaceContainerLow, cornerRadius = 20.dp)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center,
+        ) {
+            Icon(
+                Icons.Filled.Bolt,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(28.dp),
+            )
+        }
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(3.dp),
+        ) {
+            Text(
+                title,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            if (macroText.isNotBlank()) {
+                Text(
+                    macroText,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
-        },
-    )
+        }
+        if (meal.isSide) {
+            ClayChip(
+                text = stringResource(R.string.planner_side_badge),
+                container = MaterialTheme.colorScheme.secondaryContainer,
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
+        Box {
+            Icon(
+                Icons.Filled.MoreVert,
+                contentDescription = stringResource(R.string.planner_meal_options),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .clip(PillShape)
+                    .clickable { menuOpen = true }
+                    .padding(8.dp),
+            )
+            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(R.string.planner_remove)) },
+                    onClick = {
+                        menuOpen = false
+                        onRemove()
+                    },
+                )
+            }
+        }
+    }
 }
 
 // ---- Month calendar --------------------------------------------------------
@@ -551,6 +719,7 @@ private fun RecipePickerSheet(
     initialIsSide: Boolean,
     recipes: List<RecipeWithDetails>,
     onPick: (Long, Boolean) -> Unit,
+    onAddQuickMealFallback: (String) -> Unit = {},
     onClose: () -> Unit,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -636,11 +805,43 @@ private fun RecipePickerSheet(
             modifier = Modifier.fillMaxWidth(),
         )
         if (visible.isEmpty()) {
-            Text(
-                stringResource(R.string.planner_no_recipes),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(
+                    stringResource(R.string.planner_no_recipes),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                if (query.isNotBlank()) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clayCard(container = MaterialTheme.colorScheme.surfaceContainerLowest, cornerRadius = 22.dp)
+                            .clickable {
+                                onAddQuickMealFallback(query)
+                            }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Icon(
+                            Icons.Filled.Bolt,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp),
+                        )
+                        Text(
+                            stringResource(R.string.planner_search_fallback_quick, query),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
         } else {
             LazyColumn(
                 modifier = Modifier.height(340.dp),
