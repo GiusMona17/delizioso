@@ -425,7 +425,7 @@
     <string name="detail_refresh">Aggiorna</string>
     <string name="detail_refreshing">Aggiorno…</string>
     <string name="detail_refresh_title">Recuperare di nuovo la ricetta?</string>
-    <string name="detail_refresh_body">Ingredienti e passaggi saranno sostituiti con quanto dice ora la fonte. Foto, preferito e voci del pianificatore restano. Le modifiche fatte a mano andranno perse.</string>
+    <string name="detail_refresh_body">Ingredienti, passaggi e foto di copertina saranno sostituiti con quanto dice ora la fonte. Preferiti e voci del pianificatore restano. Le modifiche fatte a mano andranno perse.</string>
     <string name="detail_refresh_done">Aggiornata dalla fonte.</string>
     <string name="detail_refresh_failed">Impossibile leggere la fonte</string>
     <string name="detail_refresh_error">Aggiornamento non riuscito: %1$s</string>

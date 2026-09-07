@@ -427,7 +427,7 @@
     <string name="detail_refresh">Refresh</string>
     <string name="detail_refreshing">Refreshing…</string>
     <string name="detail_refresh_title">Fetch this recipe again?</string>
-    <string name="detail_refresh_body">The ingredients and steps will be replaced with whatever the source says now. Your photo, favourite and planner entries are kept. Any edits you made by hand will be lost.</string>
+    <string name="detail_refresh_body">The ingredients, steps and cover photo will be replaced with whatever the source says now. Favourites and planner entries are kept. Any edits you made by hand will be lost.</string>
     <string name="detail_refresh_done">Refreshed from the source.</string>
     <string name="detail_refresh_failed">Could not read the source</string>
     <string name="detail_refresh_error">Refresh failed: %1$s</string>

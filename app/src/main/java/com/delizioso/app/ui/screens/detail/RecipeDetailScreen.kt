@@ -152,6 +152,7 @@ class RecipeDetailViewModel(
     private val chatModel: RecipeChat,
     private val preferences: UserPreferences,
     private val refresher: SourceRefresher,
+    private val context: android.content.Context,
     private val recipeId: Long,
 ) : ViewModel() {
 
@@ -185,6 +186,22 @@ class RecipeDetailViewModel(
                     fresh.recipe.categories.ifEmpty { d.tags.map { it.name } },
                 )
                 fresh.rawText?.let { repository.updateSourceText(recipeId, it) }
+
+                // Download and update thumbnail if source provided an image
+                val imageUrl = fresh.recipe.imageUrl
+                if (!imageUrl.isNullOrBlank()) {
+                    val downloaded = withContext(Dispatchers.IO) {
+                        ImageStore.downloadToInternal(context, imageUrl)
+                    }
+                    if (downloaded != null) {
+                        val previous = repository.currentImage(recipeId)
+                        repository.setImage(recipeId, downloaded)
+                        withContext(Dispatchers.IO) {
+                            ImageStore.deleteIfOwned(context, previous)
+                        }
+                    }
+                }
+
                 _refresh.value = RefreshState.Done
             } catch (e: CancellationException) {
                 throw e
@@ -337,6 +354,7 @@ class RecipeDetailViewModel(
                     chatModel = app.container.recipeChat,
                     refresher = app.container.sourceRefresher,
                     preferences = app.container.preferences,
+                    context = app.applicationContext,
                     recipeId = recipeId,
                 )
             }
