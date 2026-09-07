@@ -483,4 +483,25 @@
     <string name="instagram_not_connected">Not connected</string>
     <string name="instagram_disconnect">Disconnect</string>
     <string name="profile_social_section">Social Accounts</string>
+
+    <!-- Quick meals & Planner additions -->
+    <string name="planner_add_quick_meal">+ Quick meal</string>
+    <string name="planner_choose_add_title">Add to %1$s</string>
+    <string name="planner_choose_recipe">Choose from Recipes</string>
+    <string name="planner_choose_recipe_desc">Pick an existing recipe from your library</string>
+    <string name="planner_choose_quick">Add Quick Meal</string>
+    <string name="planner_choose_quick_desc">Log ad-hoc food with macros or AI estimation</string>
+    <string name="quick_meal_title">Quick Meal</string>
+    <string name="quick_meal_food_hint">What did you eat? (e.g. 250ml milk and 6 cookies)</string>
+    <string name="quick_meal_name_hint">Meal name</string>
+    <string name="quick_meal_kcal">Kcal</string>
+    <string name="quick_meal_protein">Protein (g)</string>
+    <string name="quick_meal_carbs">Carbs (g)</string>
+    <string name="quick_meal_fat">Fat (g)</string>
+    <string name="quick_meal_ai_estimate">Estimate with AI</string>
+    <string name="quick_meal_ai_copy">Copy Prompt</string>
+    <string name="quick_meal_ai_send">Send to AI</string>
+    <string name="quick_meal_ai_paste">Paste JSON</string>
+    <string name="quick_meal_save">Add to Planner</string>
+    <string name="planner_search_fallback_quick">Can\'t find it? Add \"%1$s\" as quick meal</string>
 </resources>

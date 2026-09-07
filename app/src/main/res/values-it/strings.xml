@@ -481,4 +481,25 @@
     <string name="instagram_not_connected">Non collegato</string>
     <string name="instagram_disconnect">Scollega</string>
     <string name="profile_social_section">Account social</string>
+
+    <!-- Pasti rapidi e aggiunte pianificatore -->
+    <string name="planner_add_quick_meal">+ Pasto rapido</string>
+    <string name="planner_choose_add_title">Aggiungi a %1$s</string>
+    <string name="planner_choose_recipe">Scegli dalle ricette</string>
+    <string name="planner_choose_recipe_desc">Seleziona una ricetta dalla tua raccolta</string>
+    <string name="planner_choose_quick">Aggiungi pasto rapido</string>
+    <string name="planner_choose_quick_desc">Registra cibi veloci con macro o stima AI</string>
+    <string name="quick_meal_title">Pasto rapido</string>
+    <string name="quick_meal_food_hint">Cosa hai mangiato? (es. 250ml latte e 6 biscotti)</string>
+    <string name="quick_meal_name_hint">Nome pasto</string>
+    <string name="quick_meal_kcal">Kcal</string>
+    <string name="quick_meal_protein">Proteine (g)</string>
+    <string name="quick_meal_carbs">Carboidrati (g)</string>
+    <string name="quick_meal_fat">Grassi (g)</string>
+    <string name="quick_meal_ai_estimate">Calcola con AI</string>
+    <string name="quick_meal_ai_copy">Copia prompt</string>
+    <string name="quick_meal_ai_send">Invia all\'AI</string>
+    <string name="quick_meal_ai_paste">Incolla JSON</string>
+    <string name="quick_meal_save">Aggiungi al piano</string>
+    <string name="planner_search_fallback_quick">Non trovi la ricetta? Aggiungi \"%1$s\" come pasto rapido</string>
 </resources>
