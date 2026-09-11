@@ -33,7 +33,9 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.HistoryEdu
 import androidx.compose.material.icons.filled.IosShare
+import com.delizioso.app.data.local.CookingLogEntity
 import androidx.compose.material.icons.filled.OpenInNew
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -265,6 +267,24 @@ class RecipeDetailViewModel(
         }
     }
 
+    fun addCookingLog(dateEpochDay: Long, notes: String, photoUri: String?, rating: Int?) {
+        viewModelScope.launch {
+            repository.addCookingLog(recipeId, dateEpochDay, notes, photoUri, rating)
+        }
+    }
+
+    fun updateCookingLog(log: CookingLogEntity) {
+        viewModelScope.launch {
+            repository.updateCookingLog(log)
+        }
+    }
+
+    fun deleteCookingLog(log: CookingLogEntity) {
+        viewModelScope.launch {
+            repository.deleteCookingLog(log.id, log.photoUri, context)
+        }
+    }
+
     /** Ask a free-form question about this recipe; the answer streams in. */
     fun ask(question: String) {
         val d = details.value ?: return
@@ -387,6 +407,9 @@ fun RecipeDetailScreen(
     var showChat by remember { mutableStateOf(false) }
     var showExport by remember { mutableStateOf(false) }
     var showRefreshConfirm by remember { mutableStateOf(false) }
+    var showAddCookingLog by remember { mutableStateOf(false) }
+    var editingCookingLog by remember { mutableStateOf<CookingLogEntity?>(null) }
+    var previewPhotoUri by remember { mutableStateOf<String?>(null) }
     val context = LocalContext.current
     val photoPicker = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         uri?.let { viewModel.onPhotoPicked(context, it) }
@@ -544,6 +567,19 @@ fun RecipeDetailScreen(
                     StepList(d, factor)
                 }
                 MacrosPanel(macros = macros, onOpenChat = { showChat = true })
+                CookingDiarySection(
+                    logs = d.cookingLogs,
+                    onAddLog = {
+                        editingCookingLog = null
+                        showAddCookingLog = true
+                    },
+                    onEditLog = { log ->
+                        editingCookingLog = log
+                        showAddCookingLog = true
+                    },
+                    onDeleteLog = viewModel::deleteCookingLog,
+                    onPhotoClick = { uri -> previewPhotoUri = uri },
+                )
                 SourceSection(
                     details = d,
                     refreshState = refreshState,
@@ -660,6 +696,49 @@ fun RecipeDetailScreen(
             )
         }
     }
+
+    if (showAddCookingLog) {
+        ModalBottomSheet(
+            onDismissRequest = {
+                showAddCookingLog = false
+                editingCookingLog = null
+            },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ) {
+            AddCookingLogSheet(
+                initialLog = editingCookingLog,
+                onSave = { dateEpochDay, notes, photoUri, rating ->
+                    val editing = editingCookingLog
+                    if (editing != null) {
+                        viewModel.updateCookingLog(
+                            editing.copy(
+                                dateEpochDay = dateEpochDay,
+                                notes = notes,
+                                photoUri = photoUri,
+                                rating = rating,
+                            )
+                        )
+                    } else {
+                        viewModel.addCookingLog(dateEpochDay, notes, photoUri, rating)
+                    }
+                    showAddCookingLog = false
+                    editingCookingLog = null
+                },
+                onClose = {
+                    showAddCookingLog = false
+                    editingCookingLog = null
+                },
+            )
+        }
+    }
+
+    previewPhotoUri?.let { uri ->
+        PhotoPreviewDialog(
+            photoUri = uri,
+            onDismiss = { previewPhotoUri = null },
+        )
+    }
 }
 
 /** Title, time, servings stepper, macros and tags — the card that overlaps the hero. */
@@ -695,6 +774,29 @@ private fun HeaderCard(
                 Text("$servings", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 StepperButton(Icons.Filled.Add, stringResource(R.string.detail_serving_more)) { onServingsChange(servings + 1) }
                 Text(stringResource(R.string.form_servings), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        }
+        if (details.cookingLogs.isNotEmpty()) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(
+                    Icons.Filled.HistoryEdu,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text(
+                    text = if (details.cookingLogs.size == 1) {
+                        stringResource(R.string.cooking_diary_badge_single)
+                    } else {
+                        stringResource(R.string.cooking_diary_badge_multiple, details.cookingLogs.size)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                )
             }
         }
         if (details.tags.isNotEmpty()) {

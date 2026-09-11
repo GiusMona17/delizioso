@@ -502,4 +502,28 @@
     <string name="quick_meal_ai_paste">Incolla JSON</string>
     <string name="quick_meal_save">Aggiungi al piano</string>
     <string name="planner_search_fallback_quick">Non trovi la ricetta? Aggiungi \"%1$s\" come pasto rapido</string>
+
+    <!-- Cooking Diary & Preparation Notes -->
+    <string name="cooking_diary_title">Diario di preparazione</string>
+    <string name="cooking_diary_badge_single">Preparata 1 volta</string>
+    <string name="cooking_diary_badge_multiple">Preparata %1$d volte</string>
+    <string name="cooking_diary_empty_title">Nessuna preparazione registrata</string>
+    <string name="cooking_diary_empty_desc">Appunta ogni volta che cucini questo piatto, allegando foto e note per ricordare le modifiche e il risultato!</string>
+    <string name="cooking_diary_add_action">+ Registra preparazione</string>
+    <string name="cooking_diary_new_title">Nuova preparazione</string>
+    <string name="cooking_diary_edit_title">Modifica preparazione</string>
+    <string name="cooking_diary_date">Data</string>
+    <string name="cooking_diary_rating">Valutazione (opzionale)</string>
+    <string name="cooking_diary_notes_hint">Come è andata? Dosi modificate, tempo di cottura, note sul gusto...</string>
+    <string name="cooking_diary_photo_label">Foto del piatto</string>
+    <string name="cooking_diary_take_photo">Scatta foto</string>
+    <string name="cooking_diary_pick_photo">Scegli foto</string>
+    <string name="cooking_diary_remove_photo">Rimuovi foto</string>
+    <string name="cooking_diary_save">Salva nel diario</string>
+    <string name="cooking_diary_edit">Modifica</string>
+    <string name="cooking_diary_delete">Elimina appunto</string>
+    <string name="cooking_diary_delete_confirm">Vuoi eliminare questo appunto di preparazione?</string>
+    <string name="cooking_diary_today">Oggi</string>
+    <string name="cooking_diary_yesterday">Ieri</string>
+    <string name="cooking_diary_view_photo">Visualizza foto</string>
 </resources>

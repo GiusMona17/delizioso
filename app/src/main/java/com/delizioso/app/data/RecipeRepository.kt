@@ -1,5 +1,6 @@
 package com.delizioso.app.data
 
+import com.delizioso.app.data.local.CookingLogEntity
 import com.delizioso.app.data.local.PantryDao
 import com.delizioso.app.data.local.PantryItemEntity
 import com.delizioso.app.data.local.PlannedMealEntity
@@ -113,6 +114,35 @@ class RecipeRepository(
     suspend fun removeMeal(id: Long) = dao.deleteMeal(id)
 
     suspend fun markMealsCooked(recipeId: Long, dateEpochDay: Long) = dao.markMealsCooked(recipeId, dateEpochDay)
+
+    // ---- Cooking diary ----
+
+    fun cookingLogs(recipeId: Long): Flow<List<CookingLogEntity>> = dao.observeCookingLogs(recipeId)
+
+    suspend fun addCookingLog(
+        recipeId: Long,
+        dateEpochDay: Long,
+        notes: String,
+        photoUri: String? = null,
+        rating: Int? = null,
+    ): Long = dao.insertCookingLog(
+        CookingLogEntity(
+            recipeId = recipeId,
+            dateEpochDay = dateEpochDay,
+            notes = notes.trim(),
+            photoUri = photoUri,
+            rating = rating,
+        )
+    )
+
+    suspend fun updateCookingLog(log: CookingLogEntity) = dao.updateCookingLog(log)
+
+    suspend fun deleteCookingLog(id: Long, photoUri: String? = null, context: android.content.Context? = null) {
+        dao.deleteCookingLog(id)
+        if (context != null && !photoUri.isNullOrBlank()) {
+            ImageStore.deleteIfOwned(context, photoUri)
+        }
+    }
 
     suspend fun delete(id: Long) = dao.deleteRecipe(id)
 }

@@ -140,4 +140,21 @@ interface RecipeDao {
     /** Cook mode finished — flag every meal planned for that recipe on that day. */
     @Query("UPDATE planned_meals SET cooked = 1 WHERE recipeId = :recipeId AND dateEpochDay = :dateEpochDay")
     suspend fun markMealsCooked(recipeId: Long, dateEpochDay: Long)
+
+    // ---- Cooking diary ----
+
+    @Insert
+    suspend fun insertCookingLog(log: CookingLogEntity): Long
+
+    @Update
+    suspend fun updateCookingLog(log: CookingLogEntity)
+
+    @Query("DELETE FROM cooking_logs WHERE id = :id")
+    suspend fun deleteCookingLog(id: Long)
+
+    @Query("SELECT * FROM cooking_logs WHERE recipeId = :recipeId ORDER BY dateEpochDay DESC, id DESC")
+    fun observeCookingLogs(recipeId: Long): Flow<List<CookingLogEntity>>
+
+    @Query("SELECT * FROM cooking_logs WHERE recipeId = :recipeId")
+    suspend fun cookingLogsOfRecipe(recipeId: Long): List<CookingLogEntity>
 }

@@ -23,4 +23,6 @@ data class RecipeWithDetails(
         )
     )
     val tags: List<TagEntity> = emptyList(),
+    @Relation(parentColumn = "id", entityColumn = "recipeId")
+    val cookingLogs: List<CookingLogEntity> = emptyList(),
 )

@@ -504,4 +504,28 @@
     <string name="quick_meal_ai_paste">Paste JSON</string>
     <string name="quick_meal_save">Add to Planner</string>
     <string name="planner_search_fallback_quick">Can\'t find it? Add \"%1$s\" as quick meal</string>
+
+    <!-- Cooking Diary & Preparation Notes -->
+    <string name="cooking_diary_title">Cooking Diary</string>
+    <string name="cooking_diary_badge_single">Prepared 1 time</string>
+    <string name="cooking_diary_badge_multiple">Prepared %1$d times</string>
+    <string name="cooking_diary_empty_title">No preparations recorded yet</string>
+    <string name="cooking_diary_empty_desc">Note down every time you make this dish, attaching photos and thoughts to track improvements and taste!</string>
+    <string name="cooking_diary_add_action">+ Add preparation</string>
+    <string name="cooking_diary_new_title">New Preparation</string>
+    <string name="cooking_diary_edit_title">Edit Preparation</string>
+    <string name="cooking_diary_date">Date</string>
+    <string name="cooking_diary_rating">Rating (optional)</string>
+    <string name="cooking_diary_notes_hint">How did it go? Dosing tweaks, cooking time, flavor notes...</string>
+    <string name="cooking_diary_photo_label">Photo of the dish</string>
+    <string name="cooking_diary_take_photo">Take photo</string>
+    <string name="cooking_diary_pick_photo">Choose photo</string>
+    <string name="cooking_diary_remove_photo">Remove photo</string>
+    <string name="cooking_diary_save">Save to Diary</string>
+    <string name="cooking_diary_edit">Edit</string>
+    <string name="cooking_diary_delete">Delete entry</string>
+    <string name="cooking_diary_delete_confirm">Delete this preparation note?</string>
+    <string name="cooking_diary_today">Today</string>
+    <string name="cooking_diary_yesterday">Yesterday</string>
+    <string name="cooking_diary_view_photo">View photo</string>
 </resources>

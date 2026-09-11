@@ -17,8 +17,9 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         SourceEntity::class,
         PlannedMealEntity::class,
         PantryItemEntity::class,
+        CookingLogEntity::class,
     ],
-    version = 8,
+    version = 9,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -170,9 +171,31 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v8 → v9: add cooking_logs table. */
+        val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `cooking_logs` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `recipeId` INTEGER NOT NULL,
+                        `dateEpochDay` INTEGER NOT NULL,
+                        `notes` TEXT NOT NULL,
+                        `photoUri` TEXT,
+                        `rating` INTEGER,
+                        `createdAtEpochMilli` INTEGER NOT NULL,
+                        FOREIGN KEY(`recipeId`) REFERENCES `recipes`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_cooking_logs_recipeId` ON `cooking_logs` (`recipeId`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_cooking_logs_dateEpochDay` ON `cooking_logs` (`dateEpochDay`)")
+            }
+        }
+
         fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "delizioso.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
                 // Safety net only; every version bump so far ships a real migration.
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
