@@ -451,6 +451,11 @@
     <string name="export_enrich_prompt">Copia prompt arricchimento AI</string>
     <string name="export_share_enrich_prompt">Invia prompt arricchimento AI</string>
     <string name="export_enrich_hint">Chiedi a un\'AI esterna (ChatGPT, Claude, Gemini) di estrarre macro, tempi di prep/cottura, porzioni e quantità scalabili.</string>
+    <string name="export_ask_ai_title">Chiedi all\'AI su questa ricetta</string>
+    <string name="export_ask_ai_hint">Invia la ricetta salvata a un\'app AI (ChatGPT, Claude, Gemini) per fare domande, chiedere sostituzioni e consigli.</string>
+    <string name="export_ask_ai_share">Invia ricetta a un\'app AI</string>
+    <string name="export_ask_ai_copy">Copia prompt per AI</string>
+    <string name="detail_ask_ai_external">Chiedi all\'AI</string>
     <string name="import_search_title">Cerca online</string>
     <string name="import_search_body">Trova ricette per nome o ingredienti tra i portali attivi (GialloZafferano, TheMealDB, Cookist, ecc.).</string>
     <string name="import_search_open">Cerca online</string>

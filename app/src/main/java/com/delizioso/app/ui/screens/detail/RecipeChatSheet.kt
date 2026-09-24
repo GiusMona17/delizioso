@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -58,6 +59,7 @@ fun RecipeChatSheet(
     onAsk: (String) -> Unit,
     onAskSwap: (SwapPreset) -> Unit = {},
     onDismissError: () -> Unit,
+    onAskExternalAi: (() -> Unit)? = null,
 ) {
     var question by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
@@ -76,19 +78,34 @@ fun RecipeChatSheet(
             .padding(bottom = 20.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Column {
-            Text(
-                stringResource(R.string.chat_title),
-                style = MaterialTheme.typography.headlineLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                recipeTitle,
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f, fill = false)) {
+                Text(
+                    stringResource(R.string.chat_title),
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+                Text(
+                    recipeTitle,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            if (onAskExternalAi != null) {
+                ClayChip(
+                    text = stringResource(R.string.detail_ask_ai_external),
+                    icon = Icons.Filled.AutoAwesome,
+                    container = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.clickable(onClick = onAskExternalAi),
+                )
+            }
         }
 
         if (state.messages.isEmpty() && state.streaming == null) {

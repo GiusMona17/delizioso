@@ -566,7 +566,21 @@ fun RecipeDetailScreen(
                 } else {
                     StepList(d, factor)
                 }
-                MacrosPanel(macros = macros, onOpenChat = { showChat = true })
+                MacrosPanel(
+                    macros = macros,
+                    onOpenChat = { showChat = true },
+                    onAskExternalAi = {
+                        val language = java.util.Locale.getDefault().getDisplayLanguage(java.util.Locale.ENGLISH)
+                        val prompt = RecipePrompt.forRecipeQuestions(d, language)
+                        val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                            type = "text/plain"
+                            putExtra(android.content.Intent.EXTRA_TEXT, prompt)
+                        }
+                        context.startActivity(
+                            android.content.Intent.createChooser(send, context.getString(R.string.export_ask_ai_title))
+                        )
+                    },
+                )
                 CookingDiarySection(
                     logs = d.cookingLogs,
                     onAddLog = {
@@ -639,6 +653,17 @@ fun RecipeDetailScreen(
                 onAsk = viewModel::ask,
                 onAskSwap = viewModel::askSwap,
                 onDismissError = viewModel::clearChatError,
+                onAskExternalAi = {
+                    val language = java.util.Locale.getDefault().getDisplayLanguage(java.util.Locale.ENGLISH)
+                    val prompt = RecipePrompt.forRecipeQuestions(d, language)
+                    val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                        type = "text/plain"
+                        putExtra(android.content.Intent.EXTRA_TEXT, prompt)
+                    }
+                    context.startActivity(
+                        android.content.Intent.createChooser(send, context.getString(R.string.export_ask_ai_title))
+                    )
+                },
             )
         }
     }
@@ -989,6 +1014,7 @@ private fun sourceLabel(platform: String): String = when (platform) {
 private fun MacrosPanel(
     macros: MacroCalculator.Macros?,
     onOpenChat: () -> Unit,
+    onAskExternalAi: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         ClaySectionHeader(title = stringResource(R.string.detail_nutrition))
@@ -1038,14 +1064,24 @@ private fun MacrosPanel(
                 }
             }
         }
-        ClayButton(
-            text = stringResource(R.string.chat_title),
-            icon = Icons.AutoMirrored.Filled.Chat,
-            onClick = onOpenChat,
-            container = MaterialTheme.colorScheme.surfaceContainerLow,
-            contentColor = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.fillMaxWidth(),
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            ClayButton(
+                text = stringResource(R.string.chat_title),
+                icon = Icons.AutoMirrored.Filled.Chat,
+                onClick = onOpenChat,
+                container = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.weight(1f),
+            )
+            ClayButton(
+                text = stringResource(R.string.detail_ask_ai_external),
+                icon = Icons.Filled.AutoAwesome,
+                onClick = onAskExternalAi,
+                container = MaterialTheme.colorScheme.surfaceContainerLow,
+                contentColor = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 
@@ -1189,6 +1225,40 @@ private fun ExportSheet(
                 }
                 context.startActivity(
                     android.content.Intent.createChooser(send, context.getString(R.string.export_share_enrich_prompt))
+                )
+                onDone()
+            },
+            container = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        val askAiPrompt = RecipePrompt.forRecipeQuestions(details, language)
+        Text(
+            stringResource(R.string.export_ask_ai_hint),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        ClayButton(
+            text = stringResource(R.string.export_ask_ai_copy),
+            icon = Icons.Filled.AutoAwesome,
+            onClick = {
+                clipboard.setText(androidx.compose.ui.text.AnnotatedString(askAiPrompt))
+                onDone()
+            },
+            container = MaterialTheme.colorScheme.surfaceContainerLow,
+            contentColor = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.fillMaxWidth(),
+        )
+        ClayButton(
+            text = stringResource(R.string.export_ask_ai_share),
+            icon = Icons.Filled.IosShare,
+            onClick = {
+                val send = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(android.content.Intent.EXTRA_TEXT, askAiPrompt)
+                }
+                context.startActivity(
+                    android.content.Intent.createChooser(send, context.getString(R.string.export_ask_ai_title))
                 )
                 onDone()
             },

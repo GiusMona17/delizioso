@@ -18,6 +18,38 @@ object RecipePrompt {
     fun forRecipeWithDetails(details: RecipeWithDetails, targetLanguage: String): String =
         buildPrompt(RecipeExport.toMarkdown(details).trim(), targetLanguage)
 
+    /**
+     * Prompt handed to an external AI assistant (ChatGPT, Claude, Gemini, etc.)
+     * allowing the user to chat, ask questions, request substitutions, or get cooking advice
+     * based on the recipe in its current saved state.
+     */
+    fun forRecipeQuestions(details: RecipeWithDetails, targetLanguage: String): String = buildString {
+        appendLine("You are an expert culinary assistant. I am cooking the following saved recipe.")
+        appendLine("Please review the recipe details and be ready to answer my questions about it.")
+        appendLine("You can assist with:")
+        appendLine("- Ingredient substitutions and dietary adaptations")
+        appendLine("- Cooking techniques, equipment advice, and step-by-step guidance")
+        appendLine("- Temperature, timing, and doneness cues")
+        appendLine("- Scaling portions and wine or side-dish pairings")
+        appendLine("- Storage, leftovers, freezing, and reheating recommendations")
+        appendLine()
+        appendLine("Please communicate in $targetLanguage.")
+        appendLine()
+        appendLine("--- RECIPE ---")
+        appendLine(RecipeExport.toMarkdown(details).trim())
+        if (details.cookingLogs.isNotEmpty()) {
+            val notes = details.cookingLogs.mapNotNull { it.notes.takeIf { n -> n.isNotBlank() } }
+            if (notes.isNotEmpty()) {
+                appendLine()
+                appendLine("--- PREVIOUS COOKING NOTES ---")
+                notes.take(3).forEach { appendLine("- $it") }
+            }
+        }
+        appendLine()
+        appendLine("---")
+        appendLine("Ready! Please greet me in $targetLanguage, briefly acknowledge what we are cooking, and ask how you can help.")
+    }
+
     private fun buildPrompt(recipeContent: String, targetLanguage: String): String = buildString {
         appendLine("Below is the text/description of a recipe.")
         appendLine("Enrich, structure, and convert it into a valid JSON object — no markdown, no commentary —")
