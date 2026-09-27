@@ -538,4 +538,25 @@
     <string name="sync_channel_name">Sync with the Pi</string>
     <string name="sync_conflict_title">Sync paused</string>
     <string name="sync_conflict_text">This phone and the Pi have different recipes: choose which to keep in Profile.</string>
+    <string name="sync_section">Sync with the Pi</string>
+    <string name="sync_desc">Keeps recipes, planner, pantry, diary, photos and grocery list on your Raspberry Pi, so any phone can pick them up.</string>
+    <string name="sync_server">Server</string>
+    <string name="sync_token">Token</string>
+    <string name="sync_save">Save and sync</string>
+    <string name="sync_now">Sync now</string>
+    <string name="sync_not_configured">Not configured</string>
+    <string name="sync_never">Never synced</string>
+    <string name="sync_last">Last sync: %1$s</string>
+    <string name="sync_error">Error: %1$s</string>
+    <string name="sync_conflict">This phone and the Pi have different data. Choose which to keep: the other copy stays recoverable.</string>
+    <string name="sync_keep_phone">Keep this phone</string>
+    <string name="sync_use_pi">Use the Pi\'s data</string>
+    <string name="sync_outcome_not_configured">Enter the Pi\'s address and token.</string>
+    <string name="sync_outcome_up_to_date">Already in sync.</string>
+    <string name="sync_outcome_nothing_on_pi">The Pi has no Delizioso data yet.</string>
+    <string name="sync_outcome_pushed">Library sent to the Pi.</string>
+    <string name="sync_outcome_pulled">Library restored.</string>
+    <string name="sync_outcome_conflict">This phone and the Pi have different data: choose which to keep.</string>
+    <string name="sync_outcome_update_required">The Pi has data from a newer Delizioso: update the app.</string>
+    <string name="sync_outcome_failed">Sync failed: %1$s</string>
 </resources>

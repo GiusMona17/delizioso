@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
@@ -213,6 +214,7 @@ fun ClayTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     cornerRadius: androidx.compose.ui.unit.Dp = 16.dp,
     trailing: (@Composable () -> Unit)? = null,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
@@ -249,6 +251,7 @@ fun ClayTextField(
                 minLines = minLines,
                 cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 keyboardOptions = keyboardOptions,
+                visualTransformation = visualTransformation,
                 interactionSource = interactionSource,
                 decorationBox = { innerTextField ->
                     Box {
@@ -283,6 +286,7 @@ fun ClayLabelledField(
     placeholder: String = "",
     singleLine: Boolean = true,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    visualTransformation: VisualTransformation = VisualTransformation.None,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -292,6 +296,7 @@ fun ClayLabelledField(
             placeholder = placeholder,
             singleLine = singleLine,
             keyboardOptions = keyboardOptions,
+            visualTransformation = visualTransformation,
             modifier = Modifier.fillMaxWidth(),
         )
     }

@@ -199,6 +199,7 @@ fun ProfileScreen(
     onConnectInstagram: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory),
+    syncViewModel: SyncViewModel = viewModel(factory = SyncViewModel.Factory),
 ) {
     val aiConsent by viewModel.aiConsent.collectAsStateWithLifecycle()
     val servings by viewModel.defaultServings.collectAsStateWithLifecycle()
@@ -388,6 +389,12 @@ fun ProfileScreen(
                         selectedIndex = modes.indexOf(themeMode).coerceAtLeast(0),
                         onSelect = { viewModel.setThemeMode(modes[it]) },
                     )
+                }
+            }
+
+            item {
+                SettingsCard(title = stringResource(R.string.sync_section)) {
+                    SyncControls(syncViewModel)
                 }
             }
 
