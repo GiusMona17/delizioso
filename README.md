@@ -121,6 +121,15 @@ app/
 
 ---
 
+## 🥧 Sincronizzazione con il Pi (Snapsync)
+Sincronizzazione automatica point-to-point su rete Tailscale con Raspberry Pi (`snapsync`).
+- **Dati sincronizzati**: ricette, ingredienti, passaggi, tag, fonti, pasti pianificati, diario di cucina, dispensa, foto locali (`recipes.imageUri`, `cooking_logs.photoUri`), lista della spesa e target nutrizionali.
+- **Dati non sincronizzati**: chiave API YouTube, consenso AI, fonti abilitate, tema e layout della libreria, stato di primo avvio, modello locale Gemma (`files/gemma-model.task`).
+- **Configurazione**: Profilo → "Sincronizzazione con il Pi", inserire URL server e token snapsync.
+- **Risoluzione conflitti**: in caso di modifiche divergenti offline, l'utente sceglie se mantenere i dati del telefono o del Pi; la versione sostituita viene salvata localmente in `pre-restore.zip`.
+
+---
+
 ## 📄 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
