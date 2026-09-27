@@ -5,7 +5,19 @@ import android.content.Context
 import coil.ImageLoader
 import coil.ImageLoaderFactory
 import okhttp3.OkHttpClient
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.ProcessLifecycleOwner
 import com.delizioso.app.data.RecipeRepository
+import com.delizioso.app.data.sync.DeliziosoSyncConfig
+import com.delizioso.app.data.sync.FileHashCache
+import com.delizioso.app.data.sync.SnapsyncClient
+import com.delizioso.app.data.sync.SyncEngine
+import com.delizioso.app.data.sync.SyncNotifier
+import com.delizioso.app.data.sync.SyncSettingsRepository
+import com.delizioso.app.data.sync.SyncWorker
+import com.delizioso.app.data.sync.TableSnapshot
+import java.io.File
 import com.delizioso.app.data.ai.GemmaEngine
 import com.delizioso.app.data.ai.NanoChat
 import com.delizioso.app.data.ai.RecipeChat
@@ -75,6 +87,34 @@ class AppContainer(context: Context) {
             com.delizioso.app.data.search.TheMealDbSearchProvider(theMealDbClient),
         )
     }
+
+    val syncSettings: SyncSettingsRepository = SyncSettingsRepository(preferences.dataStore)
+
+    /** Plain client: snapsync needs neither the browser User-Agent nor the import interceptors. */
+    private val syncHttp: OkHttpClient by lazy {
+        OkHttpClient.Builder()
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+            .build()
+    }
+
+    val syncEngine: SyncEngine by lazy {
+        val workDir = File(context.filesDir, "snapsync")
+        SyncEngine(
+            TableSnapshot(
+                database,
+                DeliziosoSyncConfig,
+                context.filesDir,
+                FileHashCache(File(workDir, "hashes.json")),
+                preferences.dataStore,
+            ),
+            syncSettings,
+            { s -> SnapsyncClient(syncHttp, s.serverUrl, s.token, DeliziosoSyncConfig.appName) },
+            workDir,
+        )
+    }
+
+    val syncNotifier: SyncNotifier = SyncNotifier(context.applicationContext)
 }
 
 class DeliziosoApplication : Application(), ImageLoaderFactory {
@@ -85,6 +125,11 @@ class DeliziosoApplication : Application(), ImageLoaderFactory {
     override fun onCreate() {
         super.onCreate()
         container = AppContainer(this)
+        SyncWorker.schedulePeriodic(this)
+        // Pull when the app comes forward, push when it leaves (spec §2 triggers).
+        ProcessLifecycleOwner.get().lifecycle.addObserver(LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_START || event == Lifecycle.Event.ON_STOP) SyncWorker.enqueue(this)
+        })
     }
 
     /**

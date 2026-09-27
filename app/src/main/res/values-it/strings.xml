@@ -531,4 +531,9 @@
     <string name="cooking_diary_today">Oggi</string>
     <string name="cooking_diary_yesterday">Ieri</string>
     <string name="cooking_diary_view_photo">Visualizza foto</string>
+
+    <!-- Snapsync -->
+    <string name="sync_channel_name">Sincronizzazione con il Pi</string>
+    <string name="sync_conflict_title">Sincronizzazione in pausa</string>
+    <string name="sync_conflict_text">Questo telefono e il Pi hanno ricette diverse: scegli quali tenere nel Profilo.</string>
 </resources>
