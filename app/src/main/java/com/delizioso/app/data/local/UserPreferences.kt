@@ -1,6 +1,8 @@
 package com.delizioso.app.data.local
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -15,6 +17,9 @@ private val Context.userDataStore by preferencesDataStore(name = "user_prefs")
 
 /** User preferences persisted in DataStore (lightweight, no Room needed). */
 class UserPreferences(private val context: Context) {
+
+    /** The raw store, for the sync snapshot's handful of synced keys. */
+    val dataStore: DataStore<Preferences> get() = context.userDataStore
 
     private object Keys {
         val AI_CONSENT = booleanPreferencesKey("ai_consent_given")

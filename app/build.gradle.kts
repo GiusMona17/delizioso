@@ -44,6 +44,12 @@ android {
         // Personal-use YouTube Data API v3 key; set via gradle -PyouTubeApiKey=... or leave blank.
         buildConfigField("String", "YOUTUBE_API_KEY", "\"${project.findProperty("youTubeApiKey") ?: ""}\"")
     }
+
+    testOptions {
+        unitTests {
+            isIncludeAndroidResources = true
+        }
+    }
 }
 
 ksp {
@@ -89,6 +95,12 @@ dependencies {
     implementation(libs.mlkit.translate)
     implementation(libs.mlkit.language.id)
     implementation(libs.kotlinx.coroutines.play.services)
+
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.lifecycle.process)
+    testImplementation(libs.robolectric)
+    testImplementation(libs.androidx.test.core.ktx)
+    testImplementation(libs.androidx.test.ext.junit.ktx)
 
     testImplementation(libs.junit)
     testImplementation(libs.okhttp.mockwebserver)
