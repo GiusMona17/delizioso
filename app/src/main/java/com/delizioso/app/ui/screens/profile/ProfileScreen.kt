@@ -1,7 +1,14 @@
 package com.delizioso.app.ui.screens.profile
 
+import android.content.Context
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import com.delizioso.app.data.sync.SyncEngine
+import com.delizioso.app.data.sync.SyncOutcome
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -77,16 +84,19 @@ import com.delizioso.app.R
 sealed interface BackupState {
     data object Idle : BackupState
     data object Working : BackupState
-    data class Exported(val recipes: Int) : BackupState
+    data object Exported : BackupState
+    data object Replaced : BackupState
     data class Restored(val added: Int, val skipped: Int) : BackupState
     data class Failed(val message: String) : BackupState
 }
 
 class ProfileViewModel(
+    private val appContext: Context,
     private val preferences: UserPreferences,
     repository: RecipeRepository,
     private val gemma: GemmaEngine,
     private val backupManager: BackupManager,
+    private val syncEngine: SyncEngine,
 ) : ViewModel() {
 
     /** Bytes installed, 0 when absent; -1 while copying. */
@@ -139,11 +149,15 @@ class ProfileViewModel(
         if (_backup.value is BackupState.Working) return
         viewModelScope.launch {
             _backup.value = BackupState.Working
-            _backup.value = runCatching { backupManager.exportTo(destination) }
-                .fold(
-                    onSuccess = { BackupState.Exported(it) },
-                    onFailure = { BackupState.Failed(it.message.orEmpty()) },
-                )
+            _backup.value = runCatching {
+                withContext(Dispatchers.IO) {
+                    appContext.contentResolver.openOutputStream(destination)?.use { syncEngine.exportArchive(it) }
+                        ?: error("could not write the chosen file")
+                }
+            }.fold(
+                onSuccess = { BackupState.Exported },
+                onFailure = { BackupState.Failed(it.message.orEmpty()) },
+            )
         }
     }
 
@@ -151,13 +165,28 @@ class ProfileViewModel(
         if (_backup.value is BackupState.Working) return
         viewModelScope.launch {
             _backup.value = BackupState.Working
-            _backup.value = runCatching { backupManager.importFrom(source) }
-                .fold(
-                    onSuccess = { BackupState.Restored(it.added, it.skipped) },
-                    onFailure = { BackupState.Failed(it.message.orEmpty()) },
-                )
+            _backup.value = runCatching {
+                val bytes = withContext(Dispatchers.IO) {
+                    appContext.contentResolver.openInputStream(source)?.use { it.readBytes() }
+                        ?: error("could not read the chosen file")
+                }
+                if (isSnapshotArchive(bytes)) {
+                    when (val outcome = syncEngine.importArchive(bytes.inputStream())) {
+                        SyncOutcome.Pulled -> BackupState.Replaced
+                        else -> BackupState.Failed(outcome.toString())
+                    }
+                } else {
+                    // A library zip from before the snapshot format: the old additive restore.
+                    backupManager.importFrom(source).let { BackupState.Restored(it.added, it.skipped) }
+                }
+            }.getOrElse { BackupState.Failed(it.message.orEmpty()) }
         }
     }
+
+    private fun isSnapshotArchive(bytes: ByteArray): Boolean =
+        java.util.zip.ZipInputStream(bytes.inputStream()).use { zip ->
+            generateSequence { zip.nextEntry }.any { it.name == "snapshot.json" }
+        }
 
     fun setAiConsent(value: Boolean) = viewModelScope.launch { preferences.setAiConsent(value) }
 
@@ -183,10 +212,12 @@ class ProfileViewModel(
             initializer {
                 val app = this[ViewModelProvider.AndroidViewModelFactory.APPLICATION_KEY] as DeliziosoApplication
                 ProfileViewModel(
+                    appContext = app,
                     preferences = app.container.preferences,
                     repository = app.container.recipeRepository,
                     gemma = app.container.gemmaEngine,
                     backupManager = app.container.backupManager,
+                    syncEngine = app.container.syncEngine,
                 )
             }
         }
@@ -530,9 +561,10 @@ private fun BackupControls(
     val exportPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/zip")
     ) { uri -> uri?.let(onExport) }
+    var pendingImport by remember { mutableStateOf<android.net.Uri?>(null) }
     val importPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.OpenDocument()
-    ) { uri -> uri?.let(onImport) }
+    ) { uri -> pendingImport = uri }
 
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(
@@ -542,7 +574,8 @@ private fun BackupControls(
         )
         when (state) {
             is BackupState.Working -> StatusLine(stringResource(R.string.backup_working))
-            is BackupState.Exported -> StatusLine(stringResource(R.string.backup_exported, state.recipes))
+            is BackupState.Exported -> StatusLine(stringResource(R.string.backup_exported))
+            is BackupState.Replaced -> StatusLine(stringResource(R.string.sync_outcome_pulled))
             is BackupState.Restored -> StatusLine(
                 stringResource(R.string.backup_restored, state.added, state.skipped)
             )
@@ -569,6 +602,22 @@ private fun BackupControls(
                 modifier = Modifier.weight(1f),
             )
         }
+    }
+
+    pendingImport?.let { uri ->
+        AlertDialog(
+            onDismissRequest = { pendingImport = null },
+            title = { Text(stringResource(R.string.backup_confirm_title)) },
+            text = { Text(stringResource(R.string.backup_confirm_body)) },
+            confirmButton = {
+                TextButton(onClick = { pendingImport = null; onImport(uri) }) {
+                    Text(stringResource(R.string.backup_confirm_action))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingImport = null }) { Text(stringResource(android.R.string.cancel)) }
+            },
+        )
     }
 }
 

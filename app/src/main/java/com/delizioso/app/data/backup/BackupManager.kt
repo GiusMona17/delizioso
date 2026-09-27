@@ -7,7 +7,6 @@ import com.delizioso.app.data.RecipeRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
-import java.io.File
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -32,33 +31,6 @@ class BackupManager(
     data class RestoreResult(val added: Int, val skipped: Int)
 
     class BackupException(message: String) : Exception(message)
-
-    /** Writes every recipe and photo to [destination]. Returns how many were saved. */
-    suspend fun exportTo(destination: Uri): Int = withContext(Dispatchers.IO) {
-        val library = repository.allWithDetails.first()
-        val output = appContext.contentResolver.openOutputStream(destination)
-            ?: throw BackupException("Could not write to the chosen file")
-
-        ZipOutputStream(output.buffered()).use { zip ->
-            val records = library.map { details ->
-                val photo = details.recipe.imageUri?.let { File(it) }?.takeIf { it.exists() }
-                if (photo != null) {
-                    zip.putNextEntry(ZipEntry(BackupFile.PHOTO_DIR + photo.name))
-                    photo.inputStream().use { it.copyTo(zip) }
-                    zip.closeEntry()
-                }
-                details.toBackup(photo?.name)
-            }
-            zip.putNextEntry(ZipEntry(BackupFile.MANIFEST))
-            zip.write(
-                BackupFile.json
-                    .encodeToString(BackupFile.serializer(), BackupFile(recipes = records))
-                    .toByteArray()
-            )
-            zip.closeEntry()
-            records.size
-        }
-    }
 
     /**
      * Restores from [source], adding recipes that aren't already here.
