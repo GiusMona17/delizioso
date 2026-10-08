@@ -560,4 +560,14 @@
     <string name="sync_outcome_conflict">Questo telefono e il Pi hanno dati diversi: scegli quali tenere.</string>
     <string name="sync_outcome_update_required">Il Pi ha dati di una versione più recente di Delizioso: aggiorna l\'app.</string>
     <string name="sync_outcome_failed">Sincronizzazione non riuscita: %1$s</string>
+
+    <string name="docs_section">Documenti per l\'assistente</string>
+    <string name="docs_desc">Dopo ogni sincronizzazione invia al Pi piano dei pasti, lista della spesa e dispensa in un formato leggibile da Corvo. Disattivato di default.</string>
+    <string name="docs_switch">Invia i documenti al Pi</string>
+    <string name="docs_send_now">Invia ora</string>
+    <string name="docs_status_off">Disattivato</string>
+    <string name="docs_status_needs_server">Imposta prima il server del Pi qui sopra</string>
+    <string name="docs_status_never">Ancora nessun invio</string>
+    <string name="docs_status_last">Ultimo invio: %1$s</string>
+    <string name="docs_status_error">Errore: %1$s</string>
 </resources>

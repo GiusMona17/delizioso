@@ -562,4 +562,14 @@
     <string name="sync_outcome_conflict">This phone and the Pi have different data: choose which to keep.</string>
     <string name="sync_outcome_update_required">The Pi has data from a newer Delizioso: update the app.</string>
     <string name="sync_outcome_failed">Sync failed: %1$s</string>
+
+    <string name="docs_section">Documents for the assistant</string>
+    <string name="docs_desc">After each sync, sends your meal plan, shopping list and pantry to the Pi in a form Corvo can read. Off by default.</string>
+    <string name="docs_switch">Send documents to the Pi</string>
+    <string name="docs_send_now">Send now</string>
+    <string name="docs_status_off">Off</string>
+    <string name="docs_status_needs_server">Set the Pi server above first</string>
+    <string name="docs_status_never">Nothing sent yet</string>
+    <string name="docs_status_last">Last sent: %1$s</string>
+    <string name="docs_status_error">Error: %1$s</string>
 </resources>

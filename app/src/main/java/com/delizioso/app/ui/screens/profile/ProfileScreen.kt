@@ -231,6 +231,7 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory),
     syncViewModel: SyncViewModel = viewModel(factory = SyncViewModel.Factory),
+    docsViewModel: DocsViewModel = viewModel(factory = DocsViewModel.Factory),
 ) {
     val aiConsent by viewModel.aiConsent.collectAsStateWithLifecycle()
     val servings by viewModel.defaultServings.collectAsStateWithLifecycle()
@@ -426,6 +427,12 @@ fun ProfileScreen(
             item {
                 SettingsCard(title = stringResource(R.string.sync_section)) {
                     SyncControls(syncViewModel)
+                }
+            }
+
+            item {
+                SettingsCard(title = stringResource(R.string.docs_section)) {
+                    DocsControls(docsViewModel)
                 }
             }
 

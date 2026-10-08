@@ -17,6 +17,10 @@ import com.delizioso.app.data.sync.SyncNotifier
 import com.delizioso.app.data.sync.SyncSettingsRepository
 import com.delizioso.app.data.sync.SyncWorker
 import com.delizioso.app.data.sync.TableSnapshot
+import com.delizioso.app.data.docs.DeliziosoDocsLoader
+import com.delizioso.app.data.docs.DocsPusher
+import com.delizioso.app.data.docs.DocsSettingsRepository
+import com.delizioso.app.data.docs.DocsSync
 import java.io.File
 import com.delizioso.app.data.ai.GemmaEngine
 import com.delizioso.app.data.ai.NanoChat
@@ -115,6 +119,23 @@ class AppContainer(context: Context) {
     }
 
     val syncNotifier: SyncNotifier = SyncNotifier(context.applicationContext)
+
+    val docsSettings: DocsSettingsRepository = DocsSettingsRepository(preferences.dataStore)
+
+    /** The documents for the assistant: delivered to a second snapsync app next to the main one, same server and token. */
+    val docsSync: DocsSync by lazy {
+        DocsSync(
+            DeliziosoDocsLoader(
+                recipeRepository,
+                { preferences.groceryChecked.first() },
+                { preferences.groceryCustomItems.first() },
+            ),
+            syncSettings,
+            docsSettings,
+            { s -> SnapsyncClient(syncHttp, s.serverUrl, s.token, DocsPusher.APP) },
+            File(context.filesDir, "docs-sync"),
+        )
+    }
 }
 
 class DeliziosoApplication : Application(), ImageLoaderFactory {

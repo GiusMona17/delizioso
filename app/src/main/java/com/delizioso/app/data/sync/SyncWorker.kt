@@ -23,7 +23,11 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
                 container.syncNotifier.showConflict()
                 Result.success()
             }
-            else -> Result.success()
+            else -> {
+                // The documents for the assistant follow a successful sync; they never decide its result.
+                container.docsSync.run()
+                Result.success()
+            }
         }
     }
 
