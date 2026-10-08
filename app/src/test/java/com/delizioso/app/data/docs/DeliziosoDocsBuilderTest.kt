@@ -47,7 +47,7 @@ class DeliziosoDocsBuilderTest {
     ) = DeliziosoDocsInput(today, generatedAt, "Europe/Rome", meals, shopping, pantry)
 
     private fun golden(name: String): String =
-        javaClass.getResource("/docs-golden/$name")!!.readText(Charsets.UTF_8)
+        javaClass.getResource("/docs-golden/$name")!!.readText(Charsets.UTF_8).replace("\r\n", "\n")
 
     private fun plain(value: Any?): Any? = when (value) {
         is JSONObject -> value.keys().asSequence().associateWith { plain(value.get(it)) }
