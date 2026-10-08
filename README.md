@@ -130,6 +130,19 @@ Sincronizzazione automatica point-to-point su rete Tailscale con Raspberry Pi (`
 
 ---
 
+## 🤖 Documenti per l'assistente (delizioso-docs)
+Dopo ogni sincronizzazione riuscita con il Pi, Delizioso può inviare automaticamente tre piccoli documenti all'assistente personale (Corvo) su Raspberry Pi, come seconda applicazione snapsync (`delizioso-docs`):
+- `manifest.json`: metadati, data e ora di generazione in UTC, timezone e conteggi.
+- `now.md`: riassunto in Markdown per oggi e domani, tabella dei prossimi 7 giorni, lista della spesa aperta e scadenze della dispensa entro 7 giorni.
+- `agenda.json`: formato strutturato standard (`agenda/1`) con eventi futuri fino a 14 giorni (pasti pianificati, la lista della spesa con data odierna, e gli alimenti in dispensa in scadenza tra 30 giorni fa e 14 giorni avanti).
+
+- **Attivazione**: disattivato per default; si attiva in Profilo → "Documenti per l'assistente" (include anche il pulsante "Invia ora").
+- **Connessione**: utilizza lo stesso server e token configurati per la sincronizzazione con il Pi.
+- **Dati inclusi**: pasti pianificati per i successivi 14 giorni, lista della spesa per i successivi 7 giorni (meno gli articoli spuntati e quelli già presenti in dispensa) e alimenti della dispensa con scadenze.
+- **Specifiche**: il formato e i contratti dei documenti sono definiti nella specifica del sistema app-docs in `personal-dashboard`: [`docs/superpowers/specs/2026-10-08-app-docs-contract-design.md`](https://github.com/GiusMona17/personal-dashboard/blob/main/docs/superpowers/specs/2026-10-08-app-docs-contract-design.md).
+
+---
+
 ## 📄 License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
