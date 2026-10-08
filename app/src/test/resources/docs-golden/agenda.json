@@ -1,0 +1,18 @@
+{
+  "format": "agenda/1",
+  "generatedAt": "2026-10-08T15:23:54Z",
+  "items": [
+    {"date": "2026-10-05", "kind": "pantry", "title": "Yogurt", "detail": null, "overdue": true,
+     "data": {"pantryItemId": 2, "category": "Pantry"}},
+    {"date": "2026-10-08", "kind": "meal", "title": "Piadina crudo, stracchino e rucola", "detail": "lunch, 1 serving, 610 kcal", "overdue": false,
+     "data": {"slot": "LUNCH", "servings": 1, "recipeId": null, "cooked": false, "isSide": false}},
+    {"date": "2026-10-08", "kind": "meal", "title": "Risotto ai funghi", "detail": "dinner, 2 servings", "overdue": false,
+     "data": {"slot": "DINNER", "servings": 2, "recipeId": 75, "cooked": false, "isSide": false}},
+    {"date": "2026-10-08", "kind": "shopping", "title": "Shopping list", "detail": "2 items to buy", "overdue": false,
+     "data": {"items": ["500 g pasta", "6 uova"]}},
+    {"date": "2026-10-09", "kind": "meal", "title": "Pasta al forno", "detail": "dinner, 2 servings", "overdue": false,
+     "data": {"slot": "DINNER", "servings": 2, "recipeId": 48, "cooked": false, "isSide": false}},
+    {"date": "2026-10-10", "kind": "pantry", "title": "Latte", "detail": "1 l", "overdue": false,
+     "data": {"pantryItemId": 1, "category": "Pantry"}}
+  ]
+}
