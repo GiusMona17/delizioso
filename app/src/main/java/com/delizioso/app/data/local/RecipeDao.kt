@@ -131,6 +131,10 @@ interface RecipeDao {
     @Query("SELECT * FROM planned_meals WHERE dateEpochDay BETWEEN :from AND :to ORDER BY dateEpochDay, id")
     fun observeMealsWithRecipe(from: Long, to: Long): Flow<List<PlannedMealWithRecipe>>
 
+    @Transaction
+    @Query("SELECT * FROM planned_meals WHERE dateEpochDay = :dateEpochDay ORDER BY id")
+    suspend fun getMealsForDay(dateEpochDay: Long): List<PlannedMealWithRecipe>
+
     @Insert
     suspend fun insertMeal(meal: PlannedMealEntity): Long
 

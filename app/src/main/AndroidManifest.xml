@@ -49,6 +49,11 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <provider
+            android:name=".data.provider.DeliziosoMealsProvider"
+            android:authorities="com.delizioso.app.meals"
+            android:exported="true" />
     </application>
 
 </manifest>
