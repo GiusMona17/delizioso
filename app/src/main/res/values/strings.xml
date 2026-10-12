@@ -572,4 +572,21 @@
     <string name="docs_status_never">Nothing sent yet</string>
     <string name="docs_status_last">Last sent: %1$s</string>
     <string name="docs_status_error">Error: %1$s</string>
+
+    <!-- Quick Meals Catalog -->
+    <string name="quick_meals_title">Quick Meals</string>
+    <string name="quick_meals_desc">Manage simple everyday meals not tied to detailed recipes</string>
+    <string name="quick_meals_empty">No quick meals saved yet</string>
+    <string name="quick_meals_empty_desc">Create simple dishes like milk and cereal or pasta to quickly add them to your weekly planner.</string>
+    <string name="quick_meals_create_new">New Quick Meal</string>
+    <string name="quick_meals_choose_saved">Saved Quick Meal</string>
+    <string name="quick_meals_choose_saved_desc">Select from your saved everyday meals</string>
+    <string name="quick_meals_filter_all">All</string>
+    <string name="quick_meals_slot_any">Any meal</string>
+    <string name="quick_meals_delete_confirm_title">Delete Quick Meal</string>
+    <string name="quick_meals_delete_confirm_body">Are you sure you want to delete this quick meal from your catalog? Previously planned meals will not be affected.</string>
+    <string name="quick_meals_count">%d saved meals</string>
+    <string name="quick_meals_pick_title">Choose Quick Meal (%s)</string>
+    <string name="quick_meals_manage_catalog">Manage Catalog</string>
+    <string name="quick_meals_slot_label">Default meal slot</string>
 </resources>
