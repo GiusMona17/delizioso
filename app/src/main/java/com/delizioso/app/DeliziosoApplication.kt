@@ -47,7 +47,7 @@ import kotlinx.coroutines.runBlocking
 /** Lightweight manual DI container (no Hilt — keeps the dependency surface small). */
 class AppContainer(context: Context) {
     val database: AppDatabase = AppDatabase.build(context)
-    val recipeRepository: RecipeRepository = RecipeRepository(database.recipeDao(), database.pantryDao())
+    val recipeRepository: RecipeRepository = RecipeRepository(database.recipeDao(), database.pantryDao(), database.quickMealDao())
     val preferences: UserPreferences = UserPreferences(context)
 
     val nanoStructurer: NanoStructurer = NanoStructurer(

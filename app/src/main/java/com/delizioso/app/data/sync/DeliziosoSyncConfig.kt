@@ -16,6 +16,7 @@ val DeliziosoSyncConfig = SyncConfig(
         "planned_meals",
         "cooking_logs",
         "pantry_items",
+        "quick_meals",
     ),
     fileColumns = mapOf(
         "recipes" to setOf("imageUri"),

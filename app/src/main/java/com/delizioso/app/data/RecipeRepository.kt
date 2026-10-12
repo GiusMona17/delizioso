@@ -5,6 +5,8 @@ import com.delizioso.app.data.local.PantryDao
 import com.delizioso.app.data.local.PantryItemEntity
 import com.delizioso.app.data.local.PlannedMealEntity
 import com.delizioso.app.data.local.PlannedMealWithRecipe
+import com.delizioso.app.data.local.QuickMealDao
+import com.delizioso.app.data.local.QuickMealEntity
 import com.delizioso.app.data.local.RecipeDao
 import com.delizioso.app.data.local.RecipeEntity
 import com.delizioso.app.data.import.StructuredRecipe
@@ -12,10 +14,11 @@ import com.delizioso.app.data.local.RecipeWithDetails
 import com.delizioso.app.data.local.StepEntity
 import kotlinx.coroutines.flow.Flow
 
-/** Single entry point for recipe and pantry persistence. */
+/** Single entry point for recipe, pantry and quick meals persistence. */
 class RecipeRepository(
     private val dao: RecipeDao,
     private val pantryDao: PantryDao,
+    private val quickMealDao: QuickMealDao,
 ) {
 
     val allWithDetails: Flow<List<RecipeWithDetails>> = dao.observeAllWithDetails()
@@ -114,6 +117,51 @@ class RecipeRepository(
     suspend fun removeMeal(id: Long) = dao.deleteMeal(id)
 
     suspend fun markMealsCooked(recipeId: Long, dateEpochDay: Long) = dao.markMealsCooked(recipeId, dateEpochDay)
+
+    // ---- Quick Meals Catalog ----
+
+    val quickMeals: Flow<List<QuickMealEntity>> = quickMealDao.getAll()
+
+    fun quickMealsForSlot(slot: String): Flow<List<QuickMealEntity>> = quickMealDao.getForSlot(slot)
+
+    suspend fun saveQuickMeal(meal: QuickMealEntity): Long = quickMealDao.insert(meal)
+
+    suspend fun updateQuickMeal(meal: QuickMealEntity) = quickMealDao.update(meal)
+
+    suspend fun deleteQuickMeal(id: Long) = quickMealDao.delete(id)
+
+    suspend fun addSavedQuickMeal(
+        dateEpochDay: Long,
+        slot: String,
+        meal: QuickMealEntity,
+        servings: Int = 1,
+        isSide: Boolean = false,
+    ): Long = dao.insertMeal(
+        PlannedMealEntity(
+            quickMealId = meal.id,
+            customName = meal.name,
+            caloriesKcal = meal.caloriesKcal,
+            proteinG = meal.proteinG,
+            fatG = meal.fatG,
+            carbsG = meal.carbsG,
+            dateEpochDay = dateEpochDay,
+            slot = slot,
+            servings = servings,
+            isSide = isSide,
+        )
+    )
+
+    suspend fun createAndPlanQuickMeal(
+        dateEpochDay: Long,
+        slot: String,
+        meal: QuickMealEntity,
+        servings: Int = 1,
+        isSide: Boolean = false,
+    ): Long {
+        val id = quickMealDao.insert(meal)
+        val saved = meal.copy(id = id)
+        return addSavedQuickMeal(dateEpochDay, slot, saved, servings, isSide)
+    }
 
     // ---- Cooking diary ----
 
