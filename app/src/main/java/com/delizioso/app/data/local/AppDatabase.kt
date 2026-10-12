@@ -18,14 +18,16 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PlannedMealEntity::class,
         PantryItemEntity::class,
         CookingLogEntity::class,
+        QuickMealEntity::class,
     ],
-    version = 9,
+    version = 10,
     exportSchema = true,
 )
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun recipeDao(): RecipeDao
     abstract fun pantryDao(): PantryDao
+    abstract fun quickMealDao(): QuickMealDao
 
     companion object {
 
@@ -193,9 +195,33 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        /** v9 → v10: add quick_meals table and quickMealId to planned_meals. */
+        val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS `quick_meals` (
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        `name` TEXT NOT NULL,
+                        `defaultSlot` TEXT,
+                        `caloriesKcal` REAL,
+                        `proteinG` REAL,
+                        `fatG` REAL,
+                        `carbsG` REAL,
+                        `createdAtEpochMilli` INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_quick_meals_name` ON `quick_meals` (`name`)")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_quick_meals_defaultSlot` ON `quick_meals` (`defaultSlot`)")
+                db.execSQL("ALTER TABLE `planned_meals` ADD COLUMN `quickMealId` INTEGER DEFAULT NULL REFERENCES `quick_meals`(`id`) ON DELETE SET NULL")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_planned_meals_quickMealId` ON `planned_meals` (`quickMealId`)")
+            }
+        }
+
         fun build(context: Context): AppDatabase =
             Room.databaseBuilder(context, AppDatabase::class.java, "delizioso.db")
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
                 // Safety net only; every version bump so far ships a real migration.
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
