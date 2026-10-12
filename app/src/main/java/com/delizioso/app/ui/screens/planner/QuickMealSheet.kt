@@ -47,20 +47,29 @@ import com.delizioso.app.ui.theme.clayCard
 import kotlinx.coroutines.launch
 import java.util.Locale
 
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import com.delizioso.app.data.local.MealSlot
+import com.delizioso.app.data.local.QuickMealEntity
+import com.delizioso.app.ui.components.ClayFilterChip
+
 @Composable
 fun QuickMealSheet(
     slotTitle: String,
+    initialDefaultSlot: String? = null,
+    initialMeal: QuickMealEntity? = null,
     initialDescription: String = "",
     estimator: QuickMealEstimator? = null,
-    onSave: (name: String, kcal: Double?, p: Double?, f: Double?, c: Double?) -> Unit,
+    onSave: (name: String, slot: String?, kcal: Double?, p: Double?, f: Double?, c: Double?) -> Unit,
     onClose: () -> Unit,
 ) {
+    var defaultSlot by rememberSaveable { mutableStateOf(initialMeal?.defaultSlot ?: initialDefaultSlot) }
     var description by rememberSaveable { mutableStateOf(initialDescription) }
-    var name by rememberSaveable { mutableStateOf(initialDescription) }
-    var kcal by rememberSaveable { mutableStateOf("") }
-    var protein by rememberSaveable { mutableStateOf("") }
-    var carbs by rememberSaveable { mutableStateOf("") }
-    var fat by rememberSaveable { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf(initialMeal?.name ?: initialDescription) }
+    var kcal by rememberSaveable { mutableStateOf(initialMeal?.caloriesKcal?.toInt()?.toString().orEmpty()) }
+    var protein by rememberSaveable { mutableStateOf(initialMeal?.proteinG?.toInt()?.toString().orEmpty()) }
+    var carbs by rememberSaveable { mutableStateOf(initialMeal?.carbsG?.toInt()?.toString().orEmpty()) }
+    var fat by rememberSaveable { mutableStateOf(initialMeal?.fatG?.toInt()?.toString().orEmpty()) }
     var isEstimating by remember { mutableStateOf(false) }
     var showPasteDialog by remember { mutableStateOf(false) }
 
@@ -107,6 +116,29 @@ fun QuickMealSheet(
             cornerRadius = 20.dp,
             modifier = Modifier.fillMaxWidth(),
         )
+
+        // Slot selector
+        Text(
+            stringResource(R.string.quick_meals_slot_label),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            item {
+                ClayFilterChip(
+                    text = stringResource(R.string.quick_meals_slot_any),
+                    selected = defaultSlot == null,
+                    onClick = { defaultSlot = null },
+                )
+            }
+            items(MealSlot.all) { s ->
+                ClayFilterChip(
+                    text = stringResource(MealSlot.labelRes(s)),
+                    selected = defaultSlot == s,
+                    onClick = { defaultSlot = s },
+                )
+            }
+        }
 
         // AI Tools Card
         Column(
@@ -231,6 +263,7 @@ fun QuickMealSheet(
             onClick = {
                 onSave(
                     name,
+                    defaultSlot,
                     kcal.toDoubleOrNull(),
                     protein.toDoubleOrNull(),
                     fat.toDoubleOrNull(),

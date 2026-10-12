@@ -10,6 +10,7 @@ import com.delizioso.app.data.RecipeRepository
 import com.delizioso.app.data.local.MealSlot
 import com.delizioso.app.data.local.PlannedMealEntity
 import com.delizioso.app.data.local.PlannedMealWithRecipe
+import com.delizioso.app.data.local.QuickMealEntity
 import com.delizioso.app.data.local.RecipeWithDetails
 import com.delizioso.app.data.local.UserPreferences
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,6 +36,10 @@ class PlannerViewModel(
     /** All recipes for the add-meal picker. */
     val recipes: StateFlow<List<RecipeWithDetails>> =
         repository.allWithDetails.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /** All saved quick meals for the quick-meal picker. */
+    val quickMeals: StateFlow<List<QuickMealEntity>> =
+        repository.quickMeals.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     private val _selectedDate = MutableStateFlow(LocalDate.now())
     val selectedDate: StateFlow<LocalDate> = _selectedDate.asStateFlow()
@@ -100,6 +105,38 @@ class PlannerViewModel(
 
     val quickMealEstimator = com.delizioso.app.data.ai.QuickMealEstimator {
         preferences.aiConsentGiven.first()
+    }
+
+    fun addSavedQuickMeal(quickMeal: QuickMealEntity, epochDay: Long, slot: String, isSide: Boolean = false) {
+        viewModelScope.launch {
+            val servings = preferences.defaultServings.first()
+            repository.addSavedQuickMeal(epochDay, slot, quickMeal, servings, isSide)
+        }
+    }
+
+    fun createAndPlanQuickMeal(
+        name: String,
+        defaultSlot: String?,
+        caloriesKcal: Double?,
+        proteinG: Double?,
+        fatG: Double?,
+        carbsG: Double?,
+        epochDay: Long,
+        slot: String,
+        isSide: Boolean = false,
+    ) {
+        viewModelScope.launch {
+            val servings = preferences.defaultServings.first()
+            val entity = QuickMealEntity(
+                name = name,
+                defaultSlot = defaultSlot ?: slot,
+                caloriesKcal = caloriesKcal,
+                proteinG = proteinG,
+                fatG = fatG,
+                carbsG = carbsG,
+            )
+            repository.createAndPlanQuickMeal(epochDay, slot, entity, servings, isSide)
+        }
     }
 
     fun addQuickMeal(

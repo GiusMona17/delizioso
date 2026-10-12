@@ -86,6 +86,7 @@ fun PlannerScreen(
     onRecipeClick: (Long) -> Unit,
     onOpenGrocery: () -> Unit,
     onProfileClick: () -> Unit,
+    onOpenQuickMeals: (() -> Unit)? = null,
     viewModel: PlannerViewModel = viewModel(factory = PlannerViewModel.Factory),
 ) {
     val selectedDate by viewModel.selectedDate.collectAsStateWithLifecycle()
@@ -93,11 +94,13 @@ fun PlannerScreen(
     val weekMeals by viewModel.weekMeals.collectAsStateWithLifecycle()
     val monthMeals by viewModel.monthMeals.collectAsStateWithLifecycle()
     val recipes by viewModel.recipes.collectAsStateWithLifecycle()
+    val quickMeals by viewModel.quickMeals.collectAsStateWithLifecycle()
     val weekNutritionRecap by viewModel.weekNutritionRecap.collectAsStateWithLifecycle()
 
     var view by rememberSaveable { mutableStateOf(PlannerView.WEEK) }
     var chooserSlot by remember { mutableStateOf<String?>(null) }
     var pickerRequest by remember { mutableStateOf<PickerRequest?>(null) }
+    var quickMealPickerRequest by remember { mutableStateOf<QuickMealPickerRequest?>(null) }
     var quickMealRequest by remember { mutableStateOf<QuickMealRequest?>(null) }
 
     Column(Modifier.fillMaxSize()) {
@@ -197,7 +200,7 @@ fun PlannerScreen(
                                     color = MaterialTheme.colorScheme.tertiary,
                                     modifier = Modifier
                                         .clip(PillShape)
-                                        .clickable { quickMealRequest = QuickMealRequest(slot = slot, isSide = false) }
+                                        .clickable { quickMealPickerRequest = QuickMealPickerRequest(slot = slot, isSide = false) }
                                         .padding(horizontal = 10.dp, vertical = 6.dp),
                                 )
                             }
@@ -233,7 +236,12 @@ fun PlannerScreen(
                     chooserSlot = null
                     pickerRequest = PickerRequest(s, isSide = false)
                 },
-                onAddQuickMeal = {
+                onPickSavedQuickMeal = {
+                    val s = slot
+                    chooserSlot = null
+                    quickMealPickerRequest = QuickMealPickerRequest(s, isSide = false)
+                },
+                onCreateNewQuickMeal = {
                     val s = slot
                     chooserSlot = null
                     quickMealRequest = QuickMealRequest(s, isSide = false)
@@ -272,6 +280,35 @@ fun PlannerScreen(
         }
     }
 
+    quickMealPickerRequest?.let { req ->
+        ModalBottomSheet(
+            onDismissRequest = { quickMealPickerRequest = null },
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+            containerColor = MaterialTheme.colorScheme.surfaceContainer,
+        ) {
+            QuickMealPickerSheet(
+                slotTitle = stringResource(MealSlot.labelRes(req.slot)),
+                targetSlot = req.slot,
+                quickMeals = quickMeals,
+                onPick = { meal ->
+                    viewModel.addSavedQuickMeal(meal, selectedDate.toEpochDay(), req.slot, req.isSide)
+                    quickMealPickerRequest = null
+                },
+                onCreateNew = {
+                    val s = req.slot
+                    val isSide = req.isSide
+                    quickMealPickerRequest = null
+                    quickMealRequest = QuickMealRequest(slot = s, isSide = isSide)
+                },
+                onManageCatalog = {
+                    quickMealPickerRequest = null
+                    onOpenQuickMeals?.invoke()
+                },
+                onClose = { quickMealPickerRequest = null },
+            )
+        }
+    }
+
     quickMealRequest?.let { req ->
         ModalBottomSheet(
             onDismissRequest = { quickMealRequest = null },
@@ -280,17 +317,19 @@ fun PlannerScreen(
         ) {
             QuickMealSheet(
                 slotTitle = stringResource(MealSlot.labelRes(req.slot)),
+                initialDefaultSlot = req.slot,
                 initialDescription = req.initialQuery,
                 estimator = viewModel.quickMealEstimator,
-                onSave = { name, kcal, p, f, c ->
-                    viewModel.addQuickMeal(
-                        dateEpochDay = selectedDate.toEpochDay(),
-                        slot = req.slot,
+                onSave = { name, slot, kcal, p, f, c ->
+                    viewModel.createAndPlanQuickMeal(
                         name = name,
+                        defaultSlot = slot,
                         caloriesKcal = kcal,
                         proteinG = p,
                         fatG = f,
                         carbsG = c,
+                        epochDay = selectedDate.toEpochDay(),
+                        slot = req.slot,
                         isSide = req.isSide,
                     )
                     quickMealRequest = null
@@ -302,6 +341,7 @@ fun PlannerScreen(
 }
 
 private data class PickerRequest(val slot: String, val isSide: Boolean)
+private data class QuickMealPickerRequest(val slot: String, val isSide: Boolean = false)
 private data class QuickMealRequest(val slot: String, val initialQuery: String = "", val isSide: Boolean = false)
 
 // ---- Week strip ------------------------------------------------------------
