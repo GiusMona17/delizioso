@@ -32,6 +32,7 @@ import com.delizioso.app.ui.screens.import.ImportScreen
 import com.delizioso.app.ui.screens.import.ImportViewModel
 import com.delizioso.app.ui.screens.library.LibraryScreen
 import com.delizioso.app.ui.screens.planner.PlannerScreen
+import com.delizioso.app.ui.screens.planner.QuickMealsScreen
 import com.delizioso.app.ui.screens.profile.InstagramLoginScreen
 import com.delizioso.app.ui.screens.profile.ProfileScreen
 import com.delizioso.app.ui.screens.profile.RecipeSourcesScreen
@@ -109,6 +110,7 @@ fun DeliziosoApp(
                     onRecipeClick = { id -> navController.navigate(Routes.recipeDetail(id)) },
                     onOpenGrocery = { navController.navigate(Routes.GROCERY) },
                     onProfileClick = { navController.navigate(Routes.PROFILE) },
+                    onOpenQuickMeals = { navController.navigate(Routes.QUICK_MEALS) },
                 )
             }
             composable(Routes.GROCERY) {
@@ -209,8 +211,12 @@ fun DeliziosoApp(
             composable(Routes.PROFILE) {
                 ProfileScreen(
                     onOpenRecipeSources = { navController.navigate(Routes.RECIPE_SOURCES) },
+                    onOpenQuickMeals = { navController.navigate(Routes.QUICK_MEALS) },
                     onConnectInstagram = { navController.navigate(Routes.INSTAGRAM_LOGIN) },
                 )
+            }
+            composable(Routes.QUICK_MEALS) {
+                QuickMealsScreen(onBack = { navController.popBackStack() })
             }
             composable(Routes.INSTAGRAM_LOGIN) {
                 InstagramLoginScreen(

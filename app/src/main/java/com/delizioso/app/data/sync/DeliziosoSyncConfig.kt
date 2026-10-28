@@ -13,6 +13,7 @@ val DeliziosoSyncConfig = SyncConfig(
         "steps",
         "sources",
         "recipe_tag_cross_ref",
+        "quick_meals",
         "planned_meals",
         "cooking_logs",
         "pantry_items",

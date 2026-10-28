@@ -17,13 +17,23 @@ import com.delizioso.app.R
             parentColumns = ["id"],
             childColumns = ["recipeId"],
             onDelete = ForeignKey.CASCADE,
-        )
+        ),
+        ForeignKey(
+            entity = QuickMealEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["quickMealId"],
+            onDelete = ForeignKey.SET_NULL,
+        ),
     ],
-    indices = [Index("recipeId")],
+    indices = [
+        Index("recipeId"),
+        Index("quickMealId"),
+    ],
 )
 data class PlannedMealEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val recipeId: Long? = null,
+    val quickMealId: Long? = null,
     val customName: String? = null,
     val caloriesKcal: Double? = null,
     val proteinG: Double? = null,

@@ -227,6 +227,7 @@ class ProfileViewModel(
 @Composable
 fun ProfileScreen(
     onOpenRecipeSources: () -> Unit = {},
+    onOpenQuickMeals: () -> Unit = {},
     onConnectInstagram: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ProfileViewModel = viewModel(factory = ProfileViewModel.Factory),
@@ -444,6 +445,43 @@ fun ProfileScreen(
                         onExport = viewModel::exportLibrary,
                         onImport = viewModel::importLibrary,
                     )
+                }
+            }
+
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clayCard(container = MaterialTheme.colorScheme.surfaceContainerLow, cornerRadius = 28.dp)
+                        .clickable(role = Role.Button, onClick = onOpenQuickMeals)
+                        .padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = stringResource(R.string.quick_meals_title),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
+                            )
+                            Text(
+                                text = stringResource(R.string.quick_meals_desc),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
                 }
             }
 

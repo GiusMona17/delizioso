@@ -570,4 +570,21 @@
     <string name="docs_status_never">Ancora nessun invio</string>
     <string name="docs_status_last">Ultimo invio: %1$s</string>
     <string name="docs_status_error">Errore: %1$s</string>
+
+    <!-- Quick Meals Catalog -->
+    <string name="quick_meals_title">Pasti rapidi</string>
+    <string name="quick_meals_desc">Gestisci i pasti semplici quotidiani non legati a ricette dettagliate</string>
+    <string name="quick_meals_empty">Nessun pasto rapido salvato</string>
+    <string name="quick_meals_empty_desc">Crea piatti semplici come latte e cereali o pasta per aggiungerli rapidamente al menu settimanale.</string>
+    <string name="quick_meals_create_new">Nuovo pasto rapido</string>
+    <string name="quick_meals_choose_saved">Pasto rapido salvato</string>
+    <string name="quick_meals_choose_saved_desc">Scegli tra i tuoi pasti quotidiani salvati</string>
+    <string name="quick_meals_filter_all">Tutti</string>
+    <string name="quick_meals_slot_any">Qualsiasi pasto</string>
+    <string name="quick_meals_delete_confirm_title">Elimina pasto rapido</string>
+    <string name="quick_meals_delete_confirm_body">Vuoi davvero eliminare questo pasto rapido dal catalogo? I pasti già pianificati nel menu non saranno modificati.</string>
+    <string name="quick_meals_count">%d pasti salvati</string>
+    <string name="quick_meals_pick_title">Scegli pasto rapido (%s)</string>
+    <string name="quick_meals_manage_catalog">Gestisci catalogo</string>
+    <string name="quick_meals_slot_label">Slot pasto predefinito</string>
 </resources>

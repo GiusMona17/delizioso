@@ -26,7 +26,7 @@ import org.robolectric.annotation.Config
 class DeliziosoDocsLoaderTest {
 
     private val db = newDeliziosoDb()
-    private val repository = RecipeRepository(db.recipeDao(), db.pantryDao())
+    private val repository = RecipeRepository(db.recipeDao(), db.pantryDao(), db.quickMealDao())
     private val now = Instant.parse("2026-10-08T15:23:54Z")
     private val today = LocalDate.of(2026, 10, 8)
     private var checked: Set<String> = emptySet()
