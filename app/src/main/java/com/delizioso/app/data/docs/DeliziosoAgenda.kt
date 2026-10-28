@@ -1,6 +1,8 @@
 package com.delizioso.app.data.docs
 
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.temporal.TemporalAdjusters
 import org.json.JSONArray
 import org.json.JSONObject
 
@@ -20,13 +22,16 @@ object DeliziosoAgenda {
     const val PANTRY_AHEAD = 14L
     const val PANTRY_BACK = 30L
 
+    /** The Monday of today's week: meals are listed from here so the board can show this week's past days. */
+    fun weekStart(today: LocalDate): LocalDate = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+
     fun build(input: DeliziosoDocsInput): List<AgendaItem> =
         (mealItems(input) + shoppingItems(input) + pantryItems(input))
             .sortedWith(compareBy({ it.date }, { it.kind }, { it.title }))
 
     private fun mealItems(input: DeliziosoDocsInput): List<AgendaItem> =
         input.meals
-            .filter { !it.date.isBefore(input.today) && !it.date.isAfter(input.today.plusDays(MEALS_AHEAD)) }
+            .filter { !it.date.isBefore(weekStart(input.today)) && !it.date.isAfter(input.today.plusDays(MEALS_AHEAD)) }
             .map { meal ->
                 AgendaItem(
                     date = meal.date,

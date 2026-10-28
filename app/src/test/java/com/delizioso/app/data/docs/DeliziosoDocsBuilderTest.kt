@@ -96,15 +96,39 @@ class DeliziosoDocsBuilderTest {
     }
 
     @Test
-    fun `a meal beyond 14 days or before today is left out`() {
+    fun `a meal beyond 14 days or before this week's Monday is left out`() {
         val farAhead = pasta.copy(date = today.plusDays(15), title = "Troppo lontano")
+        val lastSunday = pasta.copy(date = LocalDate.of(2026, 10, 4), title = "Domenica scorsa")
+        val monday = pasta.copy(date = LocalDate.of(2026, 10, 5), title = "Lunedi")
         val yesterday = pasta.copy(date = today.minusDays(1), title = "Ieri")
         val edge = pasta.copy(date = today.plusDays(14), title = "Al limite")
 
-        val titles = items(DeliziosoDocsBuilder.build(input(meals = listOf(farAhead, yesterday, edge), shopping = emptyList(), pantry = emptyList())))
+        val titles = items(DeliziosoDocsBuilder.build(input(meals = listOf(farAhead, lastSunday, monday, yesterday, edge), shopping = emptyList(), pantry = emptyList())))
             .map { it.getString("title") }
 
-        assertEquals(listOf("Al limite"), titles)
+        assertEquals(listOf("Lunedi", "Ieri", "Al limite"), titles)
+    }
+
+    @Test
+    fun `on a Monday nothing before today is kept`() {
+        val monday = LocalDate.of(2026, 10, 5)
+        val lastSunday = pasta.copy(date = monday.minusDays(1), title = "Domenica")
+        val mondayMeal = pasta.copy(date = monday, title = "Oggi")
+        val mondayInput = DeliziosoDocsInput(monday, generatedAt, "Europe/Rome", listOf(lastSunday, mondayMeal), emptyList(), emptyList())
+
+        val titles = items(DeliziosoDocsBuilder.build(mondayInput)).map { it.getString("title") }
+
+        assertEquals(listOf("Oggi"), titles)
+    }
+
+    @Test
+    fun `now md ignores this week's past meals`() {
+        val pastMeal = piadina.copy(date = today.minusDays(2), title = "Passato")
+
+        val withPast = DeliziosoDocsBuilder.build(input(meals = listOf(piadina, risotto, pasta, pastMeal)))
+        val without = DeliziosoDocsBuilder.build(input())
+
+        assertEquals(without.getValue("now.md"), withPast.getValue("now.md"))
     }
 
     @Test

@@ -80,6 +80,15 @@ class DeliziosoDocsLoaderTest {
     }
 
     @Test
+    fun `the meals are read from this week's Monday on`() {
+        val id = recipe("Pasta")
+        plan(id, today.minusDays(3), "DINNER")   // Monday 2026-10-05
+        plan(id, today.minusDays(4), "DINNER")   // last Sunday, left out
+
+        assertEquals(listOf(today.minusDays(3)), load().meals.map { it.date })
+    }
+
+    @Test
     fun `the shopping list is the next 7 days of recipes plus custom items, minus ticked and in-pantry ones`() = runBlocking {
         val id = recipe("Spaghetti al pomodoro", "spaghetti")
         plan(id, today.plusDays(1), "DINNER")

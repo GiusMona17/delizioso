@@ -32,7 +32,10 @@ class DeliziosoDocsLoader(
 
     suspend fun load(now: Instant, zone: ZoneId): DeliziosoDocsInput {
         val today = LocalDate.ofInstant(now, zone)
-        val planned = repository.mealsBetween(today.toEpochDay(), today.plusDays(DeliziosoAgenda.MEALS_AHEAD).toEpochDay()).first()
+        val planned = repository.mealsBetween(
+            DeliziosoAgenda.weekStart(today).toEpochDay(),
+            today.plusDays(DeliziosoAgenda.MEALS_AHEAD).toEpochDay(),
+        ).first()
 
         val meals = planned.map { m ->
             MealInput(
