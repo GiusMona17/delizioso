@@ -777,7 +777,7 @@ fun ClayGroupLabel(
     }
 }
 
-/** Dashed "nothing here yet — tap to add" panel used by the planner. */
+/** Compact dashed "nothing here yet — tap to add" panel used by the planner. */
 @Composable
 fun ClayAddPanel(
     text: String,
@@ -785,27 +785,32 @@ fun ClayAddPanel(
     modifier: Modifier = Modifier,
     accent: Color = MaterialTheme.colorScheme.primary,
 ) {
-    Column(
+    Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(18.dp))
             .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.6f))
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(18.dp))
             .clickable(role = Role.Button, onClick = onClick)
-            .padding(vertical = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(10.dp),
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
         Box(
             modifier = Modifier
-                .size(52.dp)
-                .clayOuter(shape = PillShape, elevation = 10.dp)
+                .size(36.dp)
+                .clayOuter(shape = PillShape, elevation = 6.dp)
                 .clip(PillShape)
                 .background(accent),
             contentAlignment = Alignment.Center,
         ) {
-            Icon(Icons.Filled.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(26.dp))
+            Icon(Icons.Filled.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(20.dp))
         }
-        Text(text, style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }

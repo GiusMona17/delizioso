@@ -128,7 +128,7 @@ fun PlannerScreen(
             val dayMeals = weekMeals.filter { it.meal.dateEpochDay == selectedDate.toEpochDay() }
             LazyColumn(
                 contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
                 modifier = Modifier.fillMaxSize(),
             ) {
                 if (weekNutritionRecap.totalPlannedMeals > 0) {
@@ -137,9 +137,13 @@ fun PlannerScreen(
                     }
                 }
 
-                MealSlot.all.forEach { slot ->
+                MealSlot.all.forEachIndexed { index, slot ->
                     item(key = "label-$slot") {
-                        ClayGroupLabel(stringResource(MealSlot.labelRes(slot)), icon = mealSlotIcon(slot), modifier = Modifier.padding(top = 12.dp))
+                        ClayGroupLabel(
+                            text = stringResource(MealSlot.labelRes(slot)),
+                            icon = mealSlotIcon(slot),
+                            modifier = Modifier.padding(top = if (index == 0 && weekNutritionRecap.totalPlannedMeals == 0) 0.dp else 6.dp),
+                        )
                     }
                     val slotMeals = dayMeals.filter { it.meal.slot == slot }
                     val mains = slotMeals.filter { !it.meal.isSide }
@@ -172,36 +176,35 @@ fun PlannerScreen(
                         }
                         item(key = "actions-$slot") {
                             Row(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(top = 4.dp),
                             ) {
                                 Text(
                                     stringResource(R.string.planner_add_more),
-                                    style = MaterialTheme.typography.labelLarge,
+                                    style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.primary,
                                     modifier = Modifier
                                         .clip(PillShape)
                                         .clickable { pickerRequest = PickerRequest(slot, isSide = false) }
-                                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
                                 )
                                 Text(
                                     stringResource(R.string.planner_add_side),
-                                    style = MaterialTheme.typography.labelLarge,
+                                    style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.secondary,
                                     modifier = Modifier
                                         .clip(PillShape)
                                         .clickable { pickerRequest = PickerRequest(slot, isSide = true) }
-                                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
                                 )
                                 Text(
                                     stringResource(R.string.planner_add_quick_meal),
-                                    style = MaterialTheme.typography.labelLarge,
+                                    style = MaterialTheme.typography.labelMedium,
                                     color = MaterialTheme.colorScheme.tertiary,
                                     modifier = Modifier
                                         .clip(PillShape)
                                         .clickable { quickMealPickerRequest = QuickMealPickerRequest(slot = slot, isSide = false) }
-                                        .padding(horizontal = 10.dp, vertical = 6.dp),
+                                        .padding(horizontal = 8.dp, vertical = 4.dp),
                                 )
                             }
                         }
